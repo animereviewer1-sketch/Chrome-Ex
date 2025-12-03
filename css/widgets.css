@@ -1,0 +1,725 @@
+/*
+ * Widget-spezifische Styles
+ * Jedes Widget hat eigene Styling-Regeln
+ */
+
+/* Basis Widget Styles */
+.widget {
+    position: absolute;
+    min-width: 200px;
+    min-height: 150px;
+    max-width: 800px;
+    max-height: 600px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--blur-intensity));
+    -webkit-backdrop-filter: blur(var(--blur-intensity));
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px var(--shadow-color);
+    overflow: hidden;
+    transition: box-shadow 0.3s ease, opacity 0.3s ease;
+    z-index: 1;
+}
+
+.widget:hover {
+    z-index: 10;
+}
+
+/* Auto-Hide Funktionalität */
+.widget.auto-hide {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.widget.auto-hide:hover {
+    opacity: 1;
+}
+
+/* Widget Header (Drag Handle) */
+.widget-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: rgba(0, 0, 0, 0.2);
+    cursor: move;
+    user-select: none;
+}
+
+.widget-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.widget-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.widget-control-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 6px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+}
+
+.widget-control-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--text-primary);
+}
+
+.widget-control-btn.settings-btn:hover {
+    color: var(--accent-primary);
+}
+
+/* Widget Content */
+.widget-content {
+    padding: 16px;
+    height: calc(100% - 52px);
+    overflow-y: auto;
+}
+
+/* Resize Handle */
+.resize-handle {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 20px;
+    height: 20px;
+    cursor: nwse-resize;
+    background: linear-gradient(135deg, transparent 50%, var(--glass-border) 50%);
+    border-radius: 0 0 16px 0;
+    transition: background 0.2s ease;
+}
+
+.resize-handle:hover {
+    background: linear-gradient(135deg, transparent 50%, var(--accent-primary) 50%);
+}
+
+.resize-handle::before {
+    content: '';
+    position: absolute;
+    right: 4px;
+    bottom: 4px;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid var(--text-secondary);
+    border-bottom: 2px solid var(--text-secondary);
+}
+
+/* === UHR WIDGET === */
+.widget-clock .clock-display {
+    text-align: center;
+    padding: 20px 0;
+}
+
+.widget-clock .time {
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+}
+
+.widget-clock .date {
+    font-size: 16px;
+    color: var(--text-secondary);
+    margin-top: 8px;
+}
+
+/* === WETTER WIDGET === */
+.widget-weather .weather-display {
+    text-align: center;
+}
+
+.widget-weather .weather-icon {
+    font-size: 64px;
+    margin-bottom: 12px;
+}
+
+.widget-weather .temperature {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.widget-weather .condition {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+.widget-weather .location {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 8px;
+    opacity: 0.7;
+}
+
+.widget-weather .weather-details {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--glass-border);
+}
+
+.widget-weather .weather-detail {
+    text-align: center;
+}
+
+.widget-weather .weather-detail-label {
+    font-size: 10px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.widget-weather .weather-detail-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-top: 4px;
+}
+
+/* === NOTIZEN WIDGET === */
+.widget-notes .notes-search {
+    position: relative;
+    margin-bottom: 12px;
+}
+
+.widget-notes .notes-search input {
+    width: 100%;
+    padding: 10px 12px 10px 36px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 13px;
+    transition: border-color 0.2s ease;
+}
+
+.widget-notes .notes-search input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+}
+
+.widget-notes .notes-search input::placeholder {
+    color: var(--text-secondary);
+}
+
+.widget-notes .notes-search::before {
+    content: '🔍';
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+}
+
+.widget-notes .notes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.widget-notes .note-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.widget-notes .note-item:hover {
+    border-color: var(--accent-primary);
+    background: rgba(99, 102, 241, 0.1);
+}
+
+.widget-notes .note-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.widget-notes .note-preview {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+.widget-notes .note-delete-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 4px;
+    transition: color 0.2s ease;
+}
+
+.widget-notes .note-delete-btn:hover {
+    color: var(--danger);
+}
+
+.widget-notes .add-note-btn {
+    width: 100%;
+    padding: 12px;
+    margin-top: 12px;
+    background: var(--accent-gradient);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.widget-notes .add-note-btn:hover {
+    opacity: 0.9;
+}
+
+/* === SCHNELLZUGRIFF WIDGET === */
+.widget-shortcuts .shortcuts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.widget-shortcuts .shortcut-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.widget-shortcuts .shortcut-item:hover {
+    border-color: var(--accent-primary);
+    background: rgba(99, 102, 241, 0.1);
+}
+
+.widget-shortcuts .shortcut-drag-handle {
+    cursor: grab;
+    color: var(--text-secondary);
+    font-size: 16px;
+    padding: 4px;
+}
+
+.widget-shortcuts .shortcut-drag-handle:active {
+    cursor: grabbing;
+}
+
+.widget-shortcuts .shortcut-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--glass-bg);
+    border-radius: 8px;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.widget-shortcuts .shortcut-icon img {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+}
+
+.widget-shortcuts .shortcut-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.widget-shortcuts .shortcut-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.widget-shortcuts .shortcut-url {
+    font-size: 11px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.widget-shortcuts .shortcut-edit-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 4px;
+    transition: color 0.2s ease;
+    opacity: 0;
+}
+
+.widget-shortcuts .shortcut-item:hover .shortcut-edit-btn {
+    opacity: 1;
+}
+
+.widget-shortcuts .shortcut-edit-btn:hover {
+    color: var(--accent-primary);
+}
+
+.widget-shortcuts .add-shortcut-btn {
+    width: 100%;
+    padding: 12px;
+    margin-top: 12px;
+    background: var(--accent-gradient);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.widget-shortcuts .add-shortcut-btn:hover {
+    opacity: 0.9;
+}
+
+/* Drag & Drop Styling */
+.widget-shortcuts .shortcut-item.dragging {
+    opacity: 0.5;
+    border: 2px dashed var(--accent-primary);
+}
+
+.widget-shortcuts .shortcut-item.drag-over {
+    border-color: var(--accent-primary);
+    background: rgba(99, 102, 241, 0.2);
+}
+
+/* === COUNTDOWN WIDGET === */
+.widget-countdown .countdown-display {
+    text-align: center;
+}
+
+.widget-countdown .event-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+}
+
+.widget-countdown .countdown-timer {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.widget-countdown .countdown-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    min-width: 60px;
+}
+
+.widget-countdown .countdown-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--accent-primary);
+    font-variant-numeric: tabular-nums;
+}
+
+.widget-countdown .countdown-label {
+    font-size: 10px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    margin-top: 4px;
+}
+
+.widget-countdown .add-countdown-btn {
+    width: 100%;
+    padding: 12px;
+    margin-top: 16px;
+    background: var(--accent-gradient);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.widget-countdown .add-countdown-btn:hover {
+    opacity: 0.9;
+}
+
+/* === PASSWORT-GENERATOR WIDGET === */
+.widget-password .password-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.widget-password .password-text {
+    flex: 1;
+    font-family: monospace;
+    font-size: 14px;
+    color: var(--text-primary);
+    word-break: break-all;
+}
+
+.widget-password .copy-btn {
+    padding: 8px 12px;
+    background: var(--accent-primary);
+    border: none;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.widget-password .copy-btn:hover {
+    opacity: 0.9;
+}
+
+.widget-password .password-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.widget-password .option-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.widget-password .option-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.widget-password .option-row input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+}
+
+.widget-password .length-slider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.widget-password .length-slider input[type="range"] {
+    flex: 1;
+}
+
+.widget-password .length-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent-primary);
+    min-width: 30px;
+    text-align: center;
+}
+
+.widget-password .strength-indicator {
+    margin-top: 12px;
+}
+
+.widget-password .strength-bar {
+    height: 4px;
+    background: var(--bg-tertiary);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.widget-password .strength-fill {
+    height: 100%;
+    width: 0;
+    border-radius: 2px;
+    transition: width 0.3s ease, background 0.3s ease;
+}
+
+.widget-password .strength-fill.weak {
+    width: 25%;
+    background: var(--danger);
+}
+
+.widget-password .strength-fill.fair {
+    width: 50%;
+    background: var(--warning);
+}
+
+.widget-password .strength-fill.good {
+    width: 75%;
+    background: #84cc16;
+}
+
+.widget-password .strength-fill.strong {
+    width: 100%;
+    background: var(--success);
+}
+
+.widget-password .strength-text {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    text-align: right;
+}
+
+.widget-password .generate-btn {
+    width: 100%;
+    padding: 12px;
+    margin-top: 16px;
+    background: var(--accent-gradient);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.widget-password .generate-btn:hover {
+    opacity: 0.9;
+}
+
+/* === KALENDER WIDGET === */
+.widget-calendar .calendar-events {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.widget-calendar .calendar-event {
+    display: flex;
+    gap: 12px;
+    padding: 12px;
+    background: var(--bg-secondary);
+    border-left: 3px solid var(--accent-primary);
+    border-radius: 8px;
+}
+
+.widget-calendar .event-time {
+    font-size: 12px;
+    color: var(--accent-primary);
+    font-weight: 500;
+    min-width: 50px;
+}
+
+.widget-calendar .event-info {
+    flex: 1;
+}
+
+.widget-calendar .event-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.widget-calendar .event-description {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+.widget-calendar .no-events {
+    text-align: center;
+    padding: 24px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.widget-calendar .connect-calendar-btn {
+    width: 100%;
+    padding: 12px;
+    margin-top: 12px;
+    background: var(--accent-gradient);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.widget-calendar .connect-calendar-btn:hover {
+    opacity: 0.9;
+}
+
+/* Loading State */
+.widget-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.widget-loading::after {
+    content: '';
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--glass-border);
+    border-top-color: var(--accent-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Error State */
+.widget-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.widget-error .error-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+}
+
+.widget-error .error-message {
+    font-size: 13px;
+}

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Extension</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 300px;
+            padding: 16px;
+            background: #1a1a2e;
+            color: #ffffff;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .quick-links {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .quick-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .quick-link:hover {
+            background: rgba(99, 102, 241, 0.3);
+            border-color: #6366f1;
+        }
+
+        .quick-link .icon {
+            font-size: 20px;
+        }
+
+        .version {
+            margin-top: 16px;
+            text-align: center;
+            font-size: 12px;
+            color: #b0b0c0;
+        }
+    </style>
+</head>
+<body>
+    <h2>🏠 Dashboard</h2>
+    
+    <div class="quick-links">
+        <a href="newtab.html" class="quick-link" target="_blank">
+            <span class="icon">📊</span>
+            <span>Dashboard öffnen</span>
+        </a>
+        <a href="tabs.html" class="quick-link" target="_blank">
+            <span class="icon">📑</span>
+            <span>Alle Tabs anzeigen</span>
+        </a>
+        <a href="bookmarks.html" class="quick-link" target="_blank">
+            <span class="icon">🔖</span>
+            <span>Lesezeichen</span>
+        </a>
+    </div>
+
+    <div class="version">Version 1.0.0</div>
+</body>
+</html>

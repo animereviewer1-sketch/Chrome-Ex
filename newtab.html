@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neuer Tab - Dashboard</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/widgets.css">
+    <link rel="stylesheet" href="css/effects.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&family=Open+Sans:wght@300;400;600;700&family=Montserrat:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=Lato:wght@300;400;700&family=Raleway:wght@300;400;500;600;700&family=Nunito:wght@300;400;600;700&family=Quicksand:wght@300;400;500;600;700&family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="dark-mode">
+    <!-- Hintergrund-Container -->
+    <div id="background-container">
+        <div id="custom-background"></div>
+        <div id="theme-overlay"></div>
+    </div>
+
+    <!-- Widget-Container -->
+    <div id="widget-container"></div>
+
+    <!-- Widget hinzufügen Button -->
+    <button id="add-widget-btn" class="glassmorphism-btn">
+        <span class="icon">+</span>
+        <span class="text">Widget hinzufügen</span>
+    </button>
+
+    <!-- Einstellungen Button -->
+    <button id="settings-btn" class="glassmorphism-btn icon-only">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+    </button>
+
+    <!-- Widget-Auswahl Modal -->
+    <div id="widget-picker-modal" class="modal">
+        <div class="modal-content glassmorphism">
+            <div class="modal-header">
+                <h2>Widget hinzufügen</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="widget-grid">
+                    <div class="widget-option" data-type="clock">
+                        <span class="widget-icon">🕐</span>
+                        <span class="widget-name">Uhr</span>
+                    </div>
+                    <div class="widget-option" data-type="weather">
+                        <span class="widget-icon">🌤️</span>
+                        <span class="widget-name">Wetter</span>
+                    </div>
+                    <div class="widget-option" data-type="notes">
+                        <span class="widget-icon">📝</span>
+                        <span class="widget-name">Notizen</span>
+                    </div>
+                    <div class="widget-option" data-type="shortcuts">
+                        <span class="widget-icon">⚡</span>
+                        <span class="widget-name">Schnellzugriff</span>
+                    </div>
+                    <div class="widget-option" data-type="countdown">
+                        <span class="widget-icon">⏱️</span>
+                        <span class="widget-name">Countdown</span>
+                    </div>
+                    <div class="widget-option" data-type="password">
+                        <span class="widget-icon">🔐</span>
+                        <span class="widget-name">Passwort-Generator</span>
+                    </div>
+                    <div class="widget-option" data-type="calendar">
+                        <span class="widget-icon">📅</span>
+                        <span class="widget-name">Kalender</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Widget-Einstellungen Modal -->
+    <div id="widget-settings-modal" class="modal">
+        <div class="modal-content glassmorphism">
+            <div class="modal-header">
+                <h2>Widget-Einstellungen</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-group">
+                    <label>Hintergrundfarbe</label>
+                    <input type="color" id="widget-bg-color" value="#1e1e2e">
+                </div>
+                <div class="setting-group">
+                    <label>Opazität</label>
+                    <input type="range" id="widget-opacity" min="0" max="100" value="80">
+                    <span id="widget-opacity-value">80%</span>
+                </div>
+                <div class="setting-group">
+                    <label>Effekt</label>
+                    <select id="widget-effect">
+                        <option value="none">Kein Effekt</option>
+                        <option value="glow">Glow</option>
+                        <option value="neon">Neon</option>
+                        <option value="3d">3D</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label>Auto-Hide bei Hover</label>
+                    <input type="checkbox" id="widget-auto-hide">
+                </div>
+                <div class="modal-footer">
+                    <button id="save-widget-settings" class="btn primary">Speichern</button>
+                    <button id="delete-widget" class="btn danger">Widget löschen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Globale Einstellungen Modal -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content glassmorphism large">
+            <div class="modal-header">
+                <h2>Einstellungen</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-tabs">
+                    <button class="tab-btn active" data-tab="appearance">Aussehen</button>
+                    <button class="tab-btn" data-tab="fonts">Schriftarten</button>
+                    <button class="tab-btn" data-tab="grid">Raster</button>
+                    <button class="tab-btn" data-tab="quickactions">Schnellaktionen</button>
+                </div>
+                
+                <div class="tab-content active" id="tab-appearance">
+                    <div class="setting-group">
+                        <label>Theme</label>
+                        <select id="theme-select">
+                            <option value="dark" selected>Dark Mode</option>
+                            <option value="light">Light Mode</option>
+                        </select>
+                    </div>
+                    <div class="setting-group">
+                        <label>Blur-Intensität</label>
+                        <input type="range" id="blur-intensity" min="0" max="30" value="10">
+                        <span id="blur-value">10px</span>
+                        <div id="blur-preview" class="glassmorphism preview-box">
+                            <p>Live-Vorschau des Blur-Effekts</p>
+                        </div>
+                    </div>
+                    <div class="setting-group">
+                        <label>Hintergrundbild</label>
+                        <input type="file" id="background-upload" accept="image/*">
+                        <button id="remove-background" class="btn secondary">Hintergrund entfernen</button>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="tab-fonts">
+                    <div class="font-grid">
+                        <div class="font-card" data-font="Inter">
+                            <span style="font-family: 'Inter', sans-serif;">Aa Bb Cc</span>
+                            <span class="font-name">Inter</span>
+                        </div>
+                        <div class="font-card" data-font="Roboto">
+                            <span style="font-family: 'Roboto', sans-serif;">Aa Bb Cc</span>
+                            <span class="font-name">Roboto</span>
+                        </div>
+                        <div class="font-card" data-font="Open Sans">
+                            <span style="font-family: 'Open Sans', sans-serif;">Aa Bb Cc</span>
+                            <span class="font-name">Open Sans</span>
+                        </div>
+                        <div class="font-card" data-font="Montserrat">
+                            <span style="font-family: 'Montserrat', sans-serif;">Aa Bb Cc</span>
+                            <span class="font-name">Montserrat</span>
+                        </div>
+                        <div class="font-card" data-font="Poppins">
+                            <span style="font-family: 'Poppins', sans-serif;">Aa Bb Cc</span>
+                            <span class="font-name">Poppins</span>
+                        </div>
+                        <div class="font-card" data-font="Lato">
+                            <span style="font-family: 'Lato', sans-serif;">Aa Bb Cc</span>
+                            <span class="font-name">Lato</span>
+                        </div>
+                        <div class="font-card" data-font="Raleway">
+                            <span style="font-family: 'Raleway', sans-serif;">Aa Bb Cc</span>
+                            <span class="font-name">Raleway</span>
+                        </div>
+                        <div class="font-card" data-font="Nunito">
+                            <span style="font-family: 'Nunito', sans-serif;">Aa Bb Cc</span>
+                            <span class="font-name">Nunito</span>
+                        </div>
+                        <div class="font-card" data-font="Quicksand">
+                            <span style="font-family: 'Quicksand', sans-serif;">Aa Bb Cc</span>
+                            <span class="font-name">Quicksand</span>
+                        </div>
+                        <div class="font-card" data-font="Source Sans Pro">
+                            <span style="font-family: 'Source Sans Pro', sans-serif;">Aa Bb Cc</span>
+                            <span class="font-name">Source Sans Pro</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="tab-grid">
+                    <div class="setting-group">
+                        <label>Rastergröße (px)</label>
+                        <input type="range" id="grid-size" min="5" max="50" value="10">
+                        <span id="grid-size-value">10px</span>
+                    </div>
+                    <div class="setting-group">
+                        <label>Rasterlinien anzeigen</label>
+                        <input type="checkbox" id="show-grid-lines">
+                    </div>
+                </div>
+
+                <div class="tab-content" id="tab-quickactions">
+                    <h3>Schnellaktionen</h3>
+                    <div class="quick-actions-grid">
+                        <button class="quick-action-btn" id="open-tabs-page">
+                            <span class="icon">📑</span>
+                            <span>Tabs öffnen</span>
+                        </button>
+                        <button class="quick-action-btn" id="open-bookmarks-page">
+                            <span class="icon">🔖</span>
+                            <span>Lesezeichen öffnen</span>
+                        </button>
+                        <button class="quick-action-btn" id="clear-cache">
+                            <span class="icon">🗑️</span>
+                            <span>Cache leeren</span>
+                        </button>
+                        <button class="quick-action-btn" id="export-settings">
+                            <span class="icon">📤</span>
+                            <span>Einstellungen exportieren</span>
+                        </button>
+                        <button class="quick-action-btn" id="import-settings">
+                            <span class="icon">📥</span>
+                            <span>Einstellungen importieren</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notiz-Editor Modal -->
+    <div id="note-editor-modal" class="modal">
+        <div class="modal-content glassmorphism">
+            <div class="modal-header">
+                <input type="text" id="note-title" placeholder="Notiz-Titel" class="note-title-input">
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <textarea id="note-content" placeholder="Schreibe hier deine Notiz..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button id="save-note" class="btn primary">Speichern</button>
+                <button id="delete-note" class="btn danger">Löschen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shortcut-Editor Modal -->
+    <div id="shortcut-editor-modal" class="modal">
+        <div class="modal-content glassmorphism">
+            <div class="modal-header">
+                <h2>Schnellzugriff bearbeiten</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-group">
+                    <label>Name</label>
+                    <input type="text" id="shortcut-name" placeholder="Name des Links">
+                </div>
+                <div class="setting-group">
+                    <label>URL</label>
+                    <input type="url" id="shortcut-url" placeholder="https://example.com">
+                </div>
+                <div class="setting-group">
+                    <label>Icon</label>
+                    <div class="icon-picker">
+                        <button class="icon-option active" data-type="auto">Auto (Favicon)</button>
+                        <button class="icon-option" data-type="emoji">Emoji</button>
+                        <button class="icon-option" data-type="upload">Hochladen</button>
+                        <button class="icon-option" data-type="url">Icon-URL</button>
+                    </div>
+                    <div id="icon-input-container">
+                        <input type="text" id="shortcut-icon-emoji" placeholder="Emoji eingeben (z.B. 🌐)" style="display: none;">
+                        <input type="file" id="shortcut-icon-upload" accept="image/*" style="display: none;">
+                        <input type="url" id="shortcut-icon-url" placeholder="Icon-URL eingeben" style="display: none;">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="save-shortcut" class="btn primary">Speichern</button>
+                <button id="delete-shortcut" class="btn danger">Löschen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Countdown-Editor Modal -->
+    <div id="countdown-editor-modal" class="modal">
+        <div class="modal-content glassmorphism">
+            <div class="modal-header">
+                <h2>Countdown bearbeiten</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-group">
+                    <label>Event-Name</label>
+                    <input type="text" id="countdown-name" placeholder="Name des Events">
+                </div>
+                <div class="setting-group">
+                    <label>Datum & Uhrzeit</label>
+                    <input type="datetime-local" id="countdown-datetime">
+                </div>
+                <div class="setting-group">
+                    <label>Benachrichtigung aktivieren</label>
+                    <input type="checkbox" id="countdown-notification">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="save-countdown" class="btn primary">Speichern</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/widgets.js"></script>
+    <script src="js/widget-clock.js"></script>
+    <script src="js/widget-weather.js"></script>
+    <script src="js/widget-notes.js"></script>
+    <script src="js/widget-shortcuts.js"></script>
+    <script src="js/widget-countdown.js"></script>
+    <script src="js/widget-password.js"></script>
+    <script src="js/widget-calendar.js"></script>
+    <script src="js/settings.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
