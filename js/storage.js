@@ -93,11 +93,21 @@ const Storage = {
    * Get specific value from storage
    */
   async get(key) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       if (typeof chrome !== 'undefined' && chrome.storage) {
-        chrome.storage.local.get(key, (data) => {
-          resolve(data[key] !== undefined ? data[key] : this.defaults[key]);
-        });
+        try {
+          chrome.storage.local.get(key, (data) => {
+            if (chrome.runtime.lastError) {
+              console.error('Storage get error:', chrome.runtime.lastError);
+              resolve(this.defaults[key]);
+              return;
+            }
+            resolve(data[key] !== undefined ? data[key] : this.defaults[key]);
+          });
+        } catch (error) {
+          console.error('Storage get error:', error);
+          resolve(this.defaults[key]);
+        }
       } else {
         const value = localStorage.getItem(key);
         if (value) {

@@ -9,11 +9,11 @@ const QuickActions = {
   filteredActions: [],
   
   actions: [
-    { id: 'new-note', icon: '📝', text: 'Neue Notiz erstellen', shortcut: '', action: () => Notes.createNote() },
-    { id: 'new-countdown', icon: '⏲️', text: 'Neuer Countdown', shortcut: '', action: () => Countdown.showAddModal() },
+    { id: 'new-note', icon: '📝', text: 'Neue Notiz erstellen', shortcut: '', action: () => { if (typeof Notes !== 'undefined') Notes.createNote(); } },
+    { id: 'new-countdown', icon: '⏲️', text: 'Neuer Countdown', shortcut: '', action: () => { if (typeof Countdown !== 'undefined') Countdown.showAddModal(); } },
     { id: 'new-todo', icon: '✅', text: 'Neue Aufgabe', shortcut: '', action: () => QuickActions.focusTodoInput() },
     { id: 'new-shortcut', icon: '🔗', text: 'Neuer Schnellzugriff', shortcut: '', action: () => QuickActions.openSettings('shortcuts') },
-    { id: 'toggle-edit', icon: '✏️', text: 'Edit-Modus umschalten', shortcut: 'E', action: () => EditMode.toggle() },
+    { id: 'toggle-edit', icon: '✏️', text: 'Edit-Modus umschalten', shortcut: 'E', action: () => { if (typeof EditMode !== 'undefined') EditMode.toggle(); } },
     { id: 'change-theme', icon: '🎨', text: 'Theme wechseln', shortcut: 'T', action: () => QuickActions.openSettings('themes') },
     { id: 'settings', icon: '⚙️', text: 'Einstellungen öffnen', shortcut: ',', action: () => window.location.href = 'settings.html' },
     { id: 'export', icon: '📤', text: 'Einstellungen exportieren', shortcut: '', action: () => QuickActions.exportSettings() },
@@ -21,8 +21,8 @@ const QuickActions = {
     { id: 'gen-password', icon: '🔐', text: 'Passwort generieren', shortcut: 'P', action: () => QuickActions.showPasswordGenerator() },
     { id: 'search-tabs', icon: '🔍', text: 'Tabs durchsuchen', shortcut: '', action: () => QuickActions.showTabSearch() },
     { id: 'search-bookmarks', icon: '⭐', text: 'Lesezeichen durchsuchen', shortcut: '', action: () => QuickActions.showBookmarkSearch() },
-    { id: 'new-quote', icon: '💭', text: 'Neues Zitat', shortcut: '', action: () => Quotes.newQuote() },
-    { id: 'toggle-grid', icon: '📐', text: 'Raster ein/aus', shortcut: 'G', action: () => EditMode.toggleGrid() }
+    { id: 'new-quote', icon: '💭', text: 'Neues Zitat', shortcut: '', action: () => { if (typeof Quotes !== 'undefined') Quotes.newQuote(); } },
+    { id: 'toggle-grid', icon: '📐', text: 'Raster ein/aus', shortcut: 'G', action: () => { if (typeof EditMode !== 'undefined') EditMode.toggleGrid(); } }
   ],
 
   /**
