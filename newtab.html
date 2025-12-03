@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neuer Tab - SuperStart</title>
+    <link rel="stylesheet" href="css/newtab.css">
+</head>
+<body>
+    <!-- Hintergrund-Overlay / Background overlay -->
+    <div id="background-overlay"></div>
+    
+    <!-- Hauptcontainer / Main container -->
+    <main class="container">
+        <!-- Uhr & Datum Widget / Clock & Date widget -->
+        <section id="clock-widget" class="widget">
+            <div id="time" class="time">00:00</div>
+            <div id="date" class="date">Montag, 1. Januar 2024</div>
+        </section>
+        
+        <!-- Suchleiste / Search bar -->
+        <section id="search-widget" class="widget">
+            <form id="search-form" class="search-form">
+                <div class="search-container">
+                    <select id="search-engine" class="search-engine-select" aria-label="Suchmaschine auswählen">
+                        <option value="google">Google</option>
+                        <option value="duckduckgo">DuckDuckGo</option>
+                        <option value="bing">Bing</option>
+                    </select>
+                    <input 
+                        type="text" 
+                        id="search-input" 
+                        class="search-input" 
+                        placeholder="Suche im Web..." 
+                        autocomplete="off"
+                        aria-label="Suchbegriff eingeben"
+                    >
+                    <button type="submit" class="search-button" aria-label="Suchen">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </section>
+        
+        <!-- Schnellzugriff / Quick access bookmarks -->
+        <section id="bookmarks-widget" class="widget">
+            <div class="bookmarks-header">
+                <h2 class="bookmarks-title">Schnellzugriff</h2>
+                <button id="add-bookmark-btn" class="add-bookmark-btn" aria-label="Lesezeichen hinzufügen">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </button>
+            </div>
+            <div id="bookmarks-grid" class="bookmarks-grid">
+                <!-- Lesezeichen werden hier dynamisch eingefügt -->
+                <!-- Bookmarks will be dynamically inserted here -->
+            </div>
+        </section>
+        
+        <!-- Motivationszitat Widget / Motivational quote widget -->
+        <section id="quote-widget" class="widget quote-widget">
+            <blockquote id="quote-text" class="quote-text">
+                "Der beste Weg, die Zukunft vorherzusagen, ist, sie zu gestalten."
+            </blockquote>
+            <cite id="quote-author" class="quote-author">- Peter Drucker</cite>
+        </section>
+    </main>
+    
+    <!-- Einstellungs-Button / Settings button -->
+    <button id="settings-btn" class="settings-btn" aria-label="Einstellungen öffnen">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+    </button>
+    
+    <!-- Modal für Lesezeichen hinzufügen/bearbeiten -->
+    <!-- Modal for adding/editing bookmarks -->
+    <div id="bookmark-modal" class="modal" role="dialog" aria-labelledby="modal-title" aria-modal="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title" class="modal-title">Lesezeichen hinzufügen</h3>
+                <button id="modal-close" class="modal-close" aria-label="Schließen">&times;</button>
+            </div>
+            <form id="bookmark-form" class="bookmark-form">
+                <div class="form-group">
+                    <label for="bookmark-name">Name</label>
+                    <input type="text" id="bookmark-name" required placeholder="z.B. Google">
+                </div>
+                <div class="form-group">
+                    <label for="bookmark-url">URL</label>
+                    <input type="url" id="bookmark-url" required placeholder="https://www.google.com">
+                </div>
+                <input type="hidden" id="bookmark-id">
+                <div class="form-actions">
+                    <button type="button" id="delete-bookmark" class="btn btn-danger" style="display: none;">Löschen</button>
+                    <button type="submit" class="btn btn-primary">Speichern</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script src="js/storage.js"></script>
+    <script src="js/newtab.js"></script>
+</body>
+</html>
