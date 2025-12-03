@@ -14,6 +14,9 @@ let settings = {};
 // DOM Elemente / DOM Elements
 // ==========================================
 const elements = {
+    // Navigation
+    backLink: null,
+    
     // Theme
     themeBtns: null,
     
@@ -54,6 +57,9 @@ const elements = {
  * DOM Elemente initialisieren / Initialize DOM elements
  */
 function initializeElements() {
+    // Navigation
+    elements.backLink = document.getElementById('back-link');
+    
     // Theme
     elements.themeBtns = document.querySelectorAll('[data-theme]');
     
@@ -150,6 +156,89 @@ function applyTheme(theme) {
 }
 
 // ==========================================
+// Validierung / Validation
+// ==========================================
+
+/**
+ * Import-Daten validieren / Validate import data
+ * @param {Object} data - Zu validierende Daten
+ * @returns {boolean} True wenn gültig, sonst false
+ */
+function validateImportData(data) {
+    // Mindestens settings oder bookmarks muss vorhanden sein
+    // At least settings or bookmarks must be present
+    if (!data || (typeof data !== 'object')) {
+        return false;
+    }
+    
+    if (!data.settings && !data.bookmarks) {
+        return false;
+    }
+    
+    // Settings validieren / Validate settings
+    if (data.settings) {
+        if (typeof data.settings !== 'object') {
+            return false;
+        }
+        
+        // Erlaubte Felder prüfen / Check allowed fields
+        const allowedSettings = ['theme', 'background', 'customBackgroundUrl', 'searchEngine', 
+                                  'clockFormat', 'showQuotes', 'showBookmarks', 'showClock', 
+                                  'showSearch', 'language'];
+        
+        for (const key of Object.keys(data.settings)) {
+            if (!allowedSettings.includes(key)) {
+                return false;
+            }
+        }
+        
+        // Theme validieren / Validate theme
+        if (data.settings.theme && !['light', 'dark'].includes(data.settings.theme)) {
+            return false;
+        }
+        
+        // Clock format validieren / Validate clock format
+        if (data.settings.clockFormat && !['12h', '24h'].includes(data.settings.clockFormat)) {
+            return false;
+        }
+        
+        // Search engine validieren / Validate search engine
+        if (data.settings.searchEngine && !['google', 'duckduckgo', 'bing'].includes(data.settings.searchEngine)) {
+            return false;
+        }
+    }
+    
+    // Bookmarks validieren / Validate bookmarks
+    if (data.bookmarks) {
+        if (!Array.isArray(data.bookmarks)) {
+            return false;
+        }
+        
+        for (const bookmark of data.bookmarks) {
+            if (typeof bookmark !== 'object') {
+                return false;
+            }
+            
+            // Pflichtfelder prüfen / Check required fields
+            if (typeof bookmark.id !== 'string' || 
+                typeof bookmark.name !== 'string' || 
+                typeof bookmark.url !== 'string') {
+                return false;
+            }
+            
+            // URL validieren / Validate URL
+            try {
+                new URL(bookmark.url);
+            } catch (e) {
+                return false;
+            }
+        }
+    }
+    
+    return true;
+}
+
+// ==========================================
 // Event Listener
 // ==========================================
 
@@ -157,6 +246,19 @@ function applyTheme(theme) {
  * Event Listener einrichten / Set up event listeners
  */
 function setupEventListeners() {
+    // Zurück-Button / Back button
+    if (elements.backLink) {
+        elements.backLink.addEventListener('click', () => {
+            // Neuen Tab öffnen / Open new tab
+            if (typeof chrome !== 'undefined' && chrome.tabs) {
+                chrome.tabs.create({});
+            } else {
+                // Fallback für Entwicklung / Fallback for development
+                window.open('newtab.html', '_blank');
+            }
+        });
+    }
+    
     // Theme-Wechsel / Theme change
     elements.themeBtns.forEach(btn => {
         btn.addEventListener('click', async () => {
@@ -318,7 +420,7 @@ function setupEventListeners() {
                 const data = JSON.parse(text);
                 
                 // Daten validieren / Validate data
-                if (!data.settings && !data.bookmarks) {
+                if (!validateImportData(data)) {
                     throw new Error('Ungültiges Dateiformat');
                 }
                 

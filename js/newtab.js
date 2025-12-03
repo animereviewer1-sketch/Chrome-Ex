@@ -268,21 +268,56 @@ function createBookmarkElement(bookmark) {
         domain = 'example.com';
     }
     
-    // Favicon mit Google API laden / Load favicon with Google API
-    const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+    // HTML-Zeichen escapen / Escape HTML characters
+    const escapeHtml = (str) => {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    };
     
-    item.innerHTML = `
-        <div class="bookmark-icon">
-            <img src="${faviconUrl}" alt="${bookmark.name}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2232%22 height=%2232%22 viewBox=%220 0 24 24%22 fill=%22%236366f1%22><circle cx=%2212%22 cy=%2212%22 r=%2210%22/><text x=%2212%22 y=%2216%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2210%22>${bookmark.name.charAt(0).toUpperCase()}</text></svg>'">
-        </div>
-        <span class="bookmark-name">${bookmark.name}</span>
-        <button class="bookmark-edit-btn" aria-label="Bearbeiten" onclick="event.preventDefault(); openEditBookmark('${bookmark.id}')">
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-            </svg>
-        </button>
+    const safeName = escapeHtml(bookmark.name);
+    const safeId = escapeHtml(bookmark.id);
+    const firstChar = bookmark.name.charAt(0).toUpperCase();
+    const safeFirstChar = encodeURIComponent(firstChar);
+    
+    // Favicon mit Google API laden / Load favicon with Google API
+    const faviconUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=64`;
+    
+    // SVG Fallback mit sicherem Zeichen / SVG fallback with safe character
+    const fallbackSvg = `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2232%22 height=%2232%22 viewBox=%220 0 24 24%22 fill=%22%236366f1%22><circle cx=%2212%22 cy=%2212%22 r=%2210%22/><text x=%2212%22 y=%2216%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2210%22>${safeFirstChar}</text></svg>`;
+    
+    // DOM-Elemente erstellen statt innerHTML / Create DOM elements instead of innerHTML
+    const iconDiv = document.createElement('div');
+    iconDiv.className = 'bookmark-icon';
+    
+    const img = document.createElement('img');
+    img.src = faviconUrl;
+    img.alt = bookmark.name;
+    img.onerror = function() { this.src = fallbackSvg; };
+    iconDiv.appendChild(img);
+    
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'bookmark-name';
+    nameSpan.textContent = bookmark.name;
+    
+    const editBtn = document.createElement('button');
+    editBtn.className = 'bookmark-edit-btn';
+    editBtn.setAttribute('aria-label', 'Bearbeiten');
+    editBtn.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+        </svg>
     `;
+    editBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openEditBookmark(bookmark.id);
+    });
+    
+    item.appendChild(iconDiv);
+    item.appendChild(nameSpan);
+    item.appendChild(editBtn);
     
     return item;
 }
