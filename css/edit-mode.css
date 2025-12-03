@@ -1,0 +1,468 @@
+/* ===== Edit Mode Styles ===== */
+
+/* Edit Mode Button */
+#edit-mode-btn {
+  position: relative;
+}
+
+#edit-mode-btn .edit-icon {
+  font-size: 16px;
+}
+
+#edit-mode-btn .edit-text {
+  font-size: 14px;
+}
+
+#edit-mode-btn.active {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+}
+
+#edit-mode-btn.active:hover {
+  background: var(--accent-hover);
+}
+
+/* Edit Mode Toolbar */
+.edit-toolbar {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 999;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.toolbar-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+}
+
+.toolbar-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 14px;
+}
+
+.toolbar-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.toolbar-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toolbar-btn.primary {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+}
+
+.toolbar-btn.primary:hover {
+  background: var(--accent-hover);
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 30px;
+  background: var(--glass-border);
+  margin: 0 5px;
+}
+
+.toolbar-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.toolbar-toggle input[type="checkbox"] {
+  appearance: none;
+  width: 40px;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 11px;
+  position: relative;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.toolbar-toggle input[type="checkbox"]::before {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: white;
+  top: 2px;
+  left: 2px;
+  transition: var(--transition);
+}
+
+.toolbar-toggle input[type="checkbox"]:checked {
+  background: var(--accent-color);
+}
+
+.toolbar-toggle input[type="checkbox"]:checked::before {
+  left: 20px;
+}
+
+/* Widget Edit Controls */
+.widget-edit-controls {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(20, 20, 40, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 5px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+  z-index: 100;
+  opacity: 0;
+  transform: translateY(-5px);
+  transition: all 0.2s ease;
+}
+
+.widget.edit-mode .widget-edit-controls {
+  display: flex;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.drag-handle {
+  cursor: grab;
+  font-size: 16px;
+  color: var(--text-muted);
+  padding: 4px 6px;
+  user-select: none;
+}
+
+.drag-handle:hover {
+  color: var(--text-primary);
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.widget-settings-btn,
+.widget-remove-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  font-size: 14px;
+  transition: var(--transition);
+  border-radius: 4px;
+}
+
+.widget-settings-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.widget-remove-btn:hover {
+  background: rgba(239, 83, 80, 0.2);
+}
+
+.widget-group-checkbox {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--glass-border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: var(--transition);
+  margin-left: 5px;
+}
+
+.widget-group-checkbox:checked {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+}
+
+.widget-group-checkbox:checked::after {
+  content: '✓';
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 11px;
+}
+
+/* Widget in Edit Mode */
+.widget.edit-mode {
+  border: 2px dashed var(--accent-color) !important;
+  cursor: move;
+  position: relative;
+}
+
+.widget.edit-mode::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(79, 195, 247, 0.05);
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.widget.edit-mode:hover {
+  box-shadow: 0 0 20px rgba(79, 195, 247, 0.3);
+}
+
+/* Dragging State */
+.widget.dragging {
+  opacity: 0.7;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5) !important;
+  transform: scale(1.02);
+  z-index: 1000;
+}
+
+.widget.drag-over {
+  border-color: var(--success-color) !important;
+  box-shadow: 0 0 20px rgba(102, 187, 106, 0.4);
+}
+
+/* Widget Selected for Grouping */
+.widget.selected-for-group {
+  border-color: var(--success-color) !important;
+  box-shadow: 0 0 15px rgba(102, 187, 106, 0.4);
+}
+
+.widget.selected-for-group::after {
+  content: '✓';
+  position: absolute;
+  top: -15px;
+  left: -15px;
+  width: 30px;
+  height: 30px;
+  background: var(--success-color);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 16px;
+  z-index: 101;
+}
+
+/* Widget Groups */
+.widget-group {
+  display: flex;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--border-radius);
+  gap: 15px;
+  position: relative;
+}
+
+.widget-group.horizontal {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.widget-group.vertical {
+  flex-direction: column;
+}
+
+.widget-group-header {
+  position: absolute;
+  top: -12px;
+  left: 15px;
+  background: rgba(20, 20, 40, 0.95);
+  padding: 2px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  border: 1px solid var(--glass-border);
+}
+
+.widget-group.edit-mode {
+  border: 2px dashed var(--accent-color);
+}
+
+.widget-group .ungroup-btn {
+  position: absolute;
+  top: -12px;
+  right: 15px;
+  background: rgba(20, 20, 40, 0.95);
+  border: 1px solid var(--glass-border);
+  border-radius: 6px;
+  padding: 2px 10px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.widget-group .ungroup-btn:hover {
+  color: var(--danger-color);
+  border-color: var(--danger-color);
+}
+
+/* Widget Size Classes */
+.widget.size-small {
+  transform: scale(0.85);
+}
+
+.widget.size-large {
+  transform: scale(1.15);
+}
+
+/* Widget No Background */
+.widget.no-background {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.widget.no-background.edit-mode {
+  border: 2px dashed var(--accent-color) !important;
+}
+
+/* Positioned Widgets */
+.widget.positioned {
+  position: absolute;
+}
+
+/* Grid Snap Indicator */
+.grid-snap-indicator {
+  position: fixed;
+  pointer-events: none;
+  z-index: 998;
+  opacity: 0.3;
+}
+
+.grid-snap-indicator .grid-line-h,
+.grid-snap-indicator .grid-line-v {
+  position: absolute;
+  background: var(--accent-color);
+}
+
+.grid-snap-indicator .grid-line-h {
+  height: 1px;
+  width: 100vw;
+  left: 0;
+}
+
+.grid-snap-indicator .grid-line-v {
+  width: 1px;
+  height: 100vh;
+  top: 0;
+}
+
+/* Drop Zone Highlight */
+.drop-zone {
+  position: relative;
+}
+
+.drop-zone.active::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px dashed var(--accent-color);
+  border-radius: var(--border-radius);
+  pointer-events: none;
+  animation: pulse 1.5s ease infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Edit Mode Body State */
+body.edit-mode-active .main-container {
+  transition: padding 0.3s ease;
+  padding-bottom: 100px;
+}
+
+body.edit-mode-active .widget:not(.edit-mode) {
+  opacity: 0.6;
+}
+
+/* Tooltip for Edit Mode */
+.edit-tooltip {
+  position: fixed;
+  background: rgba(20, 20, 40, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--glass-border);
+  font-size: 12px;
+  color: var(--text-primary);
+  z-index: 1001;
+  pointer-events: none;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.edit-tooltip.visible {
+  opacity: 1;
+}
+
+/* Responsive Edit Mode */
+@media (max-width: 768px) {
+  .edit-toolbar {
+    left: 10px;
+    right: 10px;
+    transform: none;
+    bottom: 10px;
+  }
+  
+  .toolbar-content {
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 10px;
+  }
+  
+  .toolbar-btn span:last-child {
+    display: none;
+  }
+  
+  .widget-edit-controls {
+    top: -5px;
+    right: -5px;
+    padding: 3px 5px;
+  }
+}
