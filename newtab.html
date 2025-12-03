@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Tab</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Background Container -->
+  <div id="background-container">
+    <div id="background-overlay"></div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-container">
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <!-- Weather Widget -->
+      <div id="weather-widget" class="glass-card">
+        <div class="weather-icon">
+          <span id="weather-icon-display">☀️</span>
+        </div>
+        <div class="weather-info">
+          <div class="weather-temp"><span id="temperature">--</span>°C</div>
+          <div class="weather-location" id="weather-location">Loading...</div>
+        </div>
+        <div class="weather-details">
+          <div class="weather-detail">
+            <span class="detail-label">Wind</span>
+            <span class="detail-value" id="wind-speed">-- km/h</span>
+          </div>
+          <div class="weather-detail">
+            <span class="detail-label">Humidity</span>
+            <span class="detail-value" id="humidity">--%</span>
+          </div>
+          <div class="weather-detail">
+            <span class="detail-label">UV</span>
+            <span class="detail-value" id="uv-index">--</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Button -->
+      <button id="settings-btn" class="glass-button" title="Settings">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Center Content -->
+    <div class="center-content">
+      <!-- Clock & Date -->
+      <div class="clock-container glass-card">
+        <div id="clock" class="clock">00:00</div>
+        <div id="date" class="date">Loading...</div>
+      </div>
+
+      <!-- Search Bar -->
+      <div class="search-container glass-card">
+        <div class="search-engine-selector">
+          <button id="search-engine-btn" class="engine-btn" title="Select search engine">
+            <img id="search-engine-icon" src="https://www.google.com/favicon.ico" alt="Search Engine">
+          </button>
+          <div id="search-engine-dropdown" class="engine-dropdown hidden">
+            <div class="engine-option" data-engine="google" data-url="https://www.google.com/search?q=">
+              <img src="https://www.google.com/favicon.ico" alt="Google">
+              <span>Google</span>
+            </div>
+            <div class="engine-option" data-engine="bing" data-url="https://www.bing.com/search?q=">
+              <img src="https://www.bing.com/favicon.ico" alt="Bing">
+              <span>Bing</span>
+            </div>
+            <div class="engine-option" data-engine="duckduckgo" data-url="https://duckduckgo.com/?q=">
+              <img src="https://duckduckgo.com/favicon.ico" alt="DuckDuckGo">
+              <span>DuckDuckGo</span>
+            </div>
+            <div class="engine-option" data-engine="yahoo" data-url="https://search.yahoo.com/search?p=">
+              <img src="https://www.yahoo.com/favicon.ico" alt="Yahoo">
+              <span>Yahoo</span>
+            </div>
+          </div>
+        </div>
+        <input type="text" id="search-input" placeholder="Search the web..." autocomplete="off">
+        <button id="search-btn" class="search-button">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="M21 21l-4.35-4.35"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Shortcuts Grid -->
+      <div id="shortcuts-container" class="shortcuts-container">
+        <!-- Shortcuts will be dynamically generated -->
+      </div>
+    </div>
+
+    <!-- Bottom Section -->
+    <div class="bottom-section">
+      <!-- Quote Widget -->
+      <div class="quote-container glass-card">
+        <div id="quote-text" class="quote-text">"Loading quote..."</div>
+        <div id="quote-author" class="quote-author">— Loading</div>
+      </div>
+
+      <!-- To-Do Widget -->
+      <div id="todo-widget" class="todo-container glass-card">
+        <div class="todo-header">
+          <h3>To-Do List</h3>
+          <button id="add-todo-btn" class="glass-button-small" title="Add task">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </button>
+        </div>
+        <div id="todo-input-container" class="todo-input-container hidden">
+          <input type="text" id="todo-input" placeholder="Add a new task..." autocomplete="off">
+          <button id="save-todo-btn" class="glass-button-small">Add</button>
+        </div>
+        <ul id="todo-list" class="todo-list">
+          <!-- Todo items will be dynamically generated -->
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="modal-content glass-card">
+      <div class="modal-header">
+        <h2>Settings</h2>
+        <button id="close-settings" class="close-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      
+      <div class="settings-content">
+        <!-- Background Settings -->
+        <div class="settings-section">
+          <h3>Background</h3>
+          <div class="setting-item">
+            <label>Upload Custom Background</label>
+            <input type="file" id="bg-upload" accept="image/*">
+          </div>
+          <div id="saved-backgrounds" class="background-grid">
+            <!-- Saved backgrounds will be shown here -->
+          </div>
+          <button id="reset-bg-btn" class="glass-button-small">Reset to Default</button>
+        </div>
+
+        <!-- Weather Settings -->
+        <div class="settings-section">
+          <h3>Weather</h3>
+          <div class="setting-item">
+            <label for="weather-api-key">API Key (WeatherAPI.com)</label>
+            <input type="text" id="weather-api-key" placeholder="Enter your API key">
+          </div>
+          <div class="setting-item">
+            <label for="weather-location-input">Location</label>
+            <div class="location-input-group">
+              <input type="text" id="weather-location-input" placeholder="City name or coordinates">
+              <button id="detect-location-btn" class="glass-button-small" title="Detect location">📍</button>
+            </div>
+          </div>
+          <div class="setting-item">
+            <label>Temperature Unit</label>
+            <select id="temp-unit">
+              <option value="c">Celsius (°C)</option>
+              <option value="f">Fahrenheit (°F)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Display Settings -->
+        <div class="settings-section">
+          <h3>Display</h3>
+          <div class="setting-item">
+            <label for="time-format">Time Format</label>
+            <select id="time-format">
+              <option value="24">24-hour</option>
+              <option value="12">12-hour</option>
+            </select>
+          </div>
+          <div class="setting-item">
+            <label for="language-select">Language</label>
+            <select id="language-select">
+              <option value="de">Deutsch</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Widgets Settings -->
+        <div class="settings-section">
+          <h3>Widgets</h3>
+          <div class="setting-item checkbox-item">
+            <label>
+              <input type="checkbox" id="show-weather" checked>
+              Show Weather Widget
+            </label>
+          </div>
+          <div class="setting-item checkbox-item">
+            <label>
+              <input type="checkbox" id="show-todo" checked>
+              Show To-Do List
+            </label>
+          </div>
+          <div class="setting-item checkbox-item">
+            <label>
+              <input type="checkbox" id="show-quotes" checked>
+              Show Quotes
+            </label>
+          </div>
+        </div>
+
+        <!-- Shortcuts Management -->
+        <div class="settings-section">
+          <h3>Shortcuts</h3>
+          <div id="shortcuts-list" class="shortcuts-list">
+            <!-- Shortcuts will be dynamically generated -->
+          </div>
+          <button id="add-shortcut-btn" class="glass-button-small">+ Add Shortcut</button>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="save-settings-btn" class="glass-button primary">Save Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Shortcut Modal -->
+  <div id="shortcut-modal" class="modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="modal-content glass-card small-modal">
+      <div class="modal-header">
+        <h2 id="shortcut-modal-title">Add Shortcut</h2>
+        <button id="close-shortcut-modal" class="close-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="shortcut-form">
+        <input type="hidden" id="shortcut-edit-index">
+        <div class="setting-item">
+          <label for="shortcut-name">Name</label>
+          <input type="text" id="shortcut-name" placeholder="e.g., Google">
+        </div>
+        <div class="setting-item">
+          <label for="shortcut-url">URL</label>
+          <input type="text" id="shortcut-url" placeholder="e.g., https://google.com">
+        </div>
+        <div class="setting-item">
+          <label for="shortcut-icon">Icon (Emoji or URL)</label>
+          <input type="text" id="shortcut-icon" placeholder="e.g., 🔍 or URL to icon">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="cancel-shortcut-btn" class="glass-button">Cancel</button>
+        <button id="save-shortcut-btn" class="glass-button primary">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/storage.js"></script>
+  <script src="js/clock.js"></script>
+  <script src="js/search.js"></script>
+  <script src="js/shortcuts.js"></script>
+  <script src="js/quotes.js"></script>
+  <script src="js/weather.js"></script>
+  <script src="js/todo.js"></script>
+  <script src="js/background.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
