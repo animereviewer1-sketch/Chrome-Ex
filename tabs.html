@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabs</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        body {
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        .tabs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 16px;
+        }
+
+        .tab-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-item:hover {
+            border-color: var(--accent-primary);
+            transform: translateY(-2px);
+        }
+
+        .tab-item.active {
+            border-color: var(--accent-primary);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .tab-favicon {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+
+        .tab-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .tab-title {
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .tab-url {
+            font-size: 12px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .tab-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .tab-action-btn {
+            padding: 8px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .tab-action-btn:hover {
+            background: var(--glass-border);
+            color: var(--text-primary);
+        }
+
+        .tab-action-btn.close:hover {
+            color: var(--danger);
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s ease;
+        }
+
+        .back-link:hover {
+            color: var(--text-primary);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body class="dark-mode">
+    <div class="page-header">
+        <h1 class="page-title">📑 Offene Tabs</h1>
+        <a href="newtab.html" class="back-link">← Zurück zum Dashboard</a>
+    </div>
+
+    <div class="search-bar">
+        <input type="text" id="search-input" placeholder="Tabs durchsuchen...">
+    </div>
+
+    <div class="tabs-grid" id="tabs-grid">
+        <div class="empty-state">
+            <div class="icon">⏳</div>
+            <p>Tabs werden geladen...</p>
+        </div>
+    </div>
+
+    <script>
+        // Tabs laden
+        async function loadTabs() {
+            const tabs = await chrome.tabs.query({});
+            renderTabs(tabs);
+        }
+
+        // Tabs rendern
+        function renderTabs(tabs) {
+            const grid = document.getElementById('tabs-grid');
+            
+            if (tabs.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📭</div>
+                        <p>Keine Tabs gefunden</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = tabs.map(tab => `
+                <div class="tab-item ${tab.active ? 'active' : ''}" data-tab-id="${tab.id}">
+                    <img src="${tab.favIconUrl || 'icons/icon48.png'}" 
+                         class="tab-favicon" 
+                         onerror="this.src='icons/icon48.png'"
+                         alt="">
+                    <div class="tab-info">
+                        <div class="tab-title">${escapeHtml(tab.title || 'Unbenannt')}</div>
+                        <div class="tab-url">${escapeHtml(tab.url || '')}</div>
+                    </div>
+                    <div class="tab-actions">
+                        <button class="tab-action-btn switch" title="Zu Tab wechseln" data-tab-id="${tab.id}">
+                            ➡️
+                        </button>
+                        <button class="tab-action-btn close" title="Tab schließen" data-tab-id="${tab.id}">
+                            ✕
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            // Event-Listener
+            grid.querySelectorAll('.switch').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const tabId = parseInt(btn.dataset.tabId);
+                    chrome.tabs.update(tabId, { active: true });
+                    chrome.tabs.get(tabId, tab => {
+                        chrome.windows.update(tab.windowId, { focused: true });
+                    });
+                });
+            });
+
+            grid.querySelectorAll('.close').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const tabId = parseInt(btn.dataset.tabId);
+                    chrome.tabs.remove(tabId);
+                    btn.closest('.tab-item').remove();
+                });
+            });
+
+            grid.querySelectorAll('.tab-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const tabId = parseInt(item.dataset.tabId);
+                    chrome.tabs.update(tabId, { active: true });
+                    chrome.tabs.get(tabId, tab => {
+                        chrome.windows.update(tab.windowId, { focused: true });
+                    });
+                });
+            });
+        }
+
+        // Suche
+        document.getElementById('search-input').addEventListener('input', async (e) => {
+            const query = e.target.value.toLowerCase();
+            const tabs = await chrome.tabs.query({});
+            
+            const filtered = tabs.filter(tab => 
+                (tab.title && tab.title.toLowerCase().includes(query)) ||
+                (tab.url && tab.url.toLowerCase().includes(query))
+            );
+
+            renderTabs(filtered);
+        });
+
+        // Helper
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Initialisieren
+        loadTabs();
+    </script>
+</body>
+</html>

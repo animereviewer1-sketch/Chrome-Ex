@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lesezeichen</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        body {
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .breadcrumb-item {
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .breadcrumb-item:hover {
+            color: var(--accent-primary);
+        }
+
+        .breadcrumb-separator {
+            color: var(--glass-border);
+        }
+
+        .bookmarks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 16px;
+        }
+
+        .bookmark-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .bookmark-item:hover {
+            border-color: var(--accent-primary);
+            transform: translateY(-2px);
+        }
+
+        .bookmark-item.folder {
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .bookmark-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .bookmark-icon img {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+        }
+
+        .bookmark-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .bookmark-title {
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .bookmark-url {
+            font-size: 12px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .bookmark-count {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s ease;
+        }
+
+        .back-link:hover {
+            color: var(--text-primary);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+            grid-column: 1 / -1;
+        }
+
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body class="dark-mode">
+    <div class="page-header">
+        <h1 class="page-title">🔖 Lesezeichen</h1>
+        <a href="newtab.html" class="back-link">← Zurück zum Dashboard</a>
+    </div>
+
+    <div class="search-bar">
+        <input type="text" id="search-input" placeholder="Lesezeichen durchsuchen...">
+    </div>
+
+    <div class="breadcrumb" id="breadcrumb">
+        <span class="breadcrumb-item" data-id="0">📁 Root</span>
+    </div>
+
+    <div class="bookmarks-grid" id="bookmarks-grid">
+        <div class="empty-state">
+            <div class="icon">⏳</div>
+            <p>Lesezeichen werden geladen...</p>
+        </div>
+    </div>
+
+    <script>
+        let currentPath = [];
+        let allBookmarks = [];
+
+        // Lesezeichen laden
+        async function loadBookmarks() {
+            const tree = await chrome.bookmarks.getTree();
+            allBookmarks = flattenBookmarks(tree[0]);
+            navigateTo('0');
+        }
+
+        // Flacht Lesezeichen-Baum ab für Suche
+        function flattenBookmarks(node, acc = []) {
+            if (node.url) {
+                acc.push(node);
+            }
+            if (node.children) {
+                node.children.forEach(child => flattenBookmarks(child, acc));
+            }
+            return acc;
+        }
+
+        // Zu Ordner navigieren
+        async function navigateTo(folderId) {
+            const bookmarks = await chrome.bookmarks.getChildren(folderId);
+            currentPath = await buildPath(folderId);
+            renderBreadcrumb();
+            renderBookmarks(bookmarks);
+        }
+
+        // Pfad aufbauen
+        async function buildPath(nodeId) {
+            const path = [];
+            let currentId = nodeId;
+            
+            while (currentId && currentId !== '0') {
+                try {
+                    const nodes = await chrome.bookmarks.get(currentId);
+                    if (nodes && nodes[0]) {
+                        path.unshift({ id: nodes[0].id, title: nodes[0].title || 'Unbenannt' });
+                        currentId = nodes[0].parentId;
+                    } else {
+                        break;
+                    }
+                } catch {
+                    break;
+                }
+            }
+            
+            return path;
+        }
+
+        // Breadcrumb rendern
+        function renderBreadcrumb() {
+            const container = document.getElementById('breadcrumb');
+            let html = '<span class="breadcrumb-item" data-id="0">📁 Root</span>';
+            
+            currentPath.forEach(item => {
+                html += `<span class="breadcrumb-separator">›</span>`;
+                html += `<span class="breadcrumb-item" data-id="${item.id}">${escapeHtml(item.title)}</span>`;
+            });
+            
+            container.innerHTML = html;
+
+            container.querySelectorAll('.breadcrumb-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    navigateTo(item.dataset.id);
+                });
+            });
+        }
+
+        // Lesezeichen rendern
+        function renderBookmarks(bookmarks) {
+            const grid = document.getElementById('bookmarks-grid');
+            
+            if (bookmarks.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📭</div>
+                        <p>Dieser Ordner ist leer</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Ordner zuerst, dann Links
+            const sorted = [...bookmarks].sort((a, b) => {
+                if (a.children && !b.children) return -1;
+                if (!a.children && b.children) return 1;
+                return 0;
+            });
+
+            grid.innerHTML = sorted.map(bookmark => {
+                if (bookmark.children !== undefined) {
+                    // Ordner
+                    return `
+                        <div class="bookmark-item folder" data-id="${bookmark.id}">
+                            <div class="bookmark-icon">📁</div>
+                            <div class="bookmark-info">
+                                <div class="bookmark-title">${escapeHtml(bookmark.title || 'Unbenannt')}</div>
+                                <div class="bookmark-count">${bookmark.children.length} Elemente</div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // Link
+                    const faviconUrl = `https://www.google.com/s2/favicons?domain=${new URL(bookmark.url).hostname}&sz=32`;
+                    return `
+                        <div class="bookmark-item" data-url="${escapeHtml(bookmark.url)}">
+                            <div class="bookmark-icon">
+                                <img src="${faviconUrl}" onerror="this.parentElement.textContent='🔗'" alt="">
+                            </div>
+                            <div class="bookmark-info">
+                                <div class="bookmark-title">${escapeHtml(bookmark.title || 'Unbenannt')}</div>
+                                <div class="bookmark-url">${escapeHtml(bookmark.url)}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }).join('');
+
+            // Event-Listener
+            grid.querySelectorAll('.bookmark-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    if (item.classList.contains('folder')) {
+                        navigateTo(item.dataset.id);
+                    } else {
+                        window.open(item.dataset.url, '_blank');
+                    }
+                });
+            });
+        }
+
+        // Suche
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            
+            if (!query) {
+                navigateTo(currentPath.length > 0 ? currentPath[currentPath.length - 1].id : '0');
+                return;
+            }
+
+            const filtered = allBookmarks.filter(bookmark => 
+                (bookmark.title && bookmark.title.toLowerCase().includes(query)) ||
+                (bookmark.url && bookmark.url.toLowerCase().includes(query))
+            );
+
+            renderSearchResults(filtered);
+        });
+
+        function renderSearchResults(bookmarks) {
+            const grid = document.getElementById('bookmarks-grid');
+            
+            if (bookmarks.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">🔍</div>
+                        <p>Keine Ergebnisse gefunden</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = bookmarks.map(bookmark => {
+                const faviconUrl = `https://www.google.com/s2/favicons?domain=${new URL(bookmark.url).hostname}&sz=32`;
+                return `
+                    <div class="bookmark-item" data-url="${escapeHtml(bookmark.url)}">
+                        <div class="bookmark-icon">
+                            <img src="${faviconUrl}" onerror="this.parentElement.textContent='🔗'" alt="">
+                        </div>
+                        <div class="bookmark-info">
+                            <div class="bookmark-title">${escapeHtml(bookmark.title || 'Unbenannt')}</div>
+                            <div class="bookmark-url">${escapeHtml(bookmark.url)}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            grid.querySelectorAll('.bookmark-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    window.open(item.dataset.url, '_blank');
+                });
+            });
+        }
+
+        // Helper
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Initialisieren
+        loadBookmarks();
+    </script>
+</body>
+</html>

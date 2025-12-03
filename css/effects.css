@@ -1,0 +1,175 @@
+/*
+ * Widget-Effekte (Glow, Neon, 3D)
+ * Auswählbar in Widget-Einstellungen
+ */
+
+/* Glow-Effekt */
+.widget.effect-glow {
+    box-shadow: 
+        0 0 20px rgba(99, 102, 241, 0.3),
+        0 0 40px rgba(99, 102, 241, 0.2),
+        0 0 60px rgba(99, 102, 241, 0.1);
+    animation: glow-pulse 3s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+    0%, 100% {
+        box-shadow: 
+            0 0 20px rgba(99, 102, 241, 0.3),
+            0 0 40px rgba(99, 102, 241, 0.2),
+            0 0 60px rgba(99, 102, 241, 0.1);
+    }
+    50% {
+        box-shadow: 
+            0 0 30px rgba(99, 102, 241, 0.4),
+            0 0 50px rgba(99, 102, 241, 0.3),
+            0 0 70px rgba(99, 102, 241, 0.2);
+    }
+}
+
+/* Neon-Effekt */
+.widget.effect-neon {
+    border: 1px solid var(--accent-primary);
+    box-shadow: 
+        0 0 5px var(--accent-primary),
+        0 0 10px var(--accent-primary),
+        0 0 20px var(--accent-primary),
+        0 0 40px var(--accent-primary),
+        inset 0 0 10px rgba(99, 102, 241, 0.2);
+    animation: neon-flicker 2s ease-in-out infinite;
+}
+
+@keyframes neon-flicker {
+    0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+        opacity: 1;
+        box-shadow: 
+            0 0 5px var(--accent-primary),
+            0 0 10px var(--accent-primary),
+            0 0 20px var(--accent-primary),
+            0 0 40px var(--accent-primary),
+            inset 0 0 10px rgba(99, 102, 241, 0.2);
+    }
+    20%, 24%, 55% {
+        opacity: 0.9;
+        box-shadow: 
+            0 0 2px var(--accent-primary),
+            0 0 5px var(--accent-primary),
+            0 0 10px var(--accent-primary),
+            inset 0 0 5px rgba(99, 102, 241, 0.1);
+    }
+}
+
+/* 3D-Effekt */
+.widget.effect-3d {
+    transform: perspective(1000px) rotateX(2deg) rotateY(-2deg);
+    transform-style: preserve-3d;
+    box-shadow: 
+        4px 4px 0 rgba(99, 102, 241, 0.3),
+        8px 8px 0 rgba(99, 102, 241, 0.2),
+        12px 12px 0 rgba(99, 102, 241, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.widget.effect-3d:hover {
+    transform: perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(10px);
+    box-shadow: 
+        0 0 0 rgba(99, 102, 241, 0.3),
+        2px 2px 10px rgba(99, 102, 241, 0.2),
+        4px 4px 20px rgba(99, 102, 241, 0.1);
+}
+
+/* Kombination mit Auto-Hide */
+.widget.effect-glow.auto-hide {
+    animation: none;
+}
+
+.widget.effect-glow.auto-hide:hover {
+    animation: glow-pulse 3s ease-in-out infinite;
+}
+
+.widget.effect-neon.auto-hide {
+    animation: none;
+    box-shadow: none;
+    border-color: var(--glass-border);
+}
+
+.widget.effect-neon.auto-hide:hover {
+    animation: neon-flicker 2s ease-in-out infinite;
+    border-color: var(--accent-primary);
+    box-shadow: 
+        0 0 5px var(--accent-primary),
+        0 0 10px var(--accent-primary),
+        0 0 20px var(--accent-primary),
+        0 0 40px var(--accent-primary),
+        inset 0 0 10px rgba(99, 102, 241, 0.2);
+}
+
+/* Neon-Farben für verschiedene Widgets */
+.widget.effect-neon.widget-weather {
+    --neon-color: #22d3ee;
+    border-color: var(--neon-color);
+    box-shadow: 
+        0 0 5px var(--neon-color),
+        0 0 10px var(--neon-color),
+        0 0 20px var(--neon-color),
+        inset 0 0 10px rgba(34, 211, 238, 0.2);
+}
+
+.widget.effect-neon.widget-notes {
+    --neon-color: #f59e0b;
+    border-color: var(--neon-color);
+    box-shadow: 
+        0 0 5px var(--neon-color),
+        0 0 10px var(--neon-color),
+        0 0 20px var(--neon-color),
+        inset 0 0 10px rgba(245, 158, 11, 0.2);
+}
+
+.widget.effect-neon.widget-password {
+    --neon-color: #22c55e;
+    border-color: var(--neon-color);
+    box-shadow: 
+        0 0 5px var(--neon-color),
+        0 0 10px var(--neon-color),
+        0 0 20px var(--neon-color),
+        inset 0 0 10px rgba(34, 197, 94, 0.2);
+}
+
+.widget.effect-neon.widget-countdown {
+    --neon-color: #ef4444;
+    border-color: var(--neon-color);
+    box-shadow: 
+        0 0 5px var(--neon-color),
+        0 0 10px var(--neon-color),
+        0 0 20px var(--neon-color),
+        inset 0 0 10px rgba(239, 68, 68, 0.2);
+}
+
+/* Glow-Farben für verschiedene Widgets */
+.widget.effect-glow.widget-weather {
+    box-shadow: 
+        0 0 20px rgba(34, 211, 238, 0.3),
+        0 0 40px rgba(34, 211, 238, 0.2),
+        0 0 60px rgba(34, 211, 238, 0.1);
+}
+
+.widget.effect-glow.widget-notes {
+    box-shadow: 
+        0 0 20px rgba(245, 158, 11, 0.3),
+        0 0 40px rgba(245, 158, 11, 0.2),
+        0 0 60px rgba(245, 158, 11, 0.1);
+}
+
+.widget.effect-glow.widget-password {
+    box-shadow: 
+        0 0 20px rgba(34, 197, 94, 0.3),
+        0 0 40px rgba(34, 197, 94, 0.2),
+        0 0 60px rgba(34, 197, 94, 0.1);
+}
+
+.widget.effect-glow.widget-countdown {
+    box-shadow: 
+        0 0 20px rgba(239, 68, 68, 0.3),
+        0 0 40px rgba(239, 68, 68, 0.2),
+        0 0 60px rgba(239, 68, 68, 0.1);
+}
