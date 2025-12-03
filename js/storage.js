@@ -17,7 +17,7 @@ const Storage = {
       if (value === null) return defaultValue;
       try {
         return JSON.parse(value);
-      } catch {
+      } catch (e) {
         return value;
       }
     }
@@ -54,7 +54,7 @@ const Storage = {
         const key = localStorage.key(i);
         try {
           all[key] = JSON.parse(localStorage.getItem(key));
-        } catch {
+        } catch (e) {
           all[key] = localStorage.getItem(key);
         }
       }

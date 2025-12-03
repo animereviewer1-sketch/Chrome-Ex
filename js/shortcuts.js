@@ -39,13 +39,14 @@ const Shortcuts = {
       img.src = shortcut.icon;
       img.alt = shortcut.name;
       img.onerror = () => {
-        iconDiv.innerHTML = this.getDefaultIcon(shortcut.url);
+        iconDiv.textContent = '';
+        iconDiv.appendChild(this.createDefaultIconElement(shortcut.url));
       };
       iconDiv.appendChild(img);
     } else if (shortcut.icon) {
       iconDiv.textContent = shortcut.icon;
     } else {
-      iconDiv.innerHTML = this.getDefaultIcon(shortcut.url);
+      iconDiv.appendChild(this.createDefaultIconElement(shortcut.url));
     }
     
     const nameDiv = document.createElement('div');
@@ -58,11 +59,25 @@ const Shortcuts = {
     return link;
   },
 
+  createDefaultIconElement(url) {
+    try {
+      const domain = new URL(url).hostname;
+      const img = document.createElement('img');
+      img.src = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=64`;
+      img.alt = 'icon';
+      return img;
+    } catch (e) {
+      const span = document.createElement('span');
+      span.textContent = '🔗';
+      return span;
+    }
+  },
+
   getDefaultIcon(url) {
     try {
       const domain = new URL(url).hostname;
-      return `<img src="https://www.google.com/s2/favicons?domain=${domain}&sz=64" alt="icon">`;
-    } catch {
+      return `<img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=64" alt="icon">`;
+    } catch (e) {
       return '🔗';
     }
   },

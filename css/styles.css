@@ -932,3 +932,46 @@ body {
     text-align: center;
   }
 }
+
+/* ===== Vertical Layout Mode ===== */
+body.layout-vertical .bottom-section {
+  flex-direction: column;
+  align-items: center;
+}
+
+body.layout-vertical .quote-container,
+body.layout-vertical .todo-container {
+  width: 100%;
+  max-width: 500px;
+}
+
+body.layout-vertical .top-bar {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+body.layout-vertical #weather-widget {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+body.layout-vertical .main-container {
+  align-items: center;
+}
+
+/* ===== Horizontal Layout Mode (default) ===== */
+body.layout-horizontal .bottom-section {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+body.layout-horizontal .quote-container {
+  flex: 1;
+  max-width: 500px;
+}
+
+body.layout-horizontal .todo-container {
+  flex: 0 0 auto;
+}

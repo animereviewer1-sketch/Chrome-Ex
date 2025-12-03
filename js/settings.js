@@ -124,6 +124,7 @@ const Settings = {
     const showQuotes = await Storage.get('showQuotes', true);
     const weatherApiKey = await Storage.get('weatherApiKey', '');
     const weatherLocation = await Storage.get('weatherLocation', '');
+    const widgetLayout = await Storage.get('widgetLayout', 'horizontal');
 
     // Set form values
     document.getElementById('time-format').value = timeFormat;
@@ -134,6 +135,10 @@ const Settings = {
     document.getElementById('show-quotes').checked = showQuotes;
     document.getElementById('weather-api-key').value = weatherApiKey;
     document.getElementById('weather-location-input').value = weatherLocation;
+    document.getElementById('widget-layout').value = widgetLayout;
+
+    // Apply widget layout
+    this.applyLayout(widgetLayout);
 
     // Apply widget visibility
     if (!showWeather) Weather.hide();
@@ -155,6 +160,11 @@ const Settings = {
     this.isOpen = false;
   },
 
+  applyLayout(layout) {
+    document.body.classList.remove('layout-horizontal', 'layout-vertical');
+    document.body.classList.add(`layout-${layout}`);
+  },
+
   async save() {
     // Get form values
     const timeFormat = document.getElementById('time-format').value;
@@ -162,6 +172,7 @@ const Settings = {
     const tempUnit = document.getElementById('temp-unit').value;
     const weatherApiKey = document.getElementById('weather-api-key').value;
     const weatherLocation = document.getElementById('weather-location-input').value;
+    const widgetLayout = document.getElementById('widget-layout').value;
 
     // Save to storage
     await Storage.set('timeFormat', timeFormat);
@@ -169,6 +180,7 @@ const Settings = {
     await Storage.set('tempUnit', tempUnit);
     await Storage.set('weatherApiKey', weatherApiKey);
     await Storage.set('weatherLocation', weatherLocation);
+    await Storage.set('widgetLayout', widgetLayout);
 
     // Apply settings
     Clock.setTimeFormat(timeFormat);
@@ -177,6 +189,7 @@ const Settings = {
     Weather.setApiKey(weatherApiKey);
     Weather.setLocation(weatherLocation);
     Weather.setTempUnit(tempUnit);
+    this.applyLayout(widgetLayout);
 
     // Close modal
     this.close();

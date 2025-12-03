@@ -46,15 +46,35 @@ A beautiful, modern Chrome Extension that replaces your new tab page with a cust
 
 ## Installation
 
-### From Source
-1. Clone this repository:
-   ```bash
-   git clone https://github.com/animereviewer1-sketch/Chrome-Ex.git
-   ```
-2. Open Chrome and navigate to `chrome://extensions/`
-3. Enable "Developer mode" in the top right
-4. Click "Load unpacked" and select the cloned folder
+### Step-by-Step Commands
+
+Open your terminal (Command Prompt, PowerShell, or Terminal) and run these commands:
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/animereviewer1-sketch/Chrome-Ex.git
+
+# 2. Navigate into the folder
+cd Chrome-Ex
+
+# 3. (Optional) List all files to verify
+ls -la        # On Mac/Linux
+dir           # On Windows
+```
+
+### Load in Chrome
+1. Open Chrome and navigate to `chrome://extensions/`
+2. Enable **"Developer mode"** in the top right corner
+3. Click **"Load unpacked"**
+4. Select the `Chrome-Ex` folder you just cloned
 5. Open a new tab to see SuperTab in action!
+
+### Alternative: Download as ZIP
+If you don't have Git installed:
+1. Click the green **"Code"** button on GitHub
+2. Select **"Download ZIP"**
+3. Extract the ZIP file to a folder
+4. Follow steps 1-5 above to load in Chrome
 
 ## Configuration
 

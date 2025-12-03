@@ -25,7 +25,6 @@ const Background = {
 
   applyBackground() {
     if (this.currentBackground) {
-      this.containerElement.style.backgroundImage = `url(${this.currentBackground})`;
       this.containerElement.style.background = '';
       this.containerElement.style.backgroundImage = `url(${this.currentBackground})`;
       this.containerElement.style.backgroundSize = 'cover';

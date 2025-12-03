@@ -4,8 +4,7 @@
   "version": "1.0.0",
   "description": "A beautiful new tab page with custom backgrounds, weather widget, to-do list, and more.",
   "permissions": [
-    "storage",
-    "geolocation"
+    "storage"
   ],
   "chrome_url_overrides": {
     "newtab": "newtab.html"
