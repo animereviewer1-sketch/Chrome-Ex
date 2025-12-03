@@ -1,0 +1,717 @@
+/**
+ * SuperStart - New Tab CSS Styles
+ * Stile für die Neue Tab Seite
+ * 
+ * Enthält / Contains:
+ * - CSS Variablen für Themes / CSS variables for themes
+ * - Hintergrund-Gradienten / Background gradients
+ * - Uhr-Widget / Clock widget
+ * - Such-Widget / Search widget
+ * - Lesezeichen-Grid / Bookmarks grid
+ * - Modal-Dialog / Modal dialog
+ * - Responsive Design
+ */
+
+/* ==========================================
+   CSS Variablen / CSS Variables
+   ========================================== */
+:root {
+    /* Farben / Colors */
+    --color-primary: #6366f1;
+    --color-primary-hover: #4f46e5;
+    --color-danger: #ef4444;
+    --color-danger-hover: #dc2626;
+    
+    /* Helles Theme / Light theme */
+    --bg-primary: rgba(255, 255, 255, 0.95);
+    --bg-secondary: rgba(255, 255, 255, 0.85);
+    --bg-tertiary: rgba(255, 255, 255, 0.75);
+    --text-primary: #1f2937;
+    --text-secondary: #4b5563;
+    --text-muted: #6b7280;
+    --border-color: rgba(0, 0, 0, 0.1);
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    
+    /* Abstände / Spacing */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-2xl: 3rem;
+    
+    /* Radien / Border radius */
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 1rem;
+    --radius-full: 9999px;
+    
+    /* Animationen / Animations */
+    --transition-fast: 150ms ease;
+    --transition-normal: 250ms ease;
+    --transition-slow: 350ms ease;
+}
+
+/* Dunkles Theme / Dark theme */
+[data-theme="dark"] {
+    --bg-primary: rgba(31, 41, 55, 0.95);
+    --bg-secondary: rgba(31, 41, 55, 0.85);
+    --bg-tertiary: rgba(31, 41, 55, 0.75);
+    --text-primary: #f9fafb;
+    --text-secondary: #d1d5db;
+    --text-muted: #9ca3af;
+    --border-color: rgba(255, 255, 255, 0.1);
+    --shadow-color: rgba(0, 0, 0, 0.3);
+}
+
+/* ==========================================
+   Hintergrund-Gradienten / Background Gradients
+   ========================================== */
+
+/* Sunset - Orange/Rosa/Rot */
+.gradient-sunset {
+    background: linear-gradient(135deg, #f97316 0%, #ec4899 50%, #dc2626 100%);
+}
+
+/* Ocean - Blau/Lila */
+.gradient-ocean {
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #06b6d4 100%);
+}
+
+/* Forest - Grün/Türkis */
+.gradient-forest {
+    background: linear-gradient(135deg, #22c55e 0%, #14b8a6 50%, #10b981 100%);
+}
+
+/* Purple Dream - Lila/Pink */
+.gradient-purple-dream {
+    background: linear-gradient(135deg, #a855f7 0%, #ec4899 50%, #8b5cf6 100%);
+}
+
+/* Fire - Rot/Orange/Gelb */
+.gradient-fire {
+    background: linear-gradient(135deg, #ef4444 0%, #f97316 50%, #eab308 100%);
+}
+
+/* Midnight - Dunkles Blau/Schwarz */
+.gradient-midnight {
+    background: linear-gradient(135deg, #1e3a8a 0%, #312e81 50%, #0f172a 100%);
+}
+
+/* Aurora - Mehrfarbig */
+.gradient-aurora {
+    background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 25%, #ec4899 50%, #f97316 75%, #eab308 100%);
+}
+
+/* ==========================================
+   Basis-Stile / Base Styles
+   ========================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--text-primary);
+    overflow-x: hidden;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: var(--spacing-lg);
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #06b6d4 100%);
+}
+
+/* Hintergrund-Overlay für bessere Lesbarkeit */
+/* Background overlay for better readability */
+#background-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ==========================================
+   Container & Widgets
+   ========================================== */
+.container {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-xl);
+}
+
+.widget {
+    width: 100%;
+    background: var(--bg-primary);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-lg);
+    box-shadow: 0 4px 20px var(--shadow-color);
+    backdrop-filter: blur(10px);
+    transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.widget:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px var(--shadow-color);
+}
+
+/* ==========================================
+   Uhr-Widget / Clock Widget
+   ========================================== */
+#clock-widget {
+    text-align: center;
+    padding: var(--spacing-xl);
+}
+
+.time {
+    font-size: 5rem;
+    font-weight: 300;
+    letter-spacing: -2px;
+    color: var(--text-primary);
+    line-height: 1.1;
+}
+
+.date {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    margin-top: var(--spacing-sm);
+}
+
+/* ==========================================
+   Such-Widget / Search Widget
+   ========================================== */
+#search-widget {
+    padding: var(--spacing-md);
+}
+
+.search-form {
+    width: 100%;
+}
+
+.search-container {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-full);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: 2px solid transparent;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.search-container:focus-within {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.search-engine-select {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    cursor: pointer;
+    outline: none;
+}
+
+.search-engine-select option {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.search-input {
+    flex: 1;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: none;
+    background: transparent;
+    font-size: 1rem;
+    color: var(--text-primary);
+    outline: none;
+}
+
+.search-input::placeholder {
+    color: var(--text-muted);
+}
+
+.search-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border: none;
+    background: var(--color-primary);
+    color: white;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: background-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.search-button:hover {
+    background: var(--color-primary-hover);
+    transform: scale(1.05);
+}
+
+.search-button:active {
+    transform: scale(0.95);
+}
+
+/* ==========================================
+   Lesezeichen-Widget / Bookmarks Widget
+   ========================================== */
+#bookmarks-widget {
+    padding: var(--spacing-lg);
+}
+
+.bookmarks-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-lg);
+}
+
+.bookmarks-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.add-bookmark-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 2px dashed var(--border-color);
+    background: transparent;
+    color: var(--text-muted);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.add-bookmark-btn:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: rgba(99, 102, 241, 0.1);
+}
+
+.bookmarks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: var(--spacing-md);
+}
+
+.bookmark-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    color: var(--text-primary);
+    transition: all var(--transition-fast);
+    position: relative;
+    cursor: pointer;
+}
+
+.bookmark-item:hover {
+    background: var(--bg-secondary);
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+.bookmark-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-md);
+    background: var(--bg-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.bookmark-icon img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+.bookmark-name {
+    font-size: 0.875rem;
+    text-align: center;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.bookmark-edit-btn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bookmark-item:hover .bookmark-edit-btn {
+    opacity: 1;
+}
+
+/* ==========================================
+   Zitat-Widget / Quote Widget
+   ========================================== */
+.quote-widget {
+    text-align: center;
+    padding: var(--spacing-xl);
+}
+
+.quote-text {
+    font-size: 1.125rem;
+    font-style: italic;
+    color: var(--text-primary);
+    line-height: 1.6;
+    margin-bottom: var(--spacing-md);
+}
+
+.quote-author {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    font-style: normal;
+}
+
+/* ==========================================
+   Einstellungs-Button / Settings Button
+   ========================================== */
+.settings-btn {
+    position: fixed;
+    bottom: var(--spacing-lg);
+    right: var(--spacing-lg);
+    width: 48px;
+    height: 48px;
+    border: none;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    box-shadow: 0 4px 12px var(--shadow-color);
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.settings-btn:hover {
+    transform: rotate(30deg) scale(1.1);
+    background: var(--color-primary);
+    color: white;
+}
+
+/* ==========================================
+   Modal / Modal Dialog
+   ========================================== */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-lg);
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    width: 100%;
+    max-width: 400px;
+    background: var(--bg-primary);
+    border-radius: var(--radius-xl);
+    box-shadow: 0 20px 60px var(--shadow-color);
+    overflow: hidden;
+    animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.modal-close {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 1.5rem;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close:hover {
+    background: var(--border-color);
+    color: var(--text-primary);
+}
+
+.bookmark-form {
+    padding: var(--spacing-lg);
+}
+
+.form-group {
+    margin-bottom: var(--spacing-lg);
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.form-group input {
+    width: 100%;
+    padding: var(--spacing-md);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    color: var(--text-primary);
+    background: var(--bg-tertiary);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.form-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: flex-end;
+}
+
+.btn {
+    padding: var(--spacing-md) var(--spacing-xl);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-primary {
+    background: var(--color-primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--color-primary-hover);
+}
+
+.btn-danger {
+    background: var(--color-danger);
+    color: white;
+}
+
+.btn-danger:hover {
+    background: var(--color-danger-hover);
+}
+
+/* ==========================================
+   Responsive Design
+   ========================================== */
+@media (max-width: 768px) {
+    body {
+        padding: var(--spacing-md);
+    }
+    
+    .time {
+        font-size: 3.5rem;
+    }
+    
+    .date {
+        font-size: 1rem;
+    }
+    
+    .bookmarks-grid {
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        gap: var(--spacing-sm);
+    }
+    
+    .bookmark-icon {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .bookmark-icon img {
+        width: 24px;
+        height: 24px;
+    }
+    
+    .bookmark-name {
+        font-size: 0.75rem;
+    }
+    
+    .widget {
+        padding: var(--spacing-md);
+    }
+    
+    .quote-text {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .time {
+        font-size: 2.5rem;
+    }
+    
+    .search-engine-select {
+        display: none;
+    }
+    
+    .bookmarks-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* ==========================================
+   Animationen / Animations
+   ========================================== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.widget {
+    animation: slideUp 0.5s ease;
+}
+
+.widget:nth-child(1) { animation-delay: 0.1s; }
+.widget:nth-child(2) { animation-delay: 0.2s; }
+.widget:nth-child(3) { animation-delay: 0.3s; }
+.widget:nth-child(4) { animation-delay: 0.4s; }
+
+/* ==========================================
+   Accessibility / Barrierefreiheit
+   ========================================== */
+:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+/* Screen reader only */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .widget {
+        border: 2px solid var(--text-primary);
+    }
+    
+    .search-container {
+        border: 2px solid var(--text-primary);
+    }
+}
