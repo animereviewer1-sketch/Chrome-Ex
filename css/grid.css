@@ -1,0 +1,294 @@
+/* Grid System for Edit Mode */
+
+.grid-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity var(--transition-normal) ease;
+}
+
+.grid-container.visible {
+  opacity: 1;
+}
+
+.grid-lines {
+  width: 100%;
+  height: 100%;
+  background-image: 
+    linear-gradient(to right, var(--widget-border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--widget-border) 1px, transparent 1px);
+  background-size: calc(100% / 12) calc(100% / 12);
+}
+
+/* Grid size variations */
+.grid-lines[data-grid-size="8"] {
+  background-size: calc(100% / 8) calc(100% / 8);
+}
+
+.grid-lines[data-grid-size="12"] {
+  background-size: calc(100% / 12) calc(100% / 12);
+}
+
+.grid-lines[data-grid-size="16"] {
+  background-size: calc(100% / 16) calc(100% / 16);
+}
+
+.grid-lines[data-grid-size="24"] {
+  background-size: calc(100% / 24) calc(100% / 24);
+}
+
+/* Widget Container */
+.widgets-container {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  padding: var(--spacing-lg);
+  box-sizing: border-box;
+}
+
+/* Widget Base Styles */
+.widget {
+  position: absolute;
+  padding: var(--spacing-md);
+  background: var(--widget-bg);
+  backdrop-filter: blur(var(--blur-intensity));
+  -webkit-backdrop-filter: blur(var(--blur-intensity));
+  border: 1px solid var(--widget-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--widget-shadow);
+  transition: transform var(--transition-fast) ease,
+              box-shadow var(--transition-fast) ease,
+              opacity var(--transition-normal) ease;
+  z-index: 10;
+}
+
+/* Widget Size Presets */
+.widget.size-small {
+  width: 200px;
+  min-height: 150px;
+}
+
+.widget.size-medium {
+  width: 300px;
+  min-height: 200px;
+}
+
+.widget.size-large {
+  width: 400px;
+  min-height: 300px;
+}
+
+/* Widget Effects */
+.widget.effect-glow {
+  box-shadow: var(--widget-shadow), 0 0 20px var(--glow-color);
+}
+
+.widget.effect-neon {
+  border: 2px solid var(--primary-color);
+  box-shadow: 0 0 10px var(--primary-color), 
+              0 0 20px var(--primary-color),
+              inset 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+.widget.effect-3d {
+  box-shadow: 
+    0 1px 1px rgba(0,0,0,0.08),
+    0 2px 2px rgba(0,0,0,0.08),
+    0 4px 4px rgba(0,0,0,0.08),
+    0 8px 8px rgba(0,0,0,0.08),
+    0 16px 16px rgba(0,0,0,0.08);
+}
+
+.widget.effect-flat {
+  box-shadow: none;
+}
+
+/* Edit Mode Widget Styles */
+.edit-mode .widget {
+  cursor: move;
+}
+
+.edit-mode .widget:hover {
+  box-shadow: var(--widget-shadow), 0 0 0 2px var(--primary-color);
+}
+
+.edit-mode .widget.dragging {
+  opacity: 0.8;
+  z-index: 1000;
+  transform: scale(1.02);
+}
+
+/* Widget Controls (visible in edit mode) */
+.widget-controls {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity var(--transition-fast) ease;
+  z-index: 100;
+}
+
+.edit-mode .widget:hover .widget-controls {
+  opacity: 1;
+}
+
+.widget-control-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: transform var(--transition-fast) ease;
+}
+
+.widget-control-btn:hover {
+  transform: scale(1.1);
+}
+
+.widget-control-btn.delete {
+  background: #ff4444;
+  color: white;
+}
+
+.widget-control-btn.settings {
+  background: var(--primary-color);
+  color: white;
+}
+
+.widget-control-btn.drag {
+  background: var(--accent-color);
+  color: white;
+  cursor: grab;
+}
+
+/* Widget Header */
+.widget-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-sm);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid var(--widget-border);
+}
+
+.widget-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-color);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.widget-content {
+  color: var(--text-color);
+}
+
+/* Auto-hide Widget */
+.widget.auto-hide {
+  opacity: 0.1;
+}
+
+.widget.auto-hide:hover {
+  opacity: 1;
+}
+
+/* Fixed Position Widgets */
+.widget.position-top {
+  top: var(--spacing-lg);
+}
+
+.widget.position-center {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.widget.position-bottom {
+  bottom: var(--spacing-lg);
+}
+
+/* Snap Guides (shown during drag) */
+.snap-guide {
+  position: fixed;
+  background: var(--primary-color);
+  opacity: 0.5;
+  z-index: 999;
+  pointer-events: none;
+}
+
+.snap-guide.horizontal {
+  height: 1px;
+  width: 100%;
+  left: 0;
+}
+
+.snap-guide.vertical {
+  width: 1px;
+  height: 100%;
+  top: 0;
+}
+
+/* Drop Zone Indicator */
+.drop-zone {
+  position: absolute;
+  border: 2px dashed var(--primary-color);
+  background: rgba(var(--primary-color), 0.1);
+  border-radius: var(--radius-md);
+  opacity: 0;
+  transition: opacity var(--transition-fast) ease;
+  pointer-events: none;
+}
+
+.drop-zone.active {
+  opacity: 1;
+}
+
+/* Resize Handles */
+.resize-handle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: var(--primary-color);
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity var(--transition-fast) ease;
+}
+
+.edit-mode .widget:hover .resize-handle {
+  opacity: 1;
+}
+
+.resize-handle.se {
+  bottom: -5px;
+  right: -5px;
+  cursor: se-resize;
+}
+
+.resize-handle.sw {
+  bottom: -5px;
+  left: -5px;
+  cursor: sw-resize;
+}
+
+.resize-handle.ne {
+  top: -5px;
+  right: -5px;
+  cursor: ne-resize;
+}
+
+.resize-handle.nw {
+  top: -5px;
+  left: -5px;
+  cursor: nw-resize;
+}
