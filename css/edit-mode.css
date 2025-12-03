@@ -1,5 +1,11 @@
 /* ===== Edit Mode Styles ===== */
 
+/* Edit Mode CSS Variables */
+:root {
+  --widget-scale-small: 0.85;
+  --widget-scale-large: 1.15;
+}
+
 /* Edit Mode Button */
 #edit-mode-btn {
   position: relative;
@@ -331,11 +337,11 @@
 
 /* Widget Size Classes */
 .widget.size-small {
-  transform: scale(0.85);
+  transform: scale(var(--widget-scale-small));
 }
 
 .widget.size-large {
-  transform: scale(1.15);
+  transform: scale(var(--widget-scale-large));
 }
 
 /* Widget No Background */

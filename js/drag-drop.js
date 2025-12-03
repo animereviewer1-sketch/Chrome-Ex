@@ -8,9 +8,20 @@ const DragDrop = {
   gridSnap: true,
   gridSize: 20,
   isEnabled: false,
+  // Bound event handlers for proper removal
+  boundHandlers: {},
 
   init() {
     this.loadSettings();
+    // Pre-bind handlers for consistent references
+    this.boundHandlers = {
+      dragStart: this.handleDragStart.bind(this),
+      touchStart: this.handleTouchStart.bind(this),
+      dragMove: this.handleDragMove.bind(this),
+      dragEnd: this.handleDragEnd.bind(this),
+      touchMove: this.handleTouchMove.bind(this),
+      touchEnd: this.handleTouchEnd.bind(this)
+    };
   },
 
   async loadSettings() {
@@ -32,26 +43,32 @@ const DragDrop = {
     document.querySelectorAll('.widget').forEach(widget => {
       const dragHandle = widget.querySelector('.drag-handle');
       if (dragHandle) {
-        dragHandle.addEventListener('mousedown', this.handleDragStart.bind(this));
-        dragHandle.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
+        dragHandle.addEventListener('mousedown', this.boundHandlers.dragStart);
+        dragHandle.addEventListener('touchstart', this.boundHandlers.touchStart, { passive: false });
       }
     });
 
     // Global listeners
-    document.addEventListener('mousemove', this.handleDragMove.bind(this));
-    document.addEventListener('mouseup', this.handleDragEnd.bind(this));
-    document.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
-    document.addEventListener('touchend', this.handleTouchEnd.bind(this));
+    document.addEventListener('mousemove', this.boundHandlers.dragMove);
+    document.addEventListener('mouseup', this.boundHandlers.dragEnd);
+    document.addEventListener('touchmove', this.boundHandlers.touchMove, { passive: false });
+    document.addEventListener('touchend', this.boundHandlers.touchEnd);
   },
 
   removeDragListeners() {
     document.querySelectorAll('.widget').forEach(widget => {
       const dragHandle = widget.querySelector('.drag-handle');
       if (dragHandle) {
-        dragHandle.removeEventListener('mousedown', this.handleDragStart);
-        dragHandle.removeEventListener('touchstart', this.handleTouchStart);
+        dragHandle.removeEventListener('mousedown', this.boundHandlers.dragStart);
+        dragHandle.removeEventListener('touchstart', this.boundHandlers.touchStart);
       }
     });
+
+    // Remove global listeners
+    document.removeEventListener('mousemove', this.boundHandlers.dragMove);
+    document.removeEventListener('mouseup', this.boundHandlers.dragEnd);
+    document.removeEventListener('touchmove', this.boundHandlers.touchMove);
+    document.removeEventListener('touchend', this.boundHandlers.touchEnd);
   },
 
   handleDragStart(e) {
