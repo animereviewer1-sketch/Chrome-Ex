@@ -290,8 +290,22 @@ body.animated-gradient {
 }
 
 .widget.effect-3d {
-  transform: perspective(1000px) rotateX(2deg);
+  transform: perspective(1000px) rotateX(5deg);
+  transform-style: preserve-3d;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Fix 4: Erweiterte Effekte */
+.widget.effect-emboss {
+  text-shadow: 
+    -1px -1px 1px rgba(255,255,255,0.1),
+    1px 1px 1px rgba(0,0,0,0.5);
+}
+
+.widget.effect-glass {
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Auto-Hide Widget (#14) */
@@ -1571,4 +1585,104 @@ body.custom-page-opacity {
   .font-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+}
+
+/* ============ Fix 2: Grid im Edit-Modus ============ */
+:root {
+  --grid-size: 20px;
+  --grid-color: rgba(255, 0, 255, 0.2);
+}
+
+body.edit-mode::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: 
+    linear-gradient(var(--grid-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+  background-size: var(--grid-size) var(--grid-size);
+  pointer-events: none;
+  z-index: 9998;
+}
+
+body.edit-mode.grid-hidden::before {
+  display: none;
+}
+
+/* ============ Fix 3: Text-Farbe anpassbar ============ */
+.widget.custom-text-color {
+  color: var(--text-color, #ffffff);
+}
+
+.widget.custom-text-color * {
+  color: inherit;
+}
+
+/* Fix 3: Ausnahme für Buttons und Links */
+.widget.custom-text-color .widget-control-btn,
+.widget.custom-text-color .btn-primary,
+.widget.custom-text-color .btn-secondary,
+.widget.custom-text-color .btn-danger {
+  color: white;
+}
+
+/* ============ Fix 5-7: Größen anpassbar ============ */
+.widget {
+  font-size: var(--widget-font-size, 16px);
+}
+
+.widget .shortcut-icon {
+  width: var(--icon-size, 48px);
+  height: var(--icon-size, 48px);
+}
+
+.clock-widget .clock-time {
+  font-size: var(--clock-size, 72px);
+}
+
+/* ============ Fix 1: Widget Dragging ============ */
+.widget.dragging {
+  cursor: grabbing;
+  z-index: 10000;
+  opacity: 0.9;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.edit-mode .widget {
+  cursor: default;
+}
+
+.edit-mode .widget .drag-handle {
+  cursor: grab;
+}
+
+.edit-mode .widget .drag-handle:active {
+  cursor: grabbing;
+}
+
+/* Grid Settings Panel */
+.grid-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Weather Settings Panel (Fix 11) */
+.weather-settings {
+  display: flex;
+  flex-direction: column;
+}
+
+.weather-settings .form-group {
+  margin-bottom: 10px;
+}
+
+.weather-settings input[type="password"],
+.weather-settings input[type="text"] {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  color: var(--text);
+  font-family: inherit;
 }
