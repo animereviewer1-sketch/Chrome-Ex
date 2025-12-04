@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesezeichen</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      background: #1a1a2e;
+      padding: 40px;
+    }
+    
+    .page-header {
+      margin-bottom: 30px;
+    }
+    
+    .page-title {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+    
+    .page-subtitle {
+      opacity: 0.6;
+      font-size: 14px;
+    }
+    
+    .bookmarks-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 15px;
+    }
+    
+    .bookmark-folder {
+      margin-bottom: 30px;
+    }
+    
+    .folder-title {
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      opacity: 0.8;
+    }
+    
+    .folder-content {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+    }
+    
+    .bookmark-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 15px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      color: inherit;
+    }
+    
+    .bookmark-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateX(3px);
+    }
+    
+    .bookmark-favicon {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    
+    .bookmark-favicon img {
+      width: 16px;
+      height: 16px;
+    }
+    
+    .bookmark-title {
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--accent-color);
+      text-decoration: none;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    
+    .back-link:hover {
+      text-decoration: underline;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      opacity: 0.5;
+    }
+    
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+    }
+    
+    .search-box {
+      margin-bottom: 25px;
+    }
+    
+    .search-input {
+      width: 100%;
+      max-width: 400px;
+      padding: 12px 20px;
+      border-radius: 25px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.05);
+      color: white;
+      font-size: 14px;
+    }
+    
+    .search-input:focus {
+      outline: none;
+      border-color: var(--accent-color);
+    }
+    
+    .search-input::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+    }
+  </style>
+</head>
+<body>
+  <a href="newtab.html" class="back-link">← Zurück zum New Tab</a>
+  
+  <div class="page-header">
+    <h1 class="page-title">🔖 Lesezeichen</h1>
+    <p class="page-subtitle">Alle deine gespeicherten Lesezeichen</p>
+  </div>
+  
+  <div class="search-box">
+    <input type="text" id="search-input" class="search-input" placeholder="🔍 Lesezeichen durchsuchen...">
+  </div>
+  
+  <div id="bookmarks-container" class="bookmarks-container">
+    <!-- Dynamisch generierte Lesezeichen -->
+  </div>
+  
+  <div id="empty-state" class="empty-state hidden">
+    <div class="empty-state-icon">🔖</div>
+    <p>Keine Lesezeichen gefunden</p>
+  </div>
+  
+  <script>
+    /**
+     * Lesezeichen Übersicht Seite
+     * Zeigt alle Browser-Lesezeichen hierarchisch
+     */
+    
+    let allBookmarks = [];
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      loadBookmarks();
+      initSearch();
+    });
+    
+    /**
+     * Lädt alle Lesezeichen
+     */
+    async function loadBookmarks() {
+      const container = document.getElementById('bookmarks-container');
+      const emptyState = document.getElementById('empty-state');
+      
+      try {
+        // Chrome Bookmarks API
+        if (typeof chrome !== 'undefined' && chrome.bookmarks) {
+          const tree = await chrome.bookmarks.getTree();
+          allBookmarks = flattenBookmarks(tree);
+          
+          if (allBookmarks.length === 0) {
+            emptyState.classList.remove('hidden');
+            return;
+          }
+          
+          renderBookmarks(tree[0].children);
+        } else {
+          // Fallback für lokale Entwicklung
+          const demoBookmarks = [
+            { title: 'Lesezeichenleiste', children: [
+              { title: 'Google', url: 'https://google.com' },
+              { title: 'GitHub', url: 'https://github.com' },
+              { title: 'YouTube', url: 'https://youtube.com' }
+            ]},
+            { title: 'Andere Lesezeichen', children: [
+              { title: 'Stack Overflow', url: 'https://stackoverflow.com' },
+              { title: 'MDN', url: 'https://developer.mozilla.org' }
+            ]}
+          ];
+          
+          allBookmarks = flattenBookmarks([{ children: demoBookmarks }]);
+          renderBookmarks(demoBookmarks);
+        }
+      } catch (error) {
+        console.error('Fehler beim Laden der Lesezeichen:', error);
+        emptyState.classList.remove('hidden');
+      }
+    }
+    
+    /**
+     * Rendert Lesezeichen hierarchisch
+     * @param {Array} nodes - Lesezeichen-Knoten
+     */
+    function renderBookmarks(nodes) {
+      const container = document.getElementById('bookmarks-container');
+      container.innerHTML = '';
+      
+      nodes.forEach(node => {
+        if (node.children) {
+          const folder = createFolderElement(node);
+          container.appendChild(folder);
+        } else if (node.url) {
+          container.appendChild(createBookmarkElement(node));
+        }
+      });
+    }
+    
+    /**
+     * Erstellt ein Ordner-Element
+     * @param {Object} node - Lesezeichen-Ordner
+     * @returns {HTMLElement}
+     */
+    function createFolderElement(node) {
+      const folder = document.createElement('div');
+      folder.className = 'bookmark-folder';
+      
+      const title = document.createElement('div');
+      title.className = 'folder-title';
+      title.innerHTML = `📁 ${escapeHtml(node.title || 'Ordner')}`;
+      
+      const content = document.createElement('div');
+      content.className = 'folder-content';
+      
+      node.children.forEach(child => {
+        if (child.url) {
+          content.appendChild(createBookmarkElement(child));
+        } else if (child.children && child.children.length > 0) {
+          // Rekursiv für Unterordner
+          const subFolder = createFolderElement(child);
+          folder.appendChild(subFolder);
+        }
+      });
+      
+      folder.appendChild(title);
+      folder.appendChild(content);
+      
+      return folder;
+    }
+    
+    /**
+     * Erstellt ein Lesezeichen-Element
+     * @param {Object} bookmark - Lesezeichen-Objekt
+     * @returns {HTMLElement}
+     */
+    function createBookmarkElement(bookmark) {
+      const el = document.createElement('a');
+      el.className = 'bookmark-item';
+      el.href = bookmark.url;
+      el.target = '_blank';
+      
+      const favicon = document.createElement('div');
+      favicon.className = 'bookmark-favicon';
+      
+      try {
+        const domain = new URL(bookmark.url).hostname;
+        const img = document.createElement('img');
+        img.src = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+        img.onerror = () => favicon.textContent = '🔗';
+        favicon.appendChild(img);
+      } catch {
+        favicon.textContent = '🔗';
+      }
+      
+      const title = document.createElement('span');
+      title.className = 'bookmark-title';
+      title.textContent = bookmark.title || bookmark.url;
+      
+      el.appendChild(favicon);
+      el.appendChild(title);
+      
+      return el;
+    }
+    
+    /**
+     * Flattened Lesezeichen-Baum zu Array
+     * @param {Array} tree - Lesezeichen-Baum
+     * @returns {Array}
+     */
+    function flattenBookmarks(tree) {
+      const result = [];
+      
+      function traverse(nodes) {
+        nodes.forEach(node => {
+          if (node.url) {
+            result.push(node);
+          }
+          if (node.children) {
+            traverse(node.children);
+          }
+        });
+      }
+      
+      traverse(tree);
+      return result;
+    }
+    
+    /**
+     * Initialisiert die Suchfunktion
+     */
+    function initSearch() {
+      const searchInput = document.getElementById('search-input');
+      
+      searchInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        
+        if (!query) {
+          // Alle Lesezeichen anzeigen
+          loadBookmarks();
+          return;
+        }
+        
+        // Filtern
+        const filtered = allBookmarks.filter(b => 
+          (b.title && b.title.toLowerCase().includes(query)) ||
+          (b.url && b.url.toLowerCase().includes(query))
+        );
+        
+        renderFilteredBookmarks(filtered);
+      });
+    }
+    
+    /**
+     * Rendert gefilterte Lesezeichen
+     * @param {Array} bookmarks - Gefilterte Lesezeichen
+     */
+    function renderFilteredBookmarks(bookmarks) {
+      const container = document.getElementById('bookmarks-container');
+      const emptyState = document.getElementById('empty-state');
+      
+      container.innerHTML = '';
+      
+      if (bookmarks.length === 0) {
+        emptyState.classList.remove('hidden');
+        return;
+      }
+      
+      emptyState.classList.add('hidden');
+      
+      bookmarks.forEach(bookmark => {
+        container.appendChild(createBookmarkElement(bookmark));
+      });
+    }
+    
+    /**
+     * Escaped HTML Zeichen
+     * @param {string} text - Text zum Escapen
+     * @returns {string}
+     */
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>
