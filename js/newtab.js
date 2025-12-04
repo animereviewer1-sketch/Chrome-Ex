@@ -347,20 +347,26 @@ async function setCustomBackground(imageDataUrl) {
 }
 
 // Fix 8-9: Hintergrund-Upload mit Video-Unterstützung
+// Hilfsfunktion: Video-Element erstellen oder wiederverwenden
+function getOrCreateVideoElement() {
+  let videoElement = document.getElementById('bg-video');
+  if (!videoElement) {
+    videoElement = document.createElement('video');
+    videoElement.id = 'bg-video';
+    videoElement.autoplay = true;
+    videoElement.loop = true;
+    videoElement.muted = true;
+    videoElement.playsInline = true;
+    videoElement.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:-1;';
+    document.body.prepend(videoElement);
+  }
+  return videoElement;
+}
+
 async function uploadBackground(file) {
   if (file.type.startsWith('video/')) {
     // Video-Hintergrund
-    let videoElement = document.getElementById('bg-video');
-    if (!videoElement) {
-      videoElement = document.createElement('video');
-      videoElement.id = 'bg-video';
-      videoElement.autoplay = true;
-      videoElement.loop = true;
-      videoElement.muted = true;
-      videoElement.playsInline = true;
-      videoElement.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:-1;';
-      document.body.prepend(videoElement);
-    }
+    const videoElement = getOrCreateVideoElement();
     
     const reader = new FileReader();
     reader.onload = async (e) => {
@@ -389,17 +395,7 @@ async function setBackgroundUrl(url) {
   
   // Prüfen ob Video-URL
   if (url.match(/\.(mp4|webm|ogg)(\?.*)?$/i)) {
-    let videoElement = document.getElementById('bg-video');
-    if (!videoElement) {
-      videoElement = document.createElement('video');
-      videoElement.id = 'bg-video';
-      videoElement.autoplay = true;
-      videoElement.loop = true;
-      videoElement.muted = true;
-      videoElement.playsInline = true;
-      videoElement.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:-1;';
-      document.body.prepend(videoElement);
-    }
+    const videoElement = getOrCreateVideoElement();
     videoElement.src = url;
     document.body.classList.remove('custom-background', 'animated-gradient');
     hideParticles();
@@ -430,17 +426,7 @@ function removeVideoBackground() {
 // Fix 8-9: Hintergrund beim Laden wiederherstellen
 function restoreVideoBackground() {
   if ((settings.backgroundType === 'video' || settings.backgroundType === 'video-url') && settings.backgroundData) {
-    let videoElement = document.getElementById('bg-video');
-    if (!videoElement) {
-      videoElement = document.createElement('video');
-      videoElement.id = 'bg-video';
-      videoElement.autoplay = true;
-      videoElement.loop = true;
-      videoElement.muted = true;
-      videoElement.playsInline = true;
-      videoElement.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:-1;';
-      document.body.prepend(videoElement);
-    }
+    const videoElement = getOrCreateVideoElement();
     videoElement.src = settings.backgroundData;
     document.body.classList.remove('custom-background', 'animated-gradient');
     hideParticles();
@@ -530,13 +516,13 @@ function enableWidgetDragging(widget) {
     if (!settings.editMode) return;
     e.preventDefault();
     
-    const rect = widget.getBoundingClientRect();
     const container = document.getElementById('widget-container');
     const containerRect = container.getBoundingClientRect();
+    const initialRect = widget.getBoundingClientRect();
     
     // Offset vom Mausklick zum Widget-Ursprung
-    const offsetX = e.clientX - rect.left;
-    const offsetY = e.clientY - rect.top;
+    const offsetX = e.clientX - initialRect.left;
+    const offsetY = e.clientY - initialRect.top;
     
     // Widget für absolute Positionierung vorbereiten
     widget.style.position = 'absolute';
@@ -548,6 +534,10 @@ function enableWidgetDragging(widget) {
       if (now - lastDragTime < DRAG_THROTTLE_MS) return;
       lastDragTime = now;
       
+      // Aktuelle Widget-Größe für Grenzprüfung
+      const currentWidth = widget.offsetWidth;
+      const currentHeight = widget.offsetHeight;
+      
       let x = moveEvent.clientX - containerRect.left - offsetX;
       let y = moveEvent.clientY - containerRect.top - offsetY;
       
@@ -556,9 +546,9 @@ function enableWidgetDragging(widget) {
       x = Math.round(x / gridSize) * gridSize;
       y = Math.round(y / gridSize) * gridSize;
       
-      // Grenzen einhalten
-      x = Math.max(0, Math.min(x, containerRect.width - rect.width));
-      y = Math.max(0, Math.min(y, containerRect.height - rect.height));
+      // Grenzen einhalten (mit aktuellen Dimensionen)
+      x = Math.max(0, Math.min(x, containerRect.width - currentWidth));
+      y = Math.max(0, Math.min(y, containerRect.height - currentHeight));
       
       widget.style.left = x + 'px';
       widget.style.top = y + 'px';
@@ -567,7 +557,10 @@ function enableWidgetDragging(widget) {
     function stopDrag() {
       document.removeEventListener('mousemove', onDrag);
       widget.classList.remove('dragging');
-      saveWidgetPosition(widget.id, widget.style.left, widget.style.top);
+      // Speichere numerische Werte ohne 'px' Suffix
+      const left = parseInt(widget.style.left) || 0;
+      const top = parseInt(widget.style.top) || 0;
+      saveWidgetPosition(widget.id, left, top);
     }
     
     document.addEventListener('mousemove', onDrag);
@@ -800,11 +793,11 @@ function createWidgetElement(widget) {
     div.style.height = widgetSettings.height;
   }
   
-  // Fix 1: Position wiederherstellen
-  if (widgetSettings.positionLeft || widgetSettings.positionTop) {
+  // Fix 1: Position wiederherstellen (prüfe auf undefined/null statt falsy)
+  if (widgetSettings.positionLeft !== undefined || widgetSettings.positionTop !== undefined) {
     div.style.position = 'absolute';
-    if (widgetSettings.positionLeft) div.style.left = widgetSettings.positionLeft;
-    if (widgetSettings.positionTop) div.style.top = widgetSettings.positionTop;
+    if (widgetSettings.positionLeft !== undefined) div.style.left = `${widgetSettings.positionLeft}px`;
+    if (widgetSettings.positionTop !== undefined) div.style.top = `${widgetSettings.positionTop}px`;
   }
   
   // Fix 3: Text-Farbe anwenden

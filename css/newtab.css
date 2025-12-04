@@ -1637,7 +1637,7 @@ body.edit-mode.grid-hidden::before {
 }
 
 .clock-widget .clock-time {
-  font-size: var(--clock-size, 64px);
+  font-size: var(--clock-size, 72px);
 }
 
 /* ============ Fix 1: Widget Dragging ============ */
