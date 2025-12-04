@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Neuer Tab</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=Inter:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=Open+Sans:wght@400;700&family=Playfair+Display:wght@400;700&family=Poppins:wght@400;700&family=Raleway:wght@400;700&family=Roboto:wght@400;700&family=Ubuntu:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/newtab.css">
+</head>
+<body class="dark-mode">
+  <!-- Partikel Hintergrund -->
+  <div id="particles-js"></div>
+  
+  <!-- Quick Actions Modal (Strg+K) -->
+  <div id="quick-actions-modal" class="modal hidden">
+    <div class="modal-content quick-actions-content">
+      <input type="text" id="quick-search" placeholder="Aktion suchen..." autocomplete="off">
+      <div class="actions-list" id="actions-list"></div>
+    </div>
+  </div>
+
+  <!-- Page Tabs für Multi-Page Support -->
+  <div class="page-tabs" id="page-tabs">
+    <!-- Dynamisch gefüllt -->
+  </div>
+
+  <!-- Widget Container -->
+  <div class="widget-container" id="widget-container">
+    <!-- Widgets werden dynamisch eingefügt -->
+  </div>
+
+  <!-- Add Widget Button (nur im Edit-Modus sichtbar) -->
+  <button id="add-widget-btn" class="add-widget-btn edit-mode-only" title="Widget hinzufügen">+</button>
+
+  <!-- Settings Button (immer sichtbar) -->
+  <button id="settings-btn" class="settings-btn" title="Einstellungen">⚙️</button>
+
+  <!-- Widget Modal -->
+  <div id="widget-modal" class="modal hidden">
+    <div class="modal-content">
+      <button class="modal-close" id="widget-modal-close">✕</button>
+      <h2>Widget hinzufügen</h2>
+      <div class="widget-types" id="widget-types">
+        <!-- Widget-Typen werden dynamisch eingefügt -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Shortcut Editor Modal -->
+  <div id="shortcut-modal" class="modal hidden">
+    <div class="modal-content">
+      <button class="modal-close" id="shortcut-modal-close">✕</button>
+      <h2 id="shortcut-modal-title">Shortcut hinzufügen</h2>
+      <form id="shortcut-form">
+        <div class="form-group">
+          <label for="shortcut-name">Name</label>
+          <input type="text" id="shortcut-name" placeholder="z.B. Google" required>
+        </div>
+        <div class="form-group">
+          <label for="shortcut-url">URL</label>
+          <input type="url" id="shortcut-url" placeholder="https://google.com" required>
+        </div>
+        <div class="form-group special-shortcuts">
+          <label>Oder spezielle Shortcuts:</label>
+          <div class="special-shortcuts-list">
+            <button type="button" class="special-shortcut-btn" data-url="chrome://newtab/tabs.html" data-name="Offene Tabs">📑 Offene Tabs</button>
+            <button type="button" class="special-shortcut-btn" data-url="chrome://newtab/bookmarks.html" data-name="Lesezeichen">🔖 Lesezeichen</button>
+          </div>
+        </div>
+        <input type="hidden" id="shortcut-index" value="-1">
+        <div class="form-actions">
+          <button type="button" id="delete-shortcut-btn" class="btn-danger hidden">Löschen</button>
+          <button type="submit" class="btn-primary">Speichern</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Note Editor Modal -->
+  <div id="note-modal" class="modal hidden">
+    <div class="modal-content note-editor-modal">
+      <button class="modal-close" id="note-modal-close">✕</button>
+      <input type="text" id="note-title" class="note-title-input" placeholder="Notiz Titel...">
+      <textarea id="note-content" class="note-editor-content" placeholder="Schreibe deine Notiz hier..."></textarea>
+      <input type="hidden" id="note-index" value="-1">
+      <div class="form-actions">
+        <button type="button" id="delete-note-btn" class="btn-danger hidden">Löschen</button>
+        <button type="button" id="save-note-btn" class="note-save-btn">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Widget Settings Modal -->
+  <div id="widget-settings-modal" class="modal hidden">
+    <div class="modal-content">
+      <button class="modal-close" id="widget-settings-modal-close">✕</button>
+      <h2>Widget Einstellungen</h2>
+      <form id="widget-settings-form">
+        <input type="hidden" id="widget-settings-id">
+        
+        <div class="form-group">
+          <label>Opazität: <span id="widget-opacity-value">100%</span></label>
+          <input type="range" id="widget-opacity" min="0" max="100" value="100">
+        </div>
+        
+        <div class="form-group">
+          <label>Position</label>
+          <select id="widget-position">
+            <option value="free">Frei verschiebbar</option>
+            <option value="top">Oben fixiert</option>
+            <option value="middle">Mitte</option>
+            <option value="bottom">Unten fixiert</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label><input type="checkbox" id="widget-auto-hide"> Auto-Hide (erscheint bei Hover)</label>
+        </div>
+        
+        <div class="form-group widget-effects">
+          <label>Effekte (kombinierbar):</label>
+          <div class="effects-checkboxes">
+            <label><input type="checkbox" data-effect="glow"> Glow</label>
+            <label><input type="checkbox" data-effect="neon"> Neon</label>
+            <label><input type="checkbox" data-effect="3d"> 3D</label>
+          </div>
+        </div>
+        
+        <div class="form-actions">
+          <button type="button" id="delete-widget-btn" class="btn-danger">Widget löschen</button>
+          <button type="submit" class="btn-primary">Speichern</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="modal hidden">
+    <div class="modal-content settings-content">
+      <button class="modal-close" id="settings-modal-close">✕</button>
+      <h2>Einstellungen</h2>
+      
+      <div class="settings-section">
+        <h3>Edit-Modus</h3>
+        <div class="edit-mode-setting">
+          <label>
+            <input type="checkbox" id="edit-mode-toggle">
+            Edit-Modus aktivieren
+          </label>
+          <p class="hint">Ermöglicht Verschieben, Konfigurieren und Hinzufügen von Widgets auf der Startseite</p>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>Farbschema</h3>
+        <div class="theme-grid" id="theme-grid">
+          <!-- Themes werden dynamisch eingefügt -->
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>Hintergrund</h3>
+        <div class="background-options">
+          <div class="background-option">
+            <label>
+              <input type="radio" name="bg-type" value="theme" checked>
+              Theme-Hintergrund
+            </label>
+          </div>
+          <div class="background-option">
+            <label>
+              <input type="radio" name="bg-type" value="custom">
+              Eigenes Bild
+            </label>
+            <input type="file" id="custom-bg-upload" accept="image/*" class="hidden">
+            <button type="button" id="upload-bg-btn" class="btn-secondary">Bild hochladen</button>
+          </div>
+          <div class="background-option">
+            <label>
+              <input type="radio" name="bg-type" value="animated">
+              Animiert
+            </label>
+            <select id="animated-bg-type" class="hidden">
+              <option value="particles">Partikel</option>
+              <option value="gradient">Gradient Animation</option>
+              <option value="geometric">Geometrische Formen</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>Schriftart</h3>
+        <div class="font-grid" id="font-grid">
+          <!-- Fonts werden dynamisch eingefügt -->
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>Seiten verwalten</h3>
+        <div id="pages-manager">
+          <!-- Seiten werden dynamisch eingefügt -->
+        </div>
+        <button type="button" id="add-page-btn" class="btn-secondary">+ Neue Seite</button>
+      </div>
+
+      <div class="settings-actions">
+        <button type="button" id="export-settings-btn" class="btn-secondary">Einstellungen exportieren</button>
+        <button type="button" id="import-settings-btn" class="btn-secondary">Einstellungen importieren</button>
+        <input type="file" id="import-settings-file" accept=".json" class="hidden">
+        <button type="button" id="reset-settings-btn" class="btn-danger">Zurücksetzen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs Page Modal (special shortcut) -->
+  <div id="tabs-modal" class="modal hidden">
+    <div class="modal-content tabs-content">
+      <button class="modal-close" id="tabs-modal-close">✕</button>
+      <h2>📑 Offene Tabs</h2>
+      <div id="tabs-list" class="tabs-list">
+        <!-- Tabs werden dynamisch eingefügt -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Bookmarks Page Modal (special shortcut) -->
+  <div id="bookmarks-modal" class="modal hidden">
+    <div class="modal-content bookmarks-content">
+      <button class="modal-close" id="bookmarks-modal-close">✕</button>
+      <h2>🔖 Lesezeichen</h2>
+      <div id="bookmarks-list" class="bookmarks-list">
+        <!-- Lesezeichen werden dynamisch eingefügt -->
+      </div>
+    </div>
+  </div>
+
+  <script src="lib/particles.min.js"></script>
+  <script src="js/newtab.js"></script>
+</body>
+</html>

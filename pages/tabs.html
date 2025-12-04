@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offene Tabs</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/newtab.css">
+  <style>
+    body {
+      padding: 40px;
+      min-height: 100vh;
+    }
+    .page-title {
+      font-size: 32px;
+      margin-bottom: 30px;
+      text-align: center;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .tabs-container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .back-link {
+      display: inline-block;
+      margin-bottom: 20px;
+      color: var(--primary);
+      text-decoration: none;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body class="dark-mode">
+  <div class="tabs-container">
+    <a href="newtab.html" class="back-link">← Zurück zur Startseite</a>
+    <h1 class="page-title">📑 Offene Tabs</h1>
+    <div id="tabs-list" class="tabs-list">
+      <!-- Tabs werden dynamisch eingefügt -->
+    </div>
+  </div>
+  
+  <script>
+    // Icon von URL generieren
+    function getIconFromUrl(url) {
+      try {
+        const domain = new URL(url).hostname;
+        return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+      } catch {
+        return 'icons/default.png';
+      }
+    }
+    
+    // Tabs laden
+    async function loadTabs() {
+      const list = document.getElementById('tabs-list');
+      
+      try {
+        if (typeof chrome !== 'undefined' && chrome.tabs) {
+          const tabs = await chrome.tabs.query({});
+          
+          list.innerHTML = tabs.map(tab => `
+            <div class="tab-item" data-tab-id="${tab.id}">
+              <img src="${tab.favIconUrl || getIconFromUrl(tab.url)}" class="tab-icon" alt="" onerror="this.src='icons/default.png'">
+              <span class="tab-title">${tab.title}</span>
+            </div>
+          `).join('');
+          
+          // Click Handler
+          list.querySelectorAll('.tab-item').forEach(item => {
+            item.addEventListener('click', () => {
+              chrome.tabs.update(parseInt(item.dataset.tabId), { active: true });
+            });
+          });
+        } else {
+          list.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">Tab-Zugriff nur in der Chrome Extension verfügbar.</p>';
+        }
+      } catch (error) {
+        list.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">Fehler beim Laden der Tabs.</p>';
+        console.error(error);
+      }
+    }
+    
+    // Theme aus Storage laden
+    async function loadTheme() {
+      try {
+        if (typeof chrome !== 'undefined' && chrome.storage) {
+          const result = await chrome.storage.local.get('chromeExSettings');
+          if (result.chromeExSettings && result.chromeExSettings.theme) {
+            document.documentElement.className = result.chromeExSettings.theme;
+            document.body.className = result.chromeExSettings.theme;
+          }
+        }
+      } catch (e) {}
+    }
+    
+    loadTheme();
+    loadTabs();
+  </script>
+</body>
+</html>
