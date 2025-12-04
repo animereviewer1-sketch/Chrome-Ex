@@ -120,6 +120,59 @@
           <label><input type="checkbox" id="widget-auto-hide"> Auto-Hide (erscheint bei Hover)</label>
         </div>
         
+        <!-- Neue Feature 3: Blur-Einstellung -->
+        <div class="widget-config-section">
+          <h4>Blur-Effekt</h4>
+          <div class="setting-row">
+            <label><input type="checkbox" id="widget-blur-enabled"> Blur aktiviert</label>
+          </div>
+          <div class="setting-row">
+            <label>Stärke:</label>
+            <input type="range" id="widget-blur-strength" min="0" max="20" value="10">
+            <span class="value-display" id="widget-blur-value">10px</span>
+          </div>
+        </div>
+        
+        <!-- Neue Feature 4: Erweiterte Anpassung -->
+        <div class="widget-config-section">
+          <h4>Hintergrund</h4>
+          <div class="setting-row">
+            <label>Transparenz:</label>
+            <input type="range" id="widget-bg-opacity" min="0" max="100" value="100">
+            <span class="value-display" id="widget-bg-opacity-value">100%</span>
+          </div>
+          <div class="setting-row">
+            <label>Farbe:</label>
+            <input type="color" id="widget-bg-color" value="#1a1a2e">
+          </div>
+        </div>
+        
+        <div class="widget-config-section">
+          <h4>Rahmen</h4>
+          <div class="setting-row">
+            <label><input type="checkbox" id="widget-border-enabled"> Rahmen anzeigen</label>
+          </div>
+          <div class="setting-row">
+            <label>Farbe:</label>
+            <input type="color" id="widget-border-color" value="#ff00ff">
+            <label>Breite:</label>
+            <input type="range" id="widget-border-width" min="1" max="5" value="1">
+            <span class="value-display" id="widget-border-width-value">1px</span>
+          </div>
+        </div>
+        
+        <div class="widget-config-section">
+          <h4>Schatten</h4>
+          <div class="setting-row">
+            <label><input type="checkbox" id="widget-shadow-enabled"> Schatten anzeigen</label>
+          </div>
+          <div class="setting-row">
+            <label>Größe:</label>
+            <input type="range" id="widget-shadow-size" min="0" max="50" value="20">
+            <span class="value-display" id="widget-shadow-size-value">20px</span>
+          </div>
+        </div>
+        
         <div class="form-group widget-effects">
           <label>Effekte (kombinierbar):</label>
           <div class="effects-checkboxes">
@@ -127,6 +180,19 @@
             <label><input type="checkbox" data-effect="neon"> Neon</label>
             <label><input type="checkbox" data-effect="3d"> 3D</label>
           </div>
+        </div>
+        
+        <!-- Neue Feature 6: Randlos-Modus -->
+        <div class="form-group">
+          <label><input type="checkbox" id="widget-borderless"> Randlos (entfernt alle Rahmen/Hintergründe)</label>
+        </div>
+        
+        <!-- Neue Feature 7: Titel/Labels ausblenden -->
+        <div class="form-group">
+          <label><input type="checkbox" id="widget-hide-title"> Titel ausblenden</label>
+        </div>
+        <div class="form-group">
+          <label><input type="checkbox" id="widget-hide-labels"> Labels ausblenden (z.B. Shortcut-Namen)</label>
         </div>
         
         <div class="form-actions">
@@ -189,6 +255,12 @@
               <option value="geometric">Geometrische Formen</option>
             </select>
           </div>
+        </div>
+        <!-- Neue Feature 5: Seiten-Hintergrund-Transparenz -->
+        <div class="form-group" style="margin-top: 20px;">
+          <label>Seiten-Transparenz: <span id="page-opacity-value">100%</span></label>
+          <input type="range" id="page-opacity" min="0" max="100" value="100">
+          <p class="hint">Reduziert die Sichtbarkeit des Hintergrunds (0% = transparent)</p>
         </div>
       </div>
 

@@ -27,6 +27,10 @@
 // ============ Konstanten ============
 const STORAGE_KEY = 'chromeExSettings';
 
+// Minimale Widget-Dimensionen für Resize-Funktion
+const MIN_WIDGET_WIDTH = 200;
+const MIN_WIDGET_HEIGHT = 150;
+
 const DEFAULT_SETTINGS = {
   editMode: false,
   currentPage: '1',
@@ -35,6 +39,7 @@ const DEFAULT_SETTINGS = {
   backgroundType: 'theme',
   customBackground: null,
   animatedBgType: 'particles',
+  pageOpacity: 100, // Neue Feature 5: Seiten-Transparenz
   pages: {
     '1': {
       name: 'Start',
@@ -101,6 +106,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initTheme();
   initFont();
   initBackground();
+  initPageOpacity(); // Neue Feature 5
   initPageTabs();
   renderWidgets();
   initEventListeners();
@@ -312,6 +318,31 @@ async function setCustomBackground(imageDataUrl) {
   await saveSettings();
 }
 
+// ============ Feature 5: Seiten-Hintergrund-Transparenz ============
+function initPageOpacity() {
+  const opacity = settings.pageOpacity ?? 100;
+  applyPageOpacity(opacity);
+}
+
+function applyPageOpacity(opacity) {
+  // Entferne alle vorherigen Opacity-Einstellungen
+  document.body.removeAttribute('data-page-opacity');
+  document.body.classList.remove('custom-page-opacity');
+  
+  if (opacity < 100) {
+    // Berechne den Transparenzwert
+    const alpha = opacity / 100;
+    document.body.classList.add('custom-page-opacity');
+    document.body.style.setProperty('--page-bg-opacity', `rgba(0, 0, 0, ${alpha})`);
+  }
+}
+
+function setPageOpacity(opacity) {
+  settings.pageOpacity = opacity;
+  applyPageOpacity(opacity);
+  saveSettings();
+}
+
 // ============ Feature #16: Multi-Page Support ============
 function initPageTabs() {
   const tabsContainer = document.getElementById('page-tabs');
@@ -424,6 +455,17 @@ function renderWidgets() {
     const el = createWidgetElement(widget);
     if (el) {
       container.appendChild(el);
+      
+      // Feature 1: Resize-Funktionalität initialisieren
+      initWidgetResize(el);
+      
+      // Feature 2: Shortcut Drag & Drop initialisieren (nur für Shortcuts-Widgets)
+      if (widget.type === 'shortcuts') {
+        const shortcutsGrid = el.querySelector('.shortcuts-grid');
+        if (shortcutsGrid) {
+          initShortcutDragDrop(widget.id, shortcutsGrid);
+        }
+      }
     }
   });
 }
@@ -455,13 +497,71 @@ function createWidgetElement(widget) {
     });
   }
   
-  // Widget Controls (Edit Mode only)
+  // Neue Feature 3: Blur-Einstellung
+  // Wenn Blur explizit deaktiviert ist, kein backdrop-filter
+  if (widgetSettings.blurEnabled === false) {
+    div.style.backdropFilter = 'none';
+  } else if (widgetSettings.blurStrength !== undefined) {
+    // Blur ist aktiviert oder nicht explizit deaktiviert, und Stärke ist gesetzt
+    div.classList.add('custom-blur');
+    div.style.setProperty('--widget-blur', `blur(${widgetSettings.blurStrength}px)`);
+  }
+  // Standard blur vom CSS wenn nichts gesetzt ist
+  
+  // Neue Feature 4: Hintergrund-Anpassung
+  if (widgetSettings.bgColor || widgetSettings.bgOpacity !== undefined) {
+    const bgColor = widgetSettings.bgColor || '#1a1a2e';
+    const bgOpacity = (widgetSettings.bgOpacity ?? 100) / 100;
+    const r = parseInt(bgColor.slice(1, 3), 16);
+    const g = parseInt(bgColor.slice(3, 5), 16);
+    const b = parseInt(bgColor.slice(5, 7), 16);
+    div.classList.add('custom-bg');
+    div.style.setProperty('--widget-custom-bg', `rgba(${r}, ${g}, ${b}, ${bgOpacity})`);
+  }
+  
+  // Neue Feature 4: Rahmen-Anpassung
+  if (widgetSettings.borderEnabled) {
+    div.classList.add('custom-border');
+    div.style.setProperty('--widget-border-color', widgetSettings.borderColor || '#ff00ff');
+    div.style.setProperty('--widget-border-width', `${widgetSettings.borderWidth || 1}px`);
+  }
+  
+  // Neue Feature 4: Schatten-Anpassung
+  if (widgetSettings.shadowEnabled) {
+    div.classList.add('custom-shadow');
+    div.style.setProperty('--widget-shadow-size', `${widgetSettings.shadowSize || 20}px`);
+  }
+  
+  // Neue Feature 6: Randlos-Modus
+  if (widgetSettings.borderless) {
+    div.classList.add('borderless');
+  }
+  
+  // Neue Feature 7: Titel/Labels ausblenden
+  if (widgetSettings.hideTitle) {
+    div.classList.add('hide-title');
+  }
+  
+  if (widgetSettings.hideLabels) {
+    div.classList.add('hide-labels');
+  }
+  
+  // Neue Feature 1: Größe wiederherstellen
+  if (widgetSettings.width) {
+    div.style.width = widgetSettings.width;
+  }
+  if (widgetSettings.height) {
+    div.style.height = widgetSettings.height;
+  }
+  
+  // Widget Controls (Edit Mode only) + Resize Handle
   div.innerHTML = `
     <div class="drag-handle"></div>
     <div class="widget-controls">
       <button class="widget-control-btn widget-settings-btn" data-widget-id="${widget.id}" title="Einstellungen">⚙️</button>
       <button class="widget-control-btn widget-delete-btn" data-widget-id="${widget.id}" title="Löschen">🗑️</button>
     </div>
+    <div class="resize-handle" data-widget-id="${widget.id}">⋰</div>
   `;
   
   // Widget Content basierend auf Typ
@@ -808,6 +908,17 @@ function initBackgroundSettings() {
       initBackground();
     });
   }
+  
+  // Neue Feature 5: Seiten-Transparenz initialisieren
+  const pageOpacitySlider = document.getElementById('page-opacity');
+  const pageOpacityValue = document.getElementById('page-opacity-value');
+  if (pageOpacitySlider) {
+    const currentOpacity = settings.pageOpacity ?? 100;
+    pageOpacitySlider.value = currentOpacity;
+    if (pageOpacityValue) {
+      pageOpacityValue.textContent = `${currentOpacity}%`;
+    }
+  }
 }
 
 // ============ Widget Management ============
@@ -846,7 +957,7 @@ function openWidgetSettingsModal(widgetId) {
   
   const widgetSettings = widget.settings || {};
   
-  // Felder füllen
+  // Basis-Felder füllen
   document.getElementById('widget-settings-id').value = widgetId;
   document.getElementById('widget-opacity').value = (widgetSettings.opacity ?? 1) * 100;
   document.getElementById('widget-opacity-value').textContent = `${Math.round((widgetSettings.opacity ?? 1) * 100)}%`;
@@ -858,6 +969,50 @@ function openWidgetSettingsModal(widgetId) {
   document.querySelectorAll('.effects-checkboxes input[type="checkbox"]').forEach(cb => {
     cb.checked = effects.includes(cb.dataset.effect);
   });
+  
+  // Neue Feature 3: Blur-Einstellungen
+  const blurEnabled = document.getElementById('widget-blur-enabled');
+  const blurStrength = document.getElementById('widget-blur-strength');
+  const blurValue = document.getElementById('widget-blur-value');
+  if (blurEnabled) blurEnabled.checked = widgetSettings.blurEnabled !== false;
+  if (blurStrength) blurStrength.value = widgetSettings.blurStrength ?? 10;
+  if (blurValue) blurValue.textContent = `${widgetSettings.blurStrength ?? 10}px`;
+  
+  // Neue Feature 4: Hintergrund-Anpassung
+  const bgOpacity = document.getElementById('widget-bg-opacity');
+  const bgOpacityValue = document.getElementById('widget-bg-opacity-value');
+  const bgColor = document.getElementById('widget-bg-color');
+  if (bgOpacity) bgOpacity.value = widgetSettings.bgOpacity ?? 100;
+  if (bgOpacityValue) bgOpacityValue.textContent = `${widgetSettings.bgOpacity ?? 100}%`;
+  if (bgColor) bgColor.value = widgetSettings.bgColor || '#1a1a2e';
+  
+  // Rahmen-Einstellungen
+  const borderEnabled = document.getElementById('widget-border-enabled');
+  const borderColor = document.getElementById('widget-border-color');
+  const borderWidth = document.getElementById('widget-border-width');
+  const borderWidthValue = document.getElementById('widget-border-width-value');
+  if (borderEnabled) borderEnabled.checked = widgetSettings.borderEnabled || false;
+  if (borderColor) borderColor.value = widgetSettings.borderColor || '#ff00ff';
+  if (borderWidth) borderWidth.value = widgetSettings.borderWidth || 1;
+  if (borderWidthValue) borderWidthValue.textContent = `${widgetSettings.borderWidth || 1}px`;
+  
+  // Schatten-Einstellungen
+  const shadowEnabled = document.getElementById('widget-shadow-enabled');
+  const shadowSize = document.getElementById('widget-shadow-size');
+  const shadowSizeValue = document.getElementById('widget-shadow-size-value');
+  if (shadowEnabled) shadowEnabled.checked = widgetSettings.shadowEnabled || false;
+  if (shadowSize) shadowSize.value = widgetSettings.shadowSize || 20;
+  if (shadowSizeValue) shadowSizeValue.textContent = `${widgetSettings.shadowSize || 20}px`;
+  
+  // Neue Feature 6: Randlos-Modus
+  const borderless = document.getElementById('widget-borderless');
+  if (borderless) borderless.checked = widgetSettings.borderless || false;
+  
+  // Neue Feature 7: Titel/Labels ausblenden
+  const hideTitle = document.getElementById('widget-hide-title');
+  const hideLabels = document.getElementById('widget-hide-labels');
+  if (hideTitle) hideTitle.checked = widgetSettings.hideTitle || false;
+  if (hideLabels) hideLabels.checked = widgetSettings.hideLabels || false;
   
   openModal('widget-settings-modal');
 }
@@ -879,9 +1034,172 @@ function saveWidgetSettings() {
     widget.settings.effects.push(cb.dataset.effect);
   });
   
+  // Neue Feature 3: Blur-Einstellungen
+  const blurEnabled = document.getElementById('widget-blur-enabled');
+  const blurStrength = document.getElementById('widget-blur-strength');
+  if (blurEnabled) widget.settings.blurEnabled = blurEnabled.checked;
+  if (blurStrength) widget.settings.blurStrength = parseInt(blurStrength.value);
+  
+  // Neue Feature 4: Hintergrund-Anpassung
+  const bgOpacity = document.getElementById('widget-bg-opacity');
+  const bgColor = document.getElementById('widget-bg-color');
+  if (bgOpacity) widget.settings.bgOpacity = parseInt(bgOpacity.value);
+  if (bgColor) widget.settings.bgColor = bgColor.value;
+  
+  // Rahmen-Einstellungen
+  const borderEnabled = document.getElementById('widget-border-enabled');
+  const borderColor = document.getElementById('widget-border-color');
+  const borderWidth = document.getElementById('widget-border-width');
+  if (borderEnabled) widget.settings.borderEnabled = borderEnabled.checked;
+  if (borderColor) widget.settings.borderColor = borderColor.value;
+  if (borderWidth) widget.settings.borderWidth = parseInt(borderWidth.value);
+  
+  // Schatten-Einstellungen
+  const shadowEnabled = document.getElementById('widget-shadow-enabled');
+  const shadowSize = document.getElementById('widget-shadow-size');
+  if (shadowEnabled) widget.settings.shadowEnabled = shadowEnabled.checked;
+  if (shadowSize) widget.settings.shadowSize = parseInt(shadowSize.value);
+  
+  // Neue Feature 6: Randlos-Modus
+  const borderless = document.getElementById('widget-borderless');
+  if (borderless) widget.settings.borderless = borderless.checked;
+  
+  // Neue Feature 7: Titel/Labels ausblenden
+  const hideTitle = document.getElementById('widget-hide-title');
+  const hideLabels = document.getElementById('widget-hide-labels');
+  if (hideTitle) widget.settings.hideTitle = hideTitle.checked;
+  if (hideLabels) widget.settings.hideLabels = hideLabels.checked;
+  
   saveSettings();
   renderWidgets();
   closeModal('widget-settings-modal');
+}
+
+// ============ Feature 1: Widgets resizable ============
+function initWidgetResize(widget) {
+  const handle = widget.querySelector('.resize-handle');
+  if (!handle) return;
+  
+  handle.addEventListener('mousedown', (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    
+    const widgetId = handle.dataset.widgetId;
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startW = widget.offsetWidth;
+    const startH = widget.offsetHeight;
+    
+    const onResize = (moveEvent) => {
+      const newWidth = Math.max(MIN_WIDGET_WIDTH, startW + moveEvent.clientX - startX);
+      const newHeight = Math.max(MIN_WIDGET_HEIGHT, startH + moveEvent.clientY - startY);
+      widget.style.width = newWidth + 'px';
+      widget.style.height = newHeight + 'px';
+    };
+    
+    const stopResize = () => {
+      document.removeEventListener('mousemove', onResize);
+      saveWidgetSize(widgetId, widget.style.width, widget.style.height);
+    };
+    
+    document.addEventListener('mousemove', onResize);
+    document.addEventListener('mouseup', stopResize, { once: true });
+  });
+}
+
+function saveWidgetSize(widgetId, width, height) {
+  const currentPage = settings.pages[settings.currentPage];
+  const widget = currentPage?.widgets.find(w => w.id === widgetId);
+  if (!widget) return;
+  
+  widget.settings = widget.settings || {};
+  widget.settings.width = width;
+  widget.settings.height = height;
+  saveSettings();
+}
+
+// ============ Feature 2: Shortcuts verschiebbar (Drag & Drop) ============
+function initShortcutDragDrop(widgetId, container) {
+  if (!container) return;
+  
+  const shortcuts = container.querySelectorAll('.shortcut-item');
+  
+  shortcuts.forEach(item => {
+    // Nur im Edit-Modus verschiebbar
+    item.draggable = true;
+    
+    item.addEventListener('dragstart', (e) => {
+      if (!settings.editMode) {
+        e.preventDefault();
+        return;
+      }
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', item.dataset.index);
+      item.classList.add('dragging');
+    });
+    
+    item.addEventListener('dragend', () => {
+      item.classList.remove('dragging');
+      // Speichere neue Reihenfolge
+      saveShortcutOrder(widgetId, container);
+    });
+  });
+  
+  // Throttle-Variable für dragover Performance
+  let lastDragoverTime = 0;
+  const DRAGOVER_THROTTLE_MS = 50;
+  
+  container.addEventListener('dragover', (e) => {
+    if (!settings.editMode) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    
+    // Throttle: Nur alle 50ms die DOM-Manipulation durchführen
+    const now = Date.now();
+    if (now - lastDragoverTime < DRAGOVER_THROTTLE_MS) return;
+    lastDragoverTime = now;
+    
+    const dragging = container.querySelector('.dragging');
+    if (!dragging) return;
+    
+    const siblings = [...container.querySelectorAll('.shortcut-item:not(.dragging):not(.add-shortcut-btn)')];
+    const afterElement = siblings.find(el => {
+      const rect = el.getBoundingClientRect();
+      return e.clientX < rect.left + rect.width / 2;
+    });
+    
+    if (afterElement) {
+      container.insertBefore(dragging, afterElement);
+    } else {
+      // Vor den Add-Button einfügen, falls vorhanden
+      const addBtn = container.querySelector('.add-shortcut-btn');
+      if (addBtn) {
+        container.insertBefore(dragging, addBtn);
+      } else {
+        container.appendChild(dragging);
+      }
+    }
+  });
+}
+
+function saveShortcutOrder(widgetId, container) {
+  const currentPage = settings.pages[settings.currentPage];
+  const widget = currentPage?.widgets.find(w => w.id === widgetId);
+  if (!widget || !widget.data?.shortcuts) return;
+  
+  const items = container.querySelectorAll('.shortcut-item');
+  const newOrder = [];
+  
+  items.forEach(item => {
+    const index = parseInt(item.dataset.index);
+    if (!isNaN(index) && widget.data.shortcuts[index]) {
+      newOrder.push(widget.data.shortcuts[index]);
+    }
+  });
+  
+  widget.data.shortcuts = newOrder;
+  saveSettings();
+  renderWidgets(); // Neu rendern um die Indizes zu aktualisieren
 }
 
 // ============ Feature #3 & #7: Shortcuts ============
@@ -1211,6 +1529,32 @@ function initEventListeners() {
   // Opacity Slider
   document.getElementById('widget-opacity')?.addEventListener('input', (e) => {
     document.getElementById('widget-opacity-value').textContent = `${e.target.value}%`;
+  });
+  
+  // Neue Feature 3: Blur-Stärke Slider
+  document.getElementById('widget-blur-strength')?.addEventListener('input', (e) => {
+    document.getElementById('widget-blur-value').textContent = `${e.target.value}px`;
+  });
+  
+  // Neue Feature 4: Hintergrund-Transparenz Slider
+  document.getElementById('widget-bg-opacity')?.addEventListener('input', (e) => {
+    document.getElementById('widget-bg-opacity-value').textContent = `${e.target.value}%`;
+  });
+  
+  // Rahmen-Breite Slider
+  document.getElementById('widget-border-width')?.addEventListener('input', (e) => {
+    document.getElementById('widget-border-width-value').textContent = `${e.target.value}px`;
+  });
+  
+  // Schatten-Größe Slider
+  document.getElementById('widget-shadow-size')?.addEventListener('input', (e) => {
+    document.getElementById('widget-shadow-size-value').textContent = `${e.target.value}px`;
+  });
+  
+  // Neue Feature 5: Seiten-Transparenz Slider
+  document.getElementById('page-opacity')?.addEventListener('input', (e) => {
+    document.getElementById('page-opacity-value').textContent = `${e.target.value}%`;
+    setPageOpacity(parseInt(e.target.value));
   });
   
   // Edit Mode Toggle
