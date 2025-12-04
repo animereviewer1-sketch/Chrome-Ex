@@ -215,10 +215,18 @@
       
       const info = document.createElement('div');
       info.className = 'tab-info';
-      info.innerHTML = `
-        <div class="tab-title">${escapeHtml(tab.title || 'Unbenannt')}</div>
-        <div class="tab-url">${escapeHtml(tab.url || '')}</div>
-      `;
+      
+      // Sicher: DOM-Elemente statt innerHTML
+      const titleEl = document.createElement('div');
+      titleEl.className = 'tab-title';
+      titleEl.textContent = tab.title || 'Unbenannt';
+      
+      const urlEl = document.createElement('div');
+      urlEl.className = 'tab-url';
+      urlEl.textContent = tab.url || '';
+      
+      info.appendChild(titleEl);
+      info.appendChild(urlEl);
       
       const closeBtn = document.createElement('button');
       closeBtn.className = 'tab-close';

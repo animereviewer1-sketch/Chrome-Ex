@@ -248,7 +248,7 @@
       
       const title = document.createElement('div');
       title.className = 'folder-title';
-      title.innerHTML = `📁 ${escapeHtml(node.title || 'Ordner')}`;
+      title.textContent = '📁 ' + (node.title || 'Ordner');
       
       const content = document.createElement('div');
       content.className = 'folder-content';

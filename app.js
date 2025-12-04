@@ -207,6 +207,58 @@ async function loadWeather() {
   }
 }
 
+// Wetter-Code zu Emoji Mapping
+const WEATHER_ICONS = {
+  113: '☀️',   // Sonnig
+  116: '⛅',   // Teilweise bewölkt
+  119: '☁️',   // Bewölkt
+  122: '☁️',   // Bewölkt
+  143: '🌫️',  // Nebel
+  176: '🌧️',  // Leichter Regen
+  179: '🌨️',  // Leichter Schnee
+  182: '🌧️',  // Regen
+  185: '🌧️',  // Eisregen
+  200: '⛈️',   // Gewitter
+  227: '❄️',   // Schnee
+  230: '❄️',   // Schneesturm
+  248: '🌫️',  // Nebel
+  260: '🌫️',  // Nebel
+  263: '🌧️',  // Nieselregen
+  266: '🌧️',  // Nieselregen
+  281: '🌧️',  // Eisregen
+  284: '🌧️',  // Eisregen
+  293: '🌧️',  // Leichter Regen
+  296: '🌧️',  // Leichter Regen
+  299: '🌧️',  // Mäßiger Regen
+  302: '🌧️',  // Mäßiger Regen
+  305: '🌧️',  // Starker Regen
+  308: '🌧️',  // Starker Regen
+  311: '🌧️',  // Eisregen
+  314: '🌧️',  // Eisregen
+  317: '🌨️',  // Schneeregen
+  320: '🌨️',  // Schneeregen
+  323: '❄️',   // Leichter Schnee
+  326: '❄️',   // Leichter Schnee
+  329: '❄️',   // Mäßiger Schnee
+  332: '❄️',   // Mäßiger Schnee
+  335: '❄️',   // Starker Schnee
+  338: '❄️',   // Starker Schnee
+  350: '🌧️',  // Hagel
+  353: '🌧️',  // Schauer
+  356: '🌧️',  // Schauer
+  359: '🌧️',  // Starke Schauer
+  362: '🌨️',  // Schneeregen
+  365: '🌨️',  // Schneeregen
+  368: '❄️',   // Schneeschauer
+  371: '❄️',   // Schneeschauer
+  374: '🌧️',  // Hagel
+  377: '🌧️',  // Hagel
+  386: '⛈️',   // Gewitter
+  389: '⛈️',   // Gewitter
+  392: '⛈️',   // Gewitter mit Schnee
+  395: '❄️'    // Starker Schnee
+};
+
 /**
  * Gibt passendes Emoji für Wetter-Code zurück
  * @param {string} code - wttr.in Wetter-Code
@@ -214,18 +266,7 @@ async function loadWeather() {
  */
 function getWeatherIcon(code) {
   const codeNum = parseInt(code);
-  
-  // Wetter-Code Mapping
-  if (codeNum === 113) return '☀️';      // Sonnig
-  if (codeNum === 116) return '⛅';      // Teilweise bewölkt
-  if (codeNum === 119 || codeNum === 122) return '☁️'; // Bewölkt
-  if (codeNum >= 176 && codeNum <= 182) return '🌧️';  // Regen
-  if (codeNum >= 200 && codeNum <= 232) return '⛈️';   // Gewitter
-  if (codeNum >= 260 && codeNum <= 284) return '🌫️';  // Nebel
-  if (codeNum >= 293 && codeNum <= 314) return '🌧️';  // Regen
-  if (codeNum >= 317 && codeNum <= 395) return '❄️';   // Schnee
-  
-  return '🌤️'; // Standard
+  return WEATHER_ICONS[codeNum] || '🌤️';
 }
 
 // ===================================
@@ -361,12 +402,25 @@ function deleteShortcut(index) {
  * @param {string} icon - Icon-URL (optional)
  */
 function addShortcut(name, url, icon = '') {
-  // URL validieren und korrigieren
-  if (!url.startsWith('http://') && !url.startsWith('https://')) {
-    url = 'https://' + url;
+  // URL validieren - nur sichere Protokolle erlauben
+  const trimmedUrl = url.trim();
+  
+  // Prüfen auf gefährliche Protokolle
+  const lowerUrl = trimmedUrl.toLowerCase();
+  if (lowerUrl.startsWith('javascript:') || 
+      lowerUrl.startsWith('data:') || 
+      lowerUrl.startsWith('vbscript:')) {
+    showNotification('Ungültige URL: Dieses Protokoll ist nicht erlaubt', 'error');
+    return;
   }
   
-  settings.shortcuts.push({ name, url, icon });
+  // URL korrigieren wenn kein Protokoll angegeben
+  let finalUrl = trimmedUrl;
+  if (!trimmedUrl.startsWith('http://') && !trimmedUrl.startsWith('https://')) {
+    finalUrl = 'https://' + trimmedUrl;
+  }
+  
+  settings.shortcuts.push({ name, url: finalUrl, icon });
   saveSettings();
   renderShortcuts();
 }
@@ -643,10 +697,54 @@ function saveShortcutFromModal() {
   const icon = document.getElementById('shortcut-icon').value.trim();
   
   if (!name || !url) {
-    alert('Bitte Name und URL eingeben');
+    showNotification('Bitte Name und URL eingeben', 'error');
     return;
   }
   
   addShortcut(name, url, icon);
   closeShortcutModal();
+}
+
+// ===================================
+// Benachrichtigungssystem
+// ===================================
+
+/**
+ * Zeigt eine Benachrichtigung an
+ * @param {string} message - Nachricht
+ * @param {string} type - Typ ('success', 'error', 'info')
+ */
+function showNotification(message, type = 'info') {
+  // Bestehende Notification entfernen
+  const existing = document.querySelector('.notification');
+  if (existing) {
+    existing.remove();
+  }
+  
+  const notification = document.createElement('div');
+  notification.className = `notification notification-${type}`;
+  notification.textContent = message;
+  
+  // Styling
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 25px;
+    border-radius: 10px;
+    color: white;
+    font-size: 14px;
+    z-index: 3000;
+    animation: fadeIn 0.3s ease;
+    background: ${type === 'error' ? '#ff4757' : type === 'success' ? '#2ed573' : '#7c3aed'};
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Nach 3 Sekunden entfernen
+  setTimeout(() => {
+    notification.style.opacity = '0';
+    notification.style.transition = 'opacity 0.3s ease';
+    setTimeout(() => notification.remove(), 300);
+  }, 3000);
 }
