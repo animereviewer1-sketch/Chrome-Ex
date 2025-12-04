@@ -179,6 +179,34 @@
             <label><input type="checkbox" data-effect="glow"> Glow</label>
             <label><input type="checkbox" data-effect="neon"> Neon</label>
             <label><input type="checkbox" data-effect="3d"> 3D</label>
+            <label><input type="checkbox" data-effect="emboss"> Emboss</label>
+            <label><input type="checkbox" data-effect="glass"> Glas</label>
+          </div>
+        </div>
+        
+        <!-- Fix 3: Text-Farbe -->
+        <div class="widget-config-section">
+          <h4>Text-Farbe</h4>
+          <div class="setting-row">
+            <label>Farbe:</label>
+            <input type="color" id="widget-text-color" value="#ffffff">
+          </div>
+        </div>
+        
+        <!-- Fix 5-7: Größen-Einstellungen -->
+        <div class="widget-config-section">
+          <h4>Größen</h4>
+          <div class="setting-row">
+            <label>Icon-Größe: <span id="icon-size-val">48px</span></label>
+            <input type="range" id="widget-icon-size" min="24" max="128" value="48">
+          </div>
+          <div class="setting-row">
+            <label>Text-Größe: <span id="font-size-val">16px</span></label>
+            <input type="range" id="widget-font-size" min="10" max="48" value="16">
+          </div>
+          <div class="setting-row">
+            <label>Uhrzeit-Größe: <span id="clock-size-val">72px</span></label>
+            <input type="range" id="widget-clock-size" min="24" max="200" value="72">
           </div>
         </div>
         
@@ -239,10 +267,16 @@
           <div class="background-option">
             <label>
               <input type="radio" name="bg-type" value="custom">
-              Eigenes Bild
+              Eigenes Bild/Video
             </label>
-            <input type="file" id="custom-bg-upload" accept="image/*" class="hidden">
-            <button type="button" id="upload-bg-btn" class="btn-secondary">Bild hochladen</button>
+            <!-- Fix 8-9: Video-Unterstützung -->
+            <input type="file" id="custom-bg-upload" accept="image/*,video/mp4,video/webm,image/gif" class="hidden">
+            <button type="button" id="upload-bg-btn" class="btn-secondary">Datei hochladen</button>
+          </div>
+          <!-- Fix 8-9: URL-basierter Hintergrund -->
+          <div class="background-option">
+            <label>Oder URL:</label>
+            <input type="url" id="bg-url" placeholder="https://..." style="flex: 1; margin-left: 10px;">
           </div>
           <div class="background-option">
             <label>
@@ -261,6 +295,48 @@
           <label>Seiten-Transparenz: <span id="page-opacity-value">100%</span></label>
           <input type="range" id="page-opacity" min="0" max="100" value="100">
           <p class="hint">Reduziert die Sichtbarkeit des Hintergrunds (0% = transparent)</p>
+        </div>
+      </div>
+      
+      <!-- Fix 2: Grid-Einstellungen -->
+      <div class="settings-section">
+        <h3>Raster (Edit-Modus)</h3>
+        <div class="grid-settings">
+          <div class="setting-row">
+            <label>Raster-Größe: <span id="grid-size-val">20px</span></label>
+            <input type="range" id="grid-size" min="5" max="100" value="20">
+          </div>
+          <div class="setting-row">
+            <label>Raster-Farbe:</label>
+            <input type="color" id="grid-color" value="#ff00ff">
+          </div>
+          <div class="setting-row">
+            <label>
+              <input type="checkbox" id="grid-visible" checked> Raster anzeigen
+            </label>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Fix 11: Wetter-Einstellungen -->
+      <div class="settings-section">
+        <h3>Wetter-Einstellungen</h3>
+        <div class="weather-settings">
+          <div class="form-group">
+            <label>API-Key (OpenWeatherMap):</label>
+            <input type="password" id="weather-api-key" placeholder="Hier eingeben" style="width: 100%;">
+          </div>
+          <p class="hint" style="margin-bottom: 15px;">
+            <a href="https://openweathermap.org/api" target="_blank" style="color: var(--primary);">
+              Kostenlosen API-Key hier holen →
+            </a>
+          </p>
+          <div class="form-group">
+            <label>Stadt:</label>
+            <input type="text" id="weather-city" value="Munich" placeholder="z.B. Berlin" style="width: 100%;">
+          </div>
+          <button type="button" id="save-weather" class="btn-secondary" style="margin-top: 10px;">Speichern & Testen</button>
+          <div id="weather-status" style="margin-top: 10px;"></div>
         </div>
       </div>
 

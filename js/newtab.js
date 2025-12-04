@@ -31,6 +31,9 @@ const STORAGE_KEY = 'chromeExSettings';
 const MIN_WIDGET_WIDTH = 200;
 const MIN_WIDGET_HEIGHT = 150;
 
+// Throttle-Konstante für Drag-Events (Fix 1)
+const DRAG_THROTTLE_MS = 16; // ~60fps
+
 const DEFAULT_SETTINGS = {
   editMode: false,
   currentPage: '1',
@@ -40,6 +43,13 @@ const DEFAULT_SETTINGS = {
   customBackground: null,
   animatedBgType: 'particles',
   pageOpacity: 100, // Neue Feature 5: Seiten-Transparenz
+  // Fix 2: Grid-Einstellungen
+  gridSize: 20,
+  gridColor: '#ff00ff',
+  gridVisible: true,
+  // Fix 11: Wetter-Einstellungen
+  weatherApiKey: '',
+  weatherCity: 'Munich',
   pages: {
     '1': {
       name: 'Start',
@@ -107,6 +117,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initFont();
   initBackground();
   initPageOpacity(); // Neue Feature 5
+  initGridSettings(); // Fix 2: Grid-Einstellungen
   initPageTabs();
   renderWidgets();
   initEventListeners();
@@ -241,10 +252,26 @@ function renderFontGrid() {
   });
 }
 
-// ============ Feature #6 & #9: Hintergründe ============
+// ============ Feature #6 & #9: Hintergründe (Fix 8-9: Mit Video-Unterstützung) ============
 function initBackground() {
-  // Custom Background
-  if (settings.backgroundType === 'custom' && settings.customBackground) {
+  // Erst Video-Element entfernen wenn nicht Video-Modus
+  if (settings.backgroundType !== 'video' && settings.backgroundType !== 'video-url') {
+    removeVideoBackground();
+  }
+  
+  // Video-Hintergrund (Fix 8-9)
+  if ((settings.backgroundType === 'video' || settings.backgroundType === 'video-url') && settings.backgroundData) {
+    restoreVideoBackground();
+  }
+  // URL-basierter Hintergrund (Fix 8-9)
+  else if (settings.backgroundType === 'url' && settings.backgroundData) {
+    document.documentElement.style.setProperty('--custom-bg-url', `url(${settings.backgroundData})`);
+    document.body.classList.add('custom-background');
+    document.body.classList.remove('animated-gradient');
+    hideParticles();
+  }
+  // Custom Background (Bild)
+  else if (settings.backgroundType === 'custom' && settings.customBackground) {
     document.documentElement.style.setProperty('--custom-bg-url', `url(${settings.customBackground})`);
     document.body.classList.add('custom-background');
     document.body.classList.remove('animated-gradient');
@@ -312,10 +339,112 @@ async function setCustomBackground(imageDataUrl) {
   document.body.classList.add('custom-background');
   document.body.classList.remove('animated-gradient');
   hideParticles();
+  removeVideoBackground();
   
   settings.backgroundType = 'custom';
   settings.customBackground = imageDataUrl;
   await saveSettings();
+}
+
+// Fix 8-9: Hintergrund-Upload mit Video-Unterstützung
+async function uploadBackground(file) {
+  if (file.type.startsWith('video/')) {
+    // Video-Hintergrund
+    let videoElement = document.getElementById('bg-video');
+    if (!videoElement) {
+      videoElement = document.createElement('video');
+      videoElement.id = 'bg-video';
+      videoElement.autoplay = true;
+      videoElement.loop = true;
+      videoElement.muted = true;
+      videoElement.playsInline = true;
+      videoElement.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:-1;';
+      document.body.prepend(videoElement);
+    }
+    
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      videoElement.src = e.target.result;
+      document.body.classList.remove('custom-background', 'animated-gradient');
+      hideParticles();
+      
+      settings.backgroundType = 'video';
+      settings.backgroundData = e.target.result;
+      await saveSettings();
+    };
+    reader.readAsDataURL(file);
+  } else {
+    // Bild/GIF
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      await setCustomBackground(e.target.result);
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+// Fix 8-9: URL-basierter Hintergrund
+async function setBackgroundUrl(url) {
+  if (!url) return;
+  
+  // Prüfen ob Video-URL
+  if (url.match(/\.(mp4|webm|ogg)(\?.*)?$/i)) {
+    let videoElement = document.getElementById('bg-video');
+    if (!videoElement) {
+      videoElement = document.createElement('video');
+      videoElement.id = 'bg-video';
+      videoElement.autoplay = true;
+      videoElement.loop = true;
+      videoElement.muted = true;
+      videoElement.playsInline = true;
+      videoElement.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:-1;';
+      document.body.prepend(videoElement);
+    }
+    videoElement.src = url;
+    document.body.classList.remove('custom-background', 'animated-gradient');
+    hideParticles();
+    
+    settings.backgroundType = 'video-url';
+    settings.backgroundData = url;
+  } else {
+    document.documentElement.style.setProperty('--custom-bg-url', `url(${url})`);
+    document.body.classList.add('custom-background');
+    document.body.classList.remove('animated-gradient');
+    hideParticles();
+    removeVideoBackground();
+    
+    settings.backgroundType = 'url';
+    settings.backgroundData = url;
+  }
+  
+  await saveSettings();
+}
+
+function removeVideoBackground() {
+  const videoElement = document.getElementById('bg-video');
+  if (videoElement) {
+    videoElement.remove();
+  }
+}
+
+// Fix 8-9: Hintergrund beim Laden wiederherstellen
+function restoreVideoBackground() {
+  if ((settings.backgroundType === 'video' || settings.backgroundType === 'video-url') && settings.backgroundData) {
+    let videoElement = document.getElementById('bg-video');
+    if (!videoElement) {
+      videoElement = document.createElement('video');
+      videoElement.id = 'bg-video';
+      videoElement.autoplay = true;
+      videoElement.loop = true;
+      videoElement.muted = true;
+      videoElement.playsInline = true;
+      videoElement.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:-1;';
+      document.body.prepend(videoElement);
+    }
+    videoElement.src = settings.backgroundData;
+    document.body.classList.remove('custom-background', 'animated-gradient');
+    hideParticles();
+  }
 }
 
 // ============ Feature 5: Seiten-Hintergrund-Transparenz ============
@@ -340,6 +469,120 @@ function applyPageOpacity(opacity) {
 function setPageOpacity(opacity) {
   settings.pageOpacity = opacity;
   applyPageOpacity(opacity);
+  saveSettings();
+}
+
+// ============ Fix 2: Grid-Einstellungen ============
+function initGridSettings() {
+  applyGridSettings();
+}
+
+function applyGridSettings() {
+  const size = settings.gridSize || 20;
+  const color = settings.gridColor || '#ff00ff';
+  const visible = settings.gridVisible !== false;
+  
+  document.documentElement.style.setProperty('--grid-size', `${size}px`);
+  document.documentElement.style.setProperty('--grid-color', hexToRgba(color, 0.2));
+  
+  if (visible) {
+    document.body.classList.remove('grid-hidden');
+  } else {
+    document.body.classList.add('grid-hidden');
+  }
+}
+
+// Hilfsfunktion: Hex zu RGBA
+function hexToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function setGridSize(size) {
+  settings.gridSize = size;
+  applyGridSettings();
+  saveSettings();
+}
+
+function setGridColor(color) {
+  settings.gridColor = color;
+  applyGridSettings();
+  saveSettings();
+}
+
+function setGridVisible(visible) {
+  settings.gridVisible = visible;
+  applyGridSettings();
+  saveSettings();
+}
+
+// ============ Fix 1: Widget Drag & Drop ============
+function enableWidgetDragging(widget) {
+  const dragHandle = widget.querySelector('.drag-handle');
+  if (!dragHandle) return;
+  
+  let lastDragTime = 0;
+  
+  dragHandle.addEventListener('mousedown', (e) => {
+    // Nur im Edit-Modus
+    if (!settings.editMode) return;
+    e.preventDefault();
+    
+    const rect = widget.getBoundingClientRect();
+    const container = document.getElementById('widget-container');
+    const containerRect = container.getBoundingClientRect();
+    
+    // Offset vom Mausklick zum Widget-Ursprung
+    const offsetX = e.clientX - rect.left;
+    const offsetY = e.clientY - rect.top;
+    
+    // Widget für absolute Positionierung vorbereiten
+    widget.style.position = 'absolute';
+    widget.classList.add('dragging');
+    
+    function onDrag(moveEvent) {
+      // Throttle für Performance
+      const now = Date.now();
+      if (now - lastDragTime < DRAG_THROTTLE_MS) return;
+      lastDragTime = now;
+      
+      let x = moveEvent.clientX - containerRect.left - offsetX;
+      let y = moveEvent.clientY - containerRect.top - offsetY;
+      
+      // Grid Snapping
+      const gridSize = settings.gridSize || 20;
+      x = Math.round(x / gridSize) * gridSize;
+      y = Math.round(y / gridSize) * gridSize;
+      
+      // Grenzen einhalten
+      x = Math.max(0, Math.min(x, containerRect.width - rect.width));
+      y = Math.max(0, Math.min(y, containerRect.height - rect.height));
+      
+      widget.style.left = x + 'px';
+      widget.style.top = y + 'px';
+    }
+    
+    function stopDrag() {
+      document.removeEventListener('mousemove', onDrag);
+      widget.classList.remove('dragging');
+      saveWidgetPosition(widget.id, widget.style.left, widget.style.top);
+    }
+    
+    document.addEventListener('mousemove', onDrag);
+    document.addEventListener('mouseup', stopDrag, { once: true });
+  });
+}
+
+function saveWidgetPosition(widgetId, left, top) {
+  const currentPage = settings.pages[settings.currentPage];
+  const widget = currentPage?.widgets.find(w => w.id === widgetId);
+  if (!widget) return;
+  
+  widget.settings = widget.settings || {};
+  widget.settings.positionLeft = left;
+  widget.settings.positionTop = top;
   saveSettings();
 }
 
@@ -459,6 +702,9 @@ function renderWidgets() {
       // Feature 1: Resize-Funktionalität initialisieren
       initWidgetResize(el);
       
+      // Fix 1: Widget Drag & Drop initialisieren
+      enableWidgetDragging(el);
+      
       // Feature 2: Shortcut Drag & Drop initialisieren (nur für Shortcuts-Widgets)
       if (widget.type === 'shortcuts') {
         const shortcutsGrid = el.querySelector('.shortcuts-grid');
@@ -552,6 +798,30 @@ function createWidgetElement(widget) {
   }
   if (widgetSettings.height) {
     div.style.height = widgetSettings.height;
+  }
+  
+  // Fix 1: Position wiederherstellen
+  if (widgetSettings.positionLeft || widgetSettings.positionTop) {
+    div.style.position = 'absolute';
+    if (widgetSettings.positionLeft) div.style.left = widgetSettings.positionLeft;
+    if (widgetSettings.positionTop) div.style.top = widgetSettings.positionTop;
+  }
+  
+  // Fix 3: Text-Farbe anwenden
+  if (widgetSettings.textColor) {
+    div.style.setProperty('--text-color', widgetSettings.textColor);
+    div.classList.add('custom-text-color');
+  }
+  
+  // Fix 5-7: Icon-, Text- und Uhrzeit-Größe anwenden
+  if (widgetSettings.iconSize) {
+    div.style.setProperty('--icon-size', `${widgetSettings.iconSize}px`);
+  }
+  if (widgetSettings.fontSize) {
+    div.style.setProperty('--widget-font-size', `${widgetSettings.fontSize}px`);
+  }
+  if (widgetSettings.clockSize) {
+    div.style.setProperty('--clock-size', `${widgetSettings.clockSize}px`);
   }
   
   // Widget Controls (Edit Mode only) + Resize Handle
@@ -677,28 +947,107 @@ function startClock() {
   setInterval(updateClock, 1000);
 }
 
-// ============ Weather Widget ============
+// ============ Weather Widget (Fix 11: Mit API-Key Unterstützung) ============
 async function loadWeather(widgetEl) {
+  const apiKey = settings.weatherApiKey;
+  const city = settings.weatherCity || 'Munich';
+  
+  const iconEl = widgetEl.querySelector('.weather-icon');
+  const tempEl = widgetEl.querySelector('.weather-temp');
+  const descEl = widgetEl.querySelector('.weather-desc');
+  const locEl = widgetEl.querySelector('.weather-location');
+  
+  // Wenn kein API-Key vorhanden, Demo-Daten anzeigen
+  if (!apiKey) {
+    if (iconEl) iconEl.textContent = '⚙️';
+    if (tempEl) tempEl.textContent = '--°C';
+    if (descEl) descEl.textContent = 'API-Key fehlt';
+    if (locEl) locEl.textContent = 'Einstellungen → Wetter';
+    return;
+  }
+  
   try {
-    // Vereinfachte Wetter-Demo (ohne API Key)
-    const weatherData = {
-      temp: Math.round(10 + Math.random() * 15),
-      desc: ['Sonnig', 'Bewölkt', 'Teilweise bewölkt', 'Regnerisch'][Math.floor(Math.random() * 4)],
-      icon: ['☀️', '☁️', '⛅', '🌧️'][Math.floor(Math.random() * 4)]
-    };
+    const weather = await fetchWeather(city, apiKey);
     
-    const iconEl = widgetEl.querySelector('.weather-icon');
-    const tempEl = widgetEl.querySelector('.weather-temp');
-    const descEl = widgetEl.querySelector('.weather-desc');
-    const locEl = widgetEl.querySelector('.weather-location');
-    
-    if (iconEl) iconEl.textContent = weatherData.icon;
-    if (tempEl) tempEl.textContent = `${weatherData.temp}°C`;
-    if (descEl) descEl.textContent = weatherData.desc;
-    if (locEl) locEl.textContent = 'Demo-Standort';
+    if (weather.error) {
+      if (iconEl) iconEl.textContent = '⚠️';
+      if (tempEl) tempEl.textContent = '--°C';
+      if (descEl) descEl.textContent = weather.condition;
+      if (locEl) locEl.textContent = city;
+    } else {
+      if (iconEl) iconEl.textContent = weather.icon;
+      if (tempEl) tempEl.textContent = `${weather.temp}°C`;
+      if (descEl) descEl.textContent = weather.condition;
+      if (locEl) locEl.textContent = city;
+    }
   } catch (error) {
     console.error('Fehler beim Laden des Wetters:', error);
+    if (iconEl) iconEl.textContent = '⚠️';
+    if (tempEl) tempEl.textContent = '--°C';
+    if (descEl) descEl.textContent = 'Fehler';
+    if (locEl) locEl.textContent = city;
   }
+}
+
+// Fix 11: Wetter-API abrufen
+async function fetchWeather(city, apiKey) {
+  if (!apiKey) {
+    return { 
+      temp: '--', 
+      condition: 'API-Key fehlt',
+      error: true 
+    };
+  }
+  
+  try {
+    const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric&lang=de`;
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    return {
+      temp: Math.round(data.main.temp),
+      condition: data.weather[0].description,
+      humidity: data.main.humidity,
+      wind: data.wind.speed,
+      icon: getWeatherIcon(data.weather[0].icon),
+      error: false
+    };
+  } catch (error) {
+    console.error('Wetter-Fehler:', error);
+    return { 
+      temp: '--', 
+      condition: 'Fehler beim Laden',
+      error: true 
+    };
+  }
+}
+
+// Fix 11: Wetter-Icons zuordnen
+function getWeatherIcon(code) {
+  const icons = {
+    '01d': '☀️', '01n': '🌙',
+    '02d': '⛅', '02n': '☁️',
+    '03d': '☁️', '03n': '☁️',
+    '04d': '☁️', '04n': '☁️',
+    '09d': '🌧️', '09n': '🌧️',
+    '10d': '🌦️', '10n': '🌧️',
+    '11d': '⛈️', '11n': '⛈️',
+    '13d': '❄️', '13n': '❄️',
+    '50d': '🌫️', '50n': '🌫️'
+  };
+  return icons[code] || '🌤️';
+}
+
+// Fix 11: Alle Wetter-Widgets aktualisieren
+function updateAllWeatherWidgets() {
+  document.querySelectorAll('.weather-widget').forEach(widget => {
+    loadWeather(widget);
+  });
 }
 
 // ============ Feature #18: Password Generator ============
@@ -919,6 +1268,24 @@ function initBackgroundSettings() {
       pageOpacityValue.textContent = `${currentOpacity}%`;
     }
   }
+  
+  // Fix 2: Grid-Einstellungen initialisieren
+  const gridSizeSlider = document.getElementById('grid-size');
+  const gridSizeVal = document.getElementById('grid-size-val');
+  const gridColorInput = document.getElementById('grid-color');
+  const gridVisibleCheckbox = document.getElementById('grid-visible');
+  
+  if (gridSizeSlider) gridSizeSlider.value = settings.gridSize || 20;
+  if (gridSizeVal) gridSizeVal.textContent = `${settings.gridSize || 20}px`;
+  if (gridColorInput) gridColorInput.value = settings.gridColor || '#ff00ff';
+  if (gridVisibleCheckbox) gridVisibleCheckbox.checked = settings.gridVisible !== false;
+  
+  // Fix 11: Wetter-Einstellungen initialisieren
+  const weatherApiKey = document.getElementById('weather-api-key');
+  const weatherCity = document.getElementById('weather-city');
+  
+  if (weatherApiKey) weatherApiKey.value = settings.weatherApiKey || '';
+  if (weatherCity) weatherCity.value = settings.weatherCity || 'Munich';
 }
 
 // ============ Widget Management ============
@@ -1014,6 +1381,26 @@ function openWidgetSettingsModal(widgetId) {
   if (hideTitle) hideTitle.checked = widgetSettings.hideTitle || false;
   if (hideLabels) hideLabels.checked = widgetSettings.hideLabels || false;
   
+  // Fix 3: Text-Farbe
+  const textColor = document.getElementById('widget-text-color');
+  if (textColor) textColor.value = widgetSettings.textColor || '#ffffff';
+  
+  // Fix 5-7: Icon-, Text- und Uhrzeit-Größe
+  const iconSize = document.getElementById('widget-icon-size');
+  const iconSizeVal = document.getElementById('icon-size-val');
+  if (iconSize) iconSize.value = widgetSettings.iconSize || 48;
+  if (iconSizeVal) iconSizeVal.textContent = `${widgetSettings.iconSize || 48}px`;
+  
+  const fontSize = document.getElementById('widget-font-size');
+  const fontSizeVal = document.getElementById('font-size-val');
+  if (fontSize) fontSize.value = widgetSettings.fontSize || 16;
+  if (fontSizeVal) fontSizeVal.textContent = `${widgetSettings.fontSize || 16}px`;
+  
+  const clockSize = document.getElementById('widget-clock-size');
+  const clockSizeVal = document.getElementById('clock-size-val');
+  if (clockSize) clockSize.value = widgetSettings.clockSize || 72;
+  if (clockSizeVal) clockSizeVal.textContent = `${widgetSettings.clockSize || 72}px`;
+  
   openModal('widget-settings-modal');
 }
 
@@ -1069,6 +1456,18 @@ function saveWidgetSettings() {
   const hideLabels = document.getElementById('widget-hide-labels');
   if (hideTitle) widget.settings.hideTitle = hideTitle.checked;
   if (hideLabels) widget.settings.hideLabels = hideLabels.checked;
+  
+  // Fix 3: Text-Farbe
+  const textColor = document.getElementById('widget-text-color');
+  if (textColor) widget.settings.textColor = textColor.value;
+  
+  // Fix 5-7: Icon-, Text- und Uhrzeit-Größe
+  const iconSize = document.getElementById('widget-icon-size');
+  const fontSize = document.getElementById('widget-font-size');
+  const clockSize = document.getElementById('widget-clock-size');
+  if (iconSize) widget.settings.iconSize = parseInt(iconSize.value);
+  if (fontSize) widget.settings.fontSize = parseInt(fontSize.value);
+  if (clockSize) widget.settings.clockSize = parseInt(clockSize.value);
   
   saveSettings();
   renderWidgets();
@@ -1314,7 +1713,7 @@ function handleShortcutClick(e, url) {
   // Normale URL - Link folgen
 }
 
-// ============ Feature #7: Tabs & Lesezeichen Modals ============
+// ============ Feature #7: Tabs & Lesezeichen Modals (Fix 10: Tab wechseln statt öffnen) ============
 async function openTabsModal() {
   const list = document.getElementById('tabs-list');
   if (!list) return;
@@ -1323,15 +1722,28 @@ async function openTabsModal() {
     if (typeof chrome !== 'undefined' && chrome.tabs) {
       const tabs = await chrome.tabs.query({});
       list.innerHTML = tabs.map(tab => `
-        <div class="tab-item" data-tab-id="${tab.id}">
+        <div class="tab-item" data-tab-id="${tab.id}" data-window-id="${tab.windowId}" data-url="${tab.url}">
           <img src="${tab.favIconUrl || getIconFromUrl(tab.url)}" class="tab-icon" alt="">
           <span class="tab-title">${tab.title}</span>
         </div>
       `).join('');
       
       list.querySelectorAll('.tab-item').forEach(item => {
-        item.addEventListener('click', () => {
-          chrome.tabs.update(parseInt(item.dataset.tabId), { active: true });
+        item.addEventListener('click', async () => {
+          const tabId = parseInt(item.dataset.tabId);
+          const windowId = parseInt(item.dataset.windowId);
+          const url = item.dataset.url;
+          
+          try {
+            // Fix 10: Zum Tab wechseln statt neuen Tab zu öffnen
+            await chrome.tabs.update(tabId, { active: true });
+            // Auch das Fenster fokussieren
+            await chrome.windows.update(windowId, { focused: true });
+          } catch (error) {
+            // Fallback: Tab existiert nicht mehr → neu öffnen
+            console.warn('Tab nicht mehr vorhanden, öffne neu:', error);
+            await chrome.tabs.create({ url: url });
+          }
           closeModal('tabs-modal');
         });
       });
@@ -1564,7 +1976,7 @@ function initEventListeners() {
     updateEditModeUI();
   });
   
-  // Custom Background Upload
+  // Custom Background Upload (Fix 8-9: Mit Video-Unterstützung)
   document.getElementById('upload-bg-btn')?.addEventListener('click', () => {
     document.getElementById('custom-bg-upload')?.click();
   });
@@ -1572,12 +1984,75 @@ function initEventListeners() {
   document.getElementById('custom-bg-upload')?.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        await setCustomBackground(e.target.result);
-        document.querySelector('input[name="bg-type"][value="custom"]').checked = true;
-      };
-      reader.readAsDataURL(file);
+      await uploadBackground(file);
+      document.querySelector('input[name="bg-type"][value="custom"]').checked = true;
+    }
+  });
+  
+  // Fix 8-9: URL-basierter Hintergrund
+  document.getElementById('bg-url')?.addEventListener('change', async (e) => {
+    const url = e.target.value.trim();
+    if (url) {
+      await setBackgroundUrl(url);
+    }
+  });
+  
+  // Fix 2: Grid-Einstellungen
+  document.getElementById('grid-size')?.addEventListener('input', (e) => {
+    const size = parseInt(e.target.value);
+    document.getElementById('grid-size-val').textContent = `${size}px`;
+    setGridSize(size);
+  });
+  
+  document.getElementById('grid-color')?.addEventListener('change', (e) => {
+    setGridColor(e.target.value);
+  });
+  
+  document.getElementById('grid-visible')?.addEventListener('change', (e) => {
+    setGridVisible(e.target.checked);
+  });
+  
+  // Fix 5-7: Größen-Slider
+  document.getElementById('widget-icon-size')?.addEventListener('input', (e) => {
+    document.getElementById('icon-size-val').textContent = `${e.target.value}px`;
+  });
+  
+  document.getElementById('widget-font-size')?.addEventListener('input', (e) => {
+    document.getElementById('font-size-val').textContent = `${e.target.value}px`;
+  });
+  
+  document.getElementById('widget-clock-size')?.addEventListener('input', (e) => {
+    document.getElementById('clock-size-val').textContent = `${e.target.value}px`;
+  });
+  
+  // Fix 11: Wetter-Einstellungen
+  document.getElementById('save-weather')?.addEventListener('click', async () => {
+    const apiKey = document.getElementById('weather-api-key')?.value;
+    const city = document.getElementById('weather-city')?.value || 'Munich';
+    
+    settings.weatherApiKey = apiKey;
+    settings.weatherCity = city;
+    await saveSettings();
+    
+    const status = document.getElementById('weather-status');
+    if (status) {
+      status.textContent = 'Teste...';
+      status.style.color = 'inherit';
+    }
+    
+    const weather = await fetchWeather(city, apiKey);
+    
+    if (weather.error) {
+      if (status) {
+        status.textContent = '❌ ' + weather.condition;
+        status.style.color = 'red';
+      }
+    } else {
+      if (status) {
+        status.textContent = `✅ ${weather.temp}°C, ${weather.condition}`;
+        status.style.color = 'green';
+      }
+      updateAllWeatherWidgets();
     }
   });
   
