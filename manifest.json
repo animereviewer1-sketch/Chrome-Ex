@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Custom New Tab",
+  "version": "1.0.0",
+  "description": "Benutzerdefinierte New Tab Seite mit Widgets, Shortcuts und Wetter",
+  "permissions": [
+    "storage",
+    "tabs",
+    "bookmarks"
+  ],
+  "chrome_url_overrides": {
+    "newtab": "newtab.html"
+  },
+  "icons": {
+    "16": "icons/icon.svg",
+    "48": "icons/icon.svg",
+    "128": "icons/icon.svg"
+  }
+}

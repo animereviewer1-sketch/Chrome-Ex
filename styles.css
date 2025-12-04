@@ -1,0 +1,549 @@
+/* ===================================
+   Custom New Tab - Stylesheet
+   Alle Fixes modular und kommentiert
+   =================================== */
+
+/* === Basis Reset und Variablen === */
+:root {
+  --widget-bg-opacity: 0.05;
+  --grid-size: 20px;
+  --primary-color: #7c3aed;
+  --accent-color: #a78bfa;
+  --text-color: #ffffff;
+  --text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--text-color);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* === FIX #3: Custom Hintergrund 4K === 
+   Hintergrund passt sich an alle Auflösungen an */
+#background-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* cover sorgt für vollständige Abdeckung bei 4K */
+  background-size: cover;
+  /* center zentriert das Bild */
+  background-position: center;
+  /* fixed verhindert Scrollen des Hintergrunds */
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-color: #1a1a2e;
+  z-index: -2;
+}
+
+/* === FIX #8: Raster im Edit-Modus === 
+   Grid-Linien sichtbar wenn aktiviert */
+#grid-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* Raster-Pattern mit linear-gradient */
+#grid-overlay.visible {
+  opacity: 1;
+  background-image: 
+    linear-gradient(rgba(255, 0, 255, 0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 0, 255, 0.15) 1px, transparent 1px);
+  background-size: var(--grid-size) var(--grid-size);
+}
+
+/* Edit-Modus Indikator am Body */
+body.edit-mode {
+  cursor: crosshair;
+}
+
+/* === Widgets Container === */
+#widgets-container {
+  position: relative;
+  padding: 40px;
+  min-height: 300px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+/* === FIX #2: Widget-Opazität nur Hintergrund === 
+   Nur der Hintergrund ist transparent, Inhalt bleibt 100% sichtbar */
+.widget {
+  /* rgba() statt opacity für selektive Transparenz */
+  background: rgba(255, 255, 255, var(--widget-bg-opacity));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 20px;
+  position: absolute;
+  min-width: 150px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Inhalt bleibt immer 100% sichtbar */
+.widget * {
+  opacity: 1 !important;
+}
+
+.widget:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* === FIX #5: Widgets verschiebbar === 
+   Drag-Handle nur im Edit-Modus sichtbar */
+.widget-drag-handle {
+  position: absolute;
+  top: 5px;
+  right: 10px;
+  cursor: grab;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.3);
+  display: none;
+  user-select: none;
+}
+
+body.edit-mode .widget-drag-handle {
+  display: block;
+}
+
+body.edit-mode .widget {
+  cursor: move;
+  border: 2px dashed rgba(255, 0, 255, 0.5);
+}
+
+.widget.dragging {
+  z-index: 1000;
+  cursor: grabbing;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* Uhrzeit Widget */
+#clock-widget {
+  position: relative;
+  top: auto;
+  left: auto;
+}
+
+#time {
+  font-size: 64px;
+  font-weight: 300;
+  text-shadow: var(--text-shadow);
+  letter-spacing: -2px;
+}
+
+#date {
+  font-size: 18px;
+  opacity: 0.8;
+  margin-top: 5px;
+}
+
+/* Wetter Widget */
+#weather-widget {
+  position: relative;
+  top: auto;
+  left: auto;
+  right: auto;
+  text-align: center;
+}
+
+#weather-icon {
+  font-size: 48px;
+}
+
+#temperature {
+  font-size: 36px;
+  font-weight: 500;
+  margin: 10px 0;
+}
+
+#weather-location {
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+#weather-description {
+  font-size: 12px;
+  opacity: 0.6;
+  margin-top: 5px;
+}
+
+/* === FIX #6: Shortcuts Grid-Layout === 
+   Alle Shortcuts nebeneinander im Grid */
+#shortcuts-section {
+  padding: 20px 40px;
+  margin-top: 40px;
+}
+
+.section-title {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  opacity: 0.6;
+  margin-bottom: 20px;
+}
+
+/* Grid-Layout für Shortcuts - alle nebeneinander */
+.shortcuts-grid {
+  display: grid;
+  /* auto-fill sorgt für automatische Spaltenanzahl */
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 20px;
+  max-width: 100%;
+}
+
+/* Shortcut Item */
+.shortcut {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 15px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  color: inherit;
+  position: relative;
+}
+
+.shortcut:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-3px);
+}
+
+.shortcut-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  overflow: hidden;
+}
+
+.shortcut-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.shortcut-name {
+  font-size: 12px;
+  text-align: center;
+  max-width: 70px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Delete Button auf Shortcuts im Edit-Modus */
+.shortcut-delete {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ff4757;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+body.edit-mode .shortcut-delete {
+  display: flex;
+}
+
+/* Hinzufügen Button - in Grid integriert */
+.add-btn,
+.add-shortcut-btn {
+  width: auto;
+  height: auto;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  color: var(--text-color);
+  font-size: 24px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 15px 10px;
+  margin: 0;
+}
+
+.add-shortcut-btn .shortcut-icon {
+  background: transparent;
+  border: none;
+}
+
+.add-shortcut-btn .shortcut-name {
+  font-size: 12px;
+}
+
+.add-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: var(--accent-color);
+}
+
+/* === FIX #1: Buttons links unten fixiert === 
+   Einstellungen und Widget-Button immer sichtbar */
+.bottom-controls {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 1000;
+  display: flex;
+  gap: 10px;
+}
+
+.control-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--text-color);
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.control-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.control-btn.active {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+/* === Modal Styles === */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(5px);
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  background: #1a1a2e;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-header h2 {
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  font-size: 24px;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.close-btn:hover {
+  opacity: 1;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.settings-section {
+  margin-bottom: 25px;
+}
+
+.settings-section h3 {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.6;
+  margin-bottom: 15px;
+}
+
+.setting-item {
+  margin-bottom: 15px;
+}
+
+.setting-item label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.setting-item input[type="text"],
+.setting-item input[type="file"] {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-color);
+  font-size: 14px;
+}
+
+.setting-item input[type="text"]:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.setting-item input[type="range"] {
+  width: 100%;
+  height: 6px;
+  -webkit-appearance: none;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.setting-item input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--primary-color);
+  cursor: pointer;
+}
+
+.setting-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin-right: 10px;
+  vertical-align: middle;
+}
+
+.primary-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 10px;
+  border: none;
+  background: var(--primary-color);
+  color: var(--text-color);
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.primary-btn:hover {
+  background: var(--accent-color);
+}
+
+/* === FIX #7: Tabs & Lesezeichen als Shortcuts === 
+   Spezielle System-Shortcuts */
+.shortcut.system-shortcut .shortcut-icon {
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+}
+
+/* === Responsive Design === */
+@media (max-width: 768px) {
+  #time {
+    font-size: 48px;
+  }
+  
+  #widgets-container {
+    padding: 20px;
+  }
+  
+  #clock-widget,
+  #weather-widget {
+    position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
+    margin-bottom: 20px;
+  }
+  
+  #shortcuts-section {
+    margin-top: 20px;
+    padding: 20px;
+  }
+  
+  .shortcuts-grid {
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 15px;
+  }
+}
+
+/* === Animationen === */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.widget {
+  animation: fadeIn 0.5s ease forwards;
+}
+
+.shortcut {
+  animation: fadeIn 0.3s ease forwards;
+}

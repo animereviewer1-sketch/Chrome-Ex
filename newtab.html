@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Neuer Tab</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Hauptcontainer für Hintergrundbild -->
+  <div id="background-container"></div>
+  
+  <!-- Grid-Overlay für Edit-Modus -->
+  <div id="grid-overlay"></div>
+  
+  <!-- Widgets Container -->
+  <div id="widgets-container">
+    <!-- Uhrzeit Widget -->
+    <div class="widget" id="clock-widget" data-widget="clock">
+      <div class="widget-content">
+        <div id="time">--:--</div>
+        <div id="date">--. -- ----</div>
+      </div>
+      <div class="widget-drag-handle" title="Ziehen zum Verschieben">⋮⋮</div>
+    </div>
+    
+    <!-- Wetter Widget -->
+    <div class="widget" id="weather-widget" data-widget="weather">
+      <div class="widget-content">
+        <div id="weather-icon">🌤️</div>
+        <div id="temperature">--°C</div>
+        <div id="weather-location">Laden...</div>
+        <div id="weather-description"></div>
+      </div>
+      <div class="widget-drag-handle" title="Ziehen zum Verschieben">⋮⋮</div>
+    </div>
+  </div>
+  
+  <!-- Shortcuts Grid -->
+  <div id="shortcuts-section">
+    <h2 class="section-title">Shortcuts</h2>
+    <div id="shortcuts-grid" class="shortcuts-grid">
+      <!-- Dynamisch generierte Shortcuts -->
+      <!-- Add Button wird am Ende hinzugefügt -->
+    </div>
+  </div>
+  
+  <!-- Feste Buttons unten links -->
+  <div class="bottom-controls">
+    <button id="settings-btn" class="control-btn" title="Einstellungen">⚙️</button>
+    <button id="edit-mode-btn" class="control-btn" title="Widgets bearbeiten">🔧</button>
+  </div>
+  
+  <!-- Einstellungen Modal -->
+  <div id="settings-modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Einstellungen</h2>
+        <button id="close-settings" class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- Hintergrund Einstellungen -->
+        <div class="settings-section">
+          <h3>Hintergrund</h3>
+          <div class="setting-item">
+            <label for="bg-url">Bild-URL:</label>
+            <input type="text" id="bg-url" placeholder="https://example.com/image.jpg">
+          </div>
+          <div class="setting-item">
+            <label for="bg-file">Oder Datei hochladen:</label>
+            <input type="file" id="bg-file" accept="image/*">
+          </div>
+        </div>
+        
+        <!-- Widget Opazität -->
+        <div class="settings-section">
+          <h3>Widget Transparenz</h3>
+          <div class="setting-item">
+            <label for="widget-opacity">Hintergrund-Transparenz: <span id="opacity-value">5%</span></label>
+            <input type="range" id="widget-opacity" min="0" max="100" value="5">
+          </div>
+        </div>
+        
+        <!-- Wetter Einstellungen -->
+        <div class="settings-section">
+          <h3>Wetter</h3>
+          <div class="setting-item">
+            <label for="weather-city">Stadt:</label>
+            <input type="text" id="weather-city" placeholder="Munich" value="Munich">
+          </div>
+        </div>
+        
+        <!-- Raster Einstellungen -->
+        <div class="settings-section">
+          <h3>Raster</h3>
+          <div class="setting-item">
+            <label>
+              <input type="checkbox" id="show-grid">
+              Raster im Edit-Modus anzeigen
+            </label>
+          </div>
+          <div class="setting-item">
+            <label for="grid-size">Rastergröße: <span id="grid-size-value">20px</span></label>
+            <input type="range" id="grid-size" min="10" max="50" value="20">
+          </div>
+        </div>
+        
+        <button id="save-settings" class="primary-btn">Speichern</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Shortcut hinzufügen Modal -->
+  <div id="shortcut-modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Shortcut hinzufügen</h2>
+        <button id="close-shortcut-modal" class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="setting-item">
+          <label for="shortcut-name">Name:</label>
+          <input type="text" id="shortcut-name" placeholder="Google">
+        </div>
+        <div class="setting-item">
+          <label for="shortcut-url">URL:</label>
+          <input type="text" id="shortcut-url" placeholder="https://google.com">
+        </div>
+        <div class="setting-item">
+          <label for="shortcut-icon">Icon URL (optional):</label>
+          <input type="text" id="shortcut-icon" placeholder="https://example.com/icon.png">
+        </div>
+        <button id="save-shortcut" class="primary-btn">Hinzufügen</button>
+      </div>
+    </div>
+  </div>
+  
+  <script src="app.js"></script>
+</body>
+</html>

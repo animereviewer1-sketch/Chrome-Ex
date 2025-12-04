@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tabs Übersicht</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      background: #1a1a2e;
+      padding: 40px;
+    }
+    
+    .page-header {
+      margin-bottom: 30px;
+    }
+    
+    .page-title {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+    
+    .page-subtitle {
+      opacity: 0.6;
+      font-size: 14px;
+    }
+    
+    .tabs-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 15px;
+    }
+    
+    .tab-item {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      color: inherit;
+    }
+    
+    .tab-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateX(5px);
+    }
+    
+    .tab-favicon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .tab-favicon img {
+      width: 20px;
+      height: 20px;
+    }
+    
+    .tab-info {
+      flex: 1;
+      overflow: hidden;
+    }
+    
+    .tab-title {
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 4px;
+    }
+    
+    .tab-url {
+      font-size: 12px;
+      opacity: 0.5;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .tab-close {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: transparent;
+      border: none;
+      color: rgba(255, 255, 255, 0.5);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 16px;
+    }
+    
+    .tab-close:hover {
+      background: #ff4757;
+      color: white;
+    }
+    
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--accent-color);
+      text-decoration: none;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    
+    .back-link:hover {
+      text-decoration: underline;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      opacity: 0.5;
+    }
+    
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
+  <a href="newtab.html" class="back-link">← Zurück zum New Tab</a>
+  
+  <div class="page-header">
+    <h1 class="page-title">📑 Geöffnete Tabs</h1>
+    <p class="page-subtitle">Alle deine aktuell geöffneten Tabs an einem Ort</p>
+  </div>
+  
+  <div id="tabs-container" class="tabs-container">
+    <!-- Dynamisch generierte Tabs -->
+  </div>
+  
+  <div id="empty-state" class="empty-state hidden">
+    <div class="empty-state-icon">📑</div>
+    <p>Keine Tabs gefunden</p>
+  </div>
+  
+  <script>
+    /**
+     * Tabs Übersicht Seite
+     * Zeigt alle geöffneten Browser-Tabs
+     */
+    
+    document.addEventListener('DOMContentLoaded', loadTabs);
+    
+    /**
+     * Lädt alle geöffneten Tabs
+     */
+    async function loadTabs() {
+      const container = document.getElementById('tabs-container');
+      const emptyState = document.getElementById('empty-state');
+      
+      try {
+        // Chrome Tabs API
+        if (typeof chrome !== 'undefined' && chrome.tabs) {
+          const tabs = await chrome.tabs.query({});
+          
+          if (tabs.length === 0) {
+            emptyState.classList.remove('hidden');
+            return;
+          }
+          
+          tabs.forEach(tab => {
+            container.appendChild(createTabElement(tab));
+          });
+        } else {
+          // Fallback für lokale Entwicklung
+          container.innerHTML = `
+            <div class="tab-item">
+              <div class="tab-favicon">📄</div>
+              <div class="tab-info">
+                <div class="tab-title">Beispiel Tab</div>
+                <div class="tab-url">https://example.com</div>
+              </div>
+            </div>
+          `;
+        }
+      } catch (error) {
+        console.error('Fehler beim Laden der Tabs:', error);
+        emptyState.classList.remove('hidden');
+      }
+    }
+    
+    /**
+     * Erstellt ein Tab-Element
+     * @param {Object} tab - Chrome Tab Objekt
+     * @returns {HTMLElement}
+     */
+    function createTabElement(tab) {
+      const el = document.createElement('div');
+      el.className = 'tab-item';
+      el.onclick = () => focusTab(tab.id);
+      
+      const favicon = document.createElement('div');
+      favicon.className = 'tab-favicon';
+      
+      if (tab.favIconUrl) {
+        const img = document.createElement('img');
+        img.src = tab.favIconUrl;
+        img.onerror = () => favicon.textContent = '📄';
+        favicon.appendChild(img);
+      } else {
+        favicon.textContent = '📄';
+      }
+      
+      const info = document.createElement('div');
+      info.className = 'tab-info';
+      
+      // Sicher: DOM-Elemente statt innerHTML
+      const titleEl = document.createElement('div');
+      titleEl.className = 'tab-title';
+      titleEl.textContent = tab.title || 'Unbenannt';
+      
+      const urlEl = document.createElement('div');
+      urlEl.className = 'tab-url';
+      urlEl.textContent = tab.url || '';
+      
+      info.appendChild(titleEl);
+      info.appendChild(urlEl);
+      
+      const closeBtn = document.createElement('button');
+      closeBtn.className = 'tab-close';
+      closeBtn.textContent = '×';
+      closeBtn.onclick = (e) => {
+        e.stopPropagation();
+        closeTab(tab.id, el);
+      };
+      
+      el.appendChild(favicon);
+      el.appendChild(info);
+      el.appendChild(closeBtn);
+      
+      return el;
+    }
+    
+    /**
+     * Fokussiert einen Tab
+     * @param {number} tabId - Tab ID
+     */
+    function focusTab(tabId) {
+      if (chrome.tabs) {
+        chrome.tabs.update(tabId, { active: true });
+      }
+    }
+    
+    /**
+     * Schließt einen Tab
+     * @param {number} tabId - Tab ID
+     * @param {HTMLElement} element - Das Tab-Element zum Entfernen
+     */
+    function closeTab(tabId, element) {
+      if (chrome.tabs) {
+        chrome.tabs.remove(tabId);
+        element.remove();
+      }
+    }
+    
+    /**
+     * Escaped HTML Zeichen
+     * @param {string} text - Text zum Escapen
+     * @returns {string}
+     */
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>
