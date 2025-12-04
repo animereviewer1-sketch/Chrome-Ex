@@ -27,6 +27,10 @@
 // ============ Konstanten ============
 const STORAGE_KEY = 'chromeExSettings';
 
+// Minimale Widget-Dimensionen für Resize-Funktion
+const MIN_WIDGET_WIDTH = 200;
+const MIN_WIDGET_HEIGHT = 150;
+
 const DEFAULT_SETTINGS = {
   editMode: false,
   currentPage: '1',
@@ -494,12 +498,15 @@ function createWidgetElement(widget) {
   }
   
   // Neue Feature 3: Blur-Einstellung
-  if (widgetSettings.blurEnabled !== false && widgetSettings.blurStrength !== undefined) {
+  // Wenn Blur explizit deaktiviert ist, kein backdrop-filter
+  if (widgetSettings.blurEnabled === false) {
+    div.style.backdropFilter = 'none';
+  } else if (widgetSettings.blurStrength !== undefined) {
+    // Blur ist aktiviert oder nicht explizit deaktiviert, und Stärke ist gesetzt
     div.classList.add('custom-blur');
     div.style.setProperty('--widget-blur', `blur(${widgetSettings.blurStrength}px)`);
-  } else if (widgetSettings.blurEnabled === false) {
-    div.style.backdropFilter = 'none';
   }
+  // Standard blur vom CSS wenn nichts gesetzt ist
   
   // Neue Feature 4: Hintergrund-Anpassung
   if (widgetSettings.bgColor || widgetSettings.bgOpacity !== undefined) {
@@ -1084,8 +1091,8 @@ function initWidgetResize(widget) {
     const startH = widget.offsetHeight;
     
     const onResize = (moveEvent) => {
-      const newWidth = Math.max(200, startW + moveEvent.clientX - startX);
-      const newHeight = Math.max(150, startH + moveEvent.clientY - startY);
+      const newWidth = Math.max(MIN_WIDGET_WIDTH, startW + moveEvent.clientX - startX);
+      const newHeight = Math.max(MIN_WIDGET_HEIGHT, startH + moveEvent.clientY - startY);
       widget.style.width = newWidth + 'px';
       widget.style.height = newHeight + 'px';
     };
@@ -1138,10 +1145,19 @@ function initShortcutDragDrop(widgetId, container) {
     });
   });
   
+  // Throttle-Variable für dragover Performance
+  let lastDragoverTime = 0;
+  const DRAGOVER_THROTTLE_MS = 50;
+  
   container.addEventListener('dragover', (e) => {
     if (!settings.editMode) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
+    
+    // Throttle: Nur alle 50ms die DOM-Manipulation durchführen
+    const now = Date.now();
+    if (now - lastDragoverTime < DRAGOVER_THROTTLE_MS) return;
+    lastDragoverTime = now;
     
     const dragging = container.querySelector('.dragging');
     if (!dragging) return;
