@@ -164,9 +164,10 @@ body {
 /* Custom Background Support (#6) */
 body.custom-background {
   background: var(--custom-bg-url) !important;
-  background-size: cover !important;
-  background-position: center !important;
-  background-attachment: fixed !important;
+  background-size: var(--bg-size, cover) !important;
+  background-position: var(--bg-position, center) !important;
+  background-attachment: var(--bg-attachment, fixed) !important;
+  background-repeat: var(--bg-repeat, no-repeat) !important;
 }
 
 /* ============ Particles.js Container (#9) ============ */
@@ -452,6 +453,78 @@ body.animated-gradient {
   background: rgba(255, 255, 255, 0.05);
 }
 
+/* Fix 4: Shortcut item wrapper for settings button */
+.shortcut-item-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Fix 4: Shortcut settings button (gear icon) */
+.shortcut-settings-btn {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 24px;
+  height: 24px;
+  background: var(--primary);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 12px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 15;
+  transition: transform 0.2s, background 0.2s;
+}
+
+body.edit-mode .shortcut-settings-btn {
+  display: flex;
+}
+
+.shortcut-settings-btn:hover {
+  transform: scale(1.1);
+  background: var(--secondary);
+}
+
+/* Fix 4: Icon options in modal */
+.icon-options {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.current-icon-preview {
+  width: 64px;
+  height: 64px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+}
+
+.current-icon-preview img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.icon-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.icon-buttons .btn-secondary {
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
 .shortcut-icon {
   width: 48px;
   height: 48px;
@@ -504,6 +577,35 @@ body.animated-gradient {
 /* ============ Notes Widget (#12 schöneres Design) ============ */
 .notes-widget {
   min-width: 300px;
+}
+
+/* Fix 3: Quick note textarea (always editable in normal mode) */
+.quick-note-container {
+  margin-bottom: 15px;
+}
+
+.quick-note-textarea {
+  width: 100%;
+  min-height: 80px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: vertical;
+  font-family: inherit;
+  transition: border-color 0.3s ease;
+}
+
+.quick-note-textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.quick-note-textarea::placeholder {
+  color: var(--text-secondary);
 }
 
 .notes-list {
@@ -689,6 +791,243 @@ body.animated-gradient {
 
 .generate-btn:hover {
   transform: translateY(-2px);
+}
+
+/* Fix 5: Password copy feedback */
+.copy-feedback {
+  padding: 8px 12px;
+  border-radius: 6px;
+  text-align: center;
+  font-size: 13px;
+  margin-bottom: 10px;
+  transition: opacity 0.3s ease;
+}
+
+.copy-feedback-success {
+  background: rgba(0, 200, 100, 0.2);
+  color: #00cc66;
+  border: 1px solid rgba(0, 200, 100, 0.3);
+}
+
+.copy-feedback-error {
+  background: rgba(255, 68, 68, 0.2);
+  color: #ff4444;
+  border: 1px solid rgba(255, 68, 68, 0.3);
+}
+
+.copy-feedback.fade-out {
+  opacity: 0;
+}
+
+/* ============ Fix 7: Calendar Widget ============ */
+.calendar-widget {
+  min-width: 320px;
+  max-width: 400px;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.calendar-nav-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border);
+  color: var(--text);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.calendar-nav-btn:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.calendar-month-year {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.calendar-days-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 5px;
+  text-align: center;
+}
+
+.calendar-days-header span {
+  font-size: 11px;
+  color: var(--text-secondary);
+  padding: 5px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.02);
+  transition: all 0.2s ease;
+  position: relative;
+  padding: 4px;
+}
+
+.calendar-day:not(.empty):hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.calendar-day.empty {
+  cursor: default;
+}
+
+.calendar-day.today {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+}
+
+.calendar-day.today .day-number {
+  color: white;
+  font-weight: 700;
+}
+
+.calendar-day.has-events {
+  border: 1px solid var(--primary);
+}
+
+.day-number {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.event-indicators {
+  display: flex;
+  gap: 2px;
+  margin-top: 2px;
+}
+
+.event-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+.calendar-add-event-btn {
+  width: 100%;
+  margin-top: 15px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.calendar-add-event-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* Calendar Events List Modal */
+.calendar-day-date {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-bottom: 15px;
+}
+
+.calendar-events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 15px;
+}
+
+.calendar-event-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.event-color-indicator {
+  width: 4px;
+  height: 100%;
+  min-height: 40px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.event-details {
+  flex: 1;
+}
+
+.event-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.event-time {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.event-description {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.event-edit-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: var(--text);
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.event-edit-btn:hover {
+  background: var(--primary);
+}
+
+/* Calendar Event Form */
+#calendar-event-form textarea {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 12px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+#calendar-event-form textarea:focus {
+  outline: none;
+  border-color: var(--primary);
 }
 
 /* ============ Add Widget & Settings Buttons (#2 Edit-Modus) ============ */
@@ -1587,6 +1926,20 @@ body.custom-page-opacity {
   }
 }
 
+/* ============ Fix 1: Z-Index Hierarchy ============ */
+/* Background: z-index: -1 (default)
+   Grid: z-index: 1 (over background, under widgets)
+   Widgets: z-index: 10
+   Modals/Settings: z-index: 1000 */
+
+.widget, .shortcut-item {
+  z-index: 10;
+}
+
+.settings-panel, .modal {
+  z-index: 1000;
+}
+
 /* ============ Fix 2: Grid im Edit-Modus ============ */
 :root {
   --grid-size: 20px;
@@ -1602,7 +1955,7 @@ body.edit-mode::before {
     linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
   background-size: var(--grid-size) var(--grid-size);
   pointer-events: none;
-  z-index: 9998;
+  z-index: 1; /* Fix 1: Over background, under widgets */
 }
 
 body.edit-mode.grid-hidden::before {

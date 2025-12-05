@@ -63,6 +63,21 @@
           <label for="shortcut-url">URL</label>
           <input type="url" id="shortcut-url" placeholder="https://google.com" required>
         </div>
+        <!-- Fix 4: Icon customization options -->
+        <div class="form-group">
+          <label>Icon</label>
+          <div class="icon-options">
+            <div class="current-icon-preview">
+              <img id="shortcut-icon-preview" src="" alt="Icon">
+            </div>
+            <div class="icon-buttons">
+              <button type="button" id="shortcut-use-favicon-btn" class="btn-secondary">🌐 Favicon verwenden</button>
+              <button type="button" id="shortcut-upload-icon-btn" class="btn-secondary">📁 Eigenes Icon</button>
+              <input type="file" id="shortcut-icon-upload" accept="image/*" class="hidden">
+            </div>
+          </div>
+          <input type="hidden" id="shortcut-custom-icon" value="">
+        </div>
         <div class="form-group special-shortcuts">
           <label>Oder spezielle Shortcuts:</label>
           <div class="special-shortcuts-list">
@@ -290,6 +305,41 @@
             </select>
           </div>
         </div>
+        
+        <!-- Fix 6: Background customization settings -->
+        <div class="form-group bg-advanced-settings" style="margin-top: 20px;">
+          <h4>Hintergrund-Anpassung</h4>
+          <div class="setting-row">
+            <label>Größe:</label>
+            <select id="bg-size">
+              <option value="cover">Cover (Ausfüllen)</option>
+              <option value="contain">Contain (Einpassen)</option>
+              <option value="auto">Original</option>
+              <option value="100% 100%">Strecken</option>
+            </select>
+          </div>
+          <div class="setting-row">
+            <label>Position:</label>
+            <select id="bg-position">
+              <option value="center">Zentriert</option>
+              <option value="top">Oben</option>
+              <option value="bottom">Unten</option>
+              <option value="left">Links</option>
+              <option value="right">Rechts</option>
+              <option value="top left">Oben Links</option>
+              <option value="top right">Oben Rechts</option>
+              <option value="bottom left">Unten Links</option>
+              <option value="bottom right">Unten Rechts</option>
+            </select>
+          </div>
+          <div class="setting-row">
+            <label><input type="checkbox" id="bg-repeat"> Wiederholen</label>
+          </div>
+          <div class="setting-row">
+            <label><input type="checkbox" id="bg-fixed" checked> Fixiert (scrollt nicht mit)</label>
+          </div>
+        </div>
+        
         <!-- Neue Feature 5: Seiten-Hintergrund-Transparenz -->
         <div class="form-group" style="margin-top: 20px;">
           <label>Seiten-Transparenz: <span id="page-opacity-value">100%</span></label>
@@ -383,6 +433,56 @@
       <div id="bookmarks-list" class="bookmarks-list">
         <!-- Lesezeichen werden dynamisch eingefügt -->
       </div>
+    </div>
+  </div>
+
+  <!-- Fix 7: Calendar Event Modal -->
+  <div id="calendar-event-modal" class="modal hidden">
+    <div class="modal-content">
+      <button class="modal-close" id="calendar-event-modal-close">✕</button>
+      <h2 id="calendar-event-modal-title">Event hinzufügen</h2>
+      <form id="calendar-event-form">
+        <div class="form-group">
+          <label for="calendar-event-title">Titel</label>
+          <input type="text" id="calendar-event-title" placeholder="z.B. Geburtstag" required>
+        </div>
+        <div class="form-group">
+          <label for="calendar-event-date">Datum</label>
+          <input type="date" id="calendar-event-date" required>
+        </div>
+        <div class="form-group">
+          <label for="calendar-event-time">Uhrzeit (optional)</label>
+          <input type="time" id="calendar-event-time">
+        </div>
+        <div class="form-group">
+          <label for="calendar-event-desc">Beschreibung (optional)</label>
+          <textarea id="calendar-event-desc" placeholder="Details zum Event..." rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label><input type="checkbox" id="calendar-event-repeat"> Jährlich wiederholen (z.B. Geburtstage)</label>
+        </div>
+        <div class="form-group">
+          <label for="calendar-event-color">Farbe</label>
+          <input type="color" id="calendar-event-color" value="#667eea">
+        </div>
+        <div class="form-actions">
+          <button type="button" id="delete-calendar-event-btn" class="btn-danger hidden">Löschen</button>
+          <button type="submit" class="btn-primary">Speichern</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Fix 7: Calendar Day Events Modal -->
+  <div id="calendar-day-events-modal" class="modal hidden">
+    <div class="modal-content">
+      <button class="modal-close" id="calendar-day-events-modal-close">✕</button>
+      <h2>📅 Events</h2>
+      <div id="calendar-day-events-date" class="calendar-day-date"></div>
+      <div id="calendar-day-events-list" class="calendar-events-list">
+        <!-- Events werden dynamisch eingefügt -->
+      </div>
+      <button type="button" id="calendar-add-new-event-btn" class="btn-secondary">+ Neues Event</button>
     </div>
   </div>
 
