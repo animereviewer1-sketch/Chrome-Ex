@@ -310,6 +310,23 @@
         <div class="form-group bg-advanced-settings" style="margin-top: 20px;">
           <h4>Hintergrund-Anpassung</h4>
           <div class="setting-row">
+            <label>Zoom: <span id="bg-zoom-val">100%</span></label>
+            <input type="range" id="bg-zoom" min="50" max="200" value="100">
+          </div>
+          <div class="setting-row">
+            <label>Position:</label>
+            <div class="bg-position-controls">
+              <button type="button" class="bg-pos-btn" id="bg-up">▲</button>
+              <div class="bg-pos-row">
+                <button type="button" class="bg-pos-btn" id="bg-left">◀</button>
+                <button type="button" class="bg-pos-btn" id="bg-center">●</button>
+                <button type="button" class="bg-pos-btn" id="bg-right">▶</button>
+              </div>
+              <button type="button" class="bg-pos-btn" id="bg-down">▼</button>
+            </div>
+            <span class="value-display" id="bg-pos-val">50% 50%</span>
+          </div>
+          <div class="setting-row">
             <label>Größe:</label>
             <select id="bg-size">
               <option value="cover">Cover (Ausfüllen)</option>
@@ -319,24 +336,14 @@
             </select>
           </div>
           <div class="setting-row">
-            <label>Position:</label>
-            <select id="bg-position">
-              <option value="center">Zentriert</option>
-              <option value="top">Oben</option>
-              <option value="bottom">Unten</option>
-              <option value="left">Links</option>
-              <option value="right">Rechts</option>
-              <option value="top left">Oben Links</option>
-              <option value="top right">Oben Rechts</option>
-              <option value="bottom left">Unten Links</option>
-              <option value="bottom right">Unten Rechts</option>
-            </select>
-          </div>
-          <div class="setting-row">
             <label><input type="checkbox" id="bg-repeat"> Wiederholen</label>
           </div>
           <div class="setting-row">
             <label><input type="checkbox" id="bg-fixed" checked> Fixiert (scrollt nicht mit)</label>
+          </div>
+          <!-- Fix 8: Page-specific background -->
+          <div class="setting-row">
+            <label><input type="checkbox" id="bg-page-specific"> Hintergrund nur für diese Seite</label>
           </div>
         </div>
         
@@ -406,9 +413,9 @@
       </div>
 
       <div class="settings-actions">
-        <button type="button" id="export-settings-btn" class="btn-secondary">Einstellungen exportieren</button>
-        <button type="button" id="import-settings-btn" class="btn-secondary">Einstellungen importieren</button>
-        <input type="file" id="import-settings-file" accept=".json" class="hidden">
+        <button type="button" id="export-all-btn" class="btn-secondary">📦 Alles exportieren</button>
+        <button type="button" id="import-all-btn" class="btn-secondary">📥 Alles importieren</button>
+        <input type="file" id="import-all-file" accept=".json" class="hidden">
         <button type="button" id="reset-settings-btn" class="btn-danger">Zurücksetzen</button>
       </div>
     </div>
@@ -459,7 +466,14 @@
           <textarea id="calendar-event-desc" placeholder="Details zum Event..." rows="3"></textarea>
         </div>
         <div class="form-group">
-          <label><input type="checkbox" id="calendar-event-repeat"> Jährlich wiederholen (z.B. Geburtstage)</label>
+          <label for="calendar-event-repeat">Wiederholung</label>
+          <select id="calendar-event-repeat">
+            <option value="none">Keine</option>
+            <option value="daily">Täglich</option>
+            <option value="weekly">Wöchentlich</option>
+            <option value="monthly">Monatlich</option>
+            <option value="yearly">Jährlich</option>
+          </select>
         </div>
         <div class="form-group">
           <label for="calendar-event-color">Farbe</label>
