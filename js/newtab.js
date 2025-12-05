@@ -1567,7 +1567,7 @@ function initWidgetResize(widget) {
   if (!handle) return;
   
   handle.addEventListener('mousedown', (e) => {
-    // Fix 2: Only allow resize in edit mode
+    // Resize only allowed in edit mode (as per requirement #2)
     if (!document.body.classList.contains('edit-mode')) return;
     
     e.stopPropagation();
@@ -2663,14 +2663,6 @@ function initEventListeners() {
       const today = new Date();
       const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
       openCalendarEventModal(calendarAddBtn.dataset.widgetId, dateStr);
-      return;
-    }
-    
-    // Fix 7: Calendar event edit button
-    const eventEditBtn = e.target.closest('.event-edit-btn');
-    if (eventEditBtn) {
-      closeModal('calendar-day-events-modal');
-      openCalendarEventModal(eventEditBtn.dataset.widgetId, currentCalendarDate, eventEditBtn.dataset.eventId);
       return;
     }
   });
