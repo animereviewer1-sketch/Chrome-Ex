@@ -579,14 +579,19 @@ body.edit-mode .shortcut-settings-btn {
   min-width: 300px;
 }
 
-/* Fix 3: Quick note textarea (always editable in normal mode) */
+.notes-widget h3 {
+  margin-bottom: 12px;
+  font-size: 16px;
+}
+
+/* Fix 1: Quick notes (always editable) */
 .quick-note-container {
   margin-bottom: 15px;
 }
 
-.quick-note-textarea {
+.quick-note-input {
   width: 100%;
-  min-height: 80px;
+  min-height: 60px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -597,22 +602,87 @@ body.edit-mode .shortcut-settings-btn {
   resize: vertical;
   font-family: inherit;
   transition: border-color 0.3s ease;
+  margin-bottom: 8px;
 }
 
-.quick-note-textarea:focus {
+.quick-note-input:focus {
   outline: none;
   border-color: var(--primary);
 }
 
-.quick-note-textarea::placeholder {
+.quick-note-input::placeholder {
   color: var(--text-secondary);
+}
+
+.add-quick-note-btn {
+  width: 100%;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.add-quick-note-btn:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.quick-notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 15px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.quick-note-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  gap: 10px;
+}
+
+.quick-note-text {
+  flex: 1;
+  font-size: 13px;
+  word-break: break-word;
+}
+
+.delete-quick-note-btn {
+  width: 24px;
+  height: 24px;
+  background: rgba(255, 68, 68, 0.2);
+  border: none;
+  border-radius: 50%;
+  color: #ff4444;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+
+.delete-quick-note-btn:hover {
+  background: rgba(255, 68, 68, 0.4);
 }
 
 .notes-list {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-height: 300px;
+  max-height: 200px;
   overflow-y: auto;
 }
 
@@ -645,9 +715,8 @@ body.edit-mode .shortcut-settings-btn {
 }
 
 .add-note-btn {
-  display: none;
   width: 100%;
-  padding: 12px;
+  padding: 10px;
   border: 2px dashed var(--border);
   border-radius: 8px;
   background: transparent;
@@ -656,10 +725,7 @@ body.edit-mode .shortcut-settings-btn {
   margin-top: 10px;
   transition: all 0.3s ease;
   font-family: inherit;
-}
-
-.edit-mode .add-note-btn {
-  display: block;
+  font-size: 13px;
 }
 
 .add-note-btn:hover {
@@ -793,30 +859,48 @@ body.edit-mode .shortcut-settings-btn {
   transform: translateY(-2px);
 }
 
-/* Fix 5: Password copy feedback */
+/* Fix 2: Improved Password copy feedback with better design */
 .copy-feedback {
-  padding: 8px 12px;
-  border-radius: 6px;
-  text-align: center;
-  font-size: 13px;
+  background: rgba(0, 255, 0, 0.15);
+  border: 1px solid rgba(0, 255, 0, 0.5);
+  color: #00ff00;
+  padding: 12px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  font-size: 14px;
   margin-bottom: 10px;
-  transition: opacity 0.3s ease;
+  animation: feedbackFadeIn 0.3s ease;
+  transition: opacity 0.5s ease;
 }
 
 .copy-feedback-success {
-  background: rgba(0, 200, 100, 0.2);
-  color: #00cc66;
-  border: 1px solid rgba(0, 200, 100, 0.3);
+  background: rgba(0, 255, 0, 0.15);
+  border: 1px solid rgba(0, 255, 0, 0.5);
+  color: #00ff00;
 }
 
 .copy-feedback-error {
-  background: rgba(255, 68, 68, 0.2);
+  background: rgba(255, 68, 68, 0.15);
+  border: 1px solid rgba(255, 68, 68, 0.5);
   color: #ff4444;
-  border: 1px solid rgba(255, 68, 68, 0.3);
 }
 
 .copy-feedback.fade-out {
   opacity: 0;
+}
+
+@keyframes feedbackFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ============ Fix 7: Calendar Widget ============ */
@@ -2038,4 +2122,111 @@ body.edit-mode.grid-hidden::before {
   padding: 10px;
   color: var(--text);
   font-family: inherit;
+}
+
+/* ============ Fix 6: Background Position Controls ============ */
+.bg-position-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.bg-pos-row {
+  display: flex;
+  gap: 4px;
+}
+
+.bg-pos-btn {
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.bg-pos-btn:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+/* ============ Fix 5: Icon Transparent Background ============ */
+.shortcut-icon {
+  background: transparent !important;
+}
+
+/* ============ Fix 4: Calendar Year & Decade Views ============ */
+.calendar-grid.year-view {
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.calendar-grid.decade-view {
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.calendar-month-cell,
+.calendar-year-cell {
+  padding: 15px 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+.calendar-month-cell:hover,
+.calendar-year-cell:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--primary);
+}
+
+.calendar-month-cell.current,
+.calendar-year-cell.current {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: white;
+  border-color: transparent;
+}
+
+.calendar-title-clickable {
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.calendar-title-clickable:hover {
+  color: var(--primary);
+}
+
+/* ============ Fix 10: Widget Menu Only in Edit Mode ============ */
+.widget-menu-btn {
+  display: none;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(255, 0, 255, 0.8);
+  border: none;
+  border-radius: 4px;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  font-size: 18px;
+  z-index: 11;
+  color: white;
+  transition: all 0.2s ease;
+}
+
+body.edit-mode .widget:hover .widget-menu-btn {
+  display: block;
+}
+
+.widget-menu-btn:hover {
+  background: var(--primary);
+  transform: scale(1.1);
 }

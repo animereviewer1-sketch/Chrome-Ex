@@ -48,6 +48,10 @@ const DEFAULT_SETTINGS = {
   bgPosition: 'center',
   bgRepeat: false,
   bgFixed: true,
+  // New Fix 6: Background zoom and position
+  bgX: 50,
+  bgY: 50,
+  bgZoom: 100,
   // Fix 2: Grid-Einstellungen
   gridSize: 20,
   gridColor: '#ff00ff',
@@ -308,17 +312,75 @@ function initBackground() {
   }
 }
 
-// Fix 6: Apply background customization settings
+// Fix 6: Apply background customization settings (enhanced with zoom & position)
 function applyBackgroundSettings() {
-  const size = settings.bgSize || 'cover';
-  const position = settings.bgPosition || 'center';
-  const repeat = settings.bgRepeat ? 'repeat' : 'no-repeat';
-  const attachment = settings.bgFixed ? 'fixed' : 'scroll';
+  // Check if page-specific background exists
+  const currentPage = settings.pages[settings.currentPage];
+  const pageBg = currentPage?.background;
+  
+  let size = settings.bgSize || 'cover';
+  let repeat = settings.bgRepeat ? 'repeat' : 'no-repeat';
+  let attachment = settings.bgFixed ? 'fixed' : 'scroll';
+  
+  // New Fix 6: Use zoom percentage for background-size if custom bg
+  const zoom = pageBg?.bgZoom ?? settings.bgZoom ?? 100;
+  const bgX = pageBg?.bgX ?? settings.bgX ?? 50;
+  const bgY = pageBg?.bgY ?? settings.bgY ?? 50;
+  
+  // If using zoom slider, override size
+  if (zoom !== 100 && settings.backgroundType !== 'theme') {
+    size = `${zoom}%`;
+  }
+  
+  const position = `${bgX}% ${bgY}%`;
   
   document.documentElement.style.setProperty('--bg-size', size);
   document.documentElement.style.setProperty('--bg-position', position);
   document.documentElement.style.setProperty('--bg-repeat', repeat);
   document.documentElement.style.setProperty('--bg-attachment', attachment);
+  
+  // Apply directly to body for custom backgrounds
+  if (settings.backgroundType === 'custom' || settings.backgroundType === 'url') {
+    document.body.style.backgroundSize = size;
+    document.body.style.backgroundPosition = position;
+  }
+}
+
+// New Fix 6: Background position controls
+function moveBgPosition(direction) {
+  const step = 5; // Move by 5% each time
+  
+  switch (direction) {
+    case 'up':
+      settings.bgY = Math.max(0, (settings.bgY || 50) - step);
+      break;
+    case 'down':
+      settings.bgY = Math.min(100, (settings.bgY || 50) + step);
+      break;
+    case 'left':
+      settings.bgX = Math.max(0, (settings.bgX || 50) - step);
+      break;
+    case 'right':
+      settings.bgX = Math.min(100, (settings.bgX || 50) + step);
+      break;
+    case 'center':
+      settings.bgX = 50;
+      settings.bgY = 50;
+      break;
+  }
+  
+  // Update display
+  const posVal = document.getElementById('bg-pos-val');
+  if (posVal) posVal.textContent = `${settings.bgX}% ${settings.bgY}%`;
+  
+  applyBackgroundSettings();
+  saveSettings();
+}
+
+function setBgZoom(zoom) {
+  settings.bgZoom = zoom;
+  applyBackgroundSettings();
+  saveSettings();
 }
 
 function hideParticles() {
@@ -887,11 +949,20 @@ function createWidgetElement(widget) {
     case 'notes':
       div.classList.add('notes-widget');
       const notes = widget.data?.notes || [];
-      // Fix 3: Add inline textarea for quick notes (always editable)
-      const savedQuickNote = widget.data?.quickNote || '';
+      const quickNotes = widget.data?.quickNotes || [];
       content.innerHTML = `
+        <h3>📝 Schnelle Notizen</h3>
         <div class="quick-note-container">
-          <textarea class="quick-note-textarea" data-widget-id="${widget.id}" placeholder="Schnelle Notizen hier eingeben...">${savedQuickNote}</textarea>
+          <textarea class="quick-note-input" data-widget-id="${widget.id}" placeholder="Schnelle Notizen hier eingeben..."></textarea>
+          <button class="add-quick-note-btn" data-widget-id="${widget.id}">+ Neue Notiz</button>
+        </div>
+        <div class="quick-notes-list" data-widget-id="${widget.id}">
+          ${quickNotes.map((note, index) => `
+            <div class="quick-note-item" data-index="${index}" data-widget-id="${widget.id}">
+              <span class="quick-note-text">${note}</span>
+              <button class="delete-quick-note-btn" data-index="${index}" data-widget-id="${widget.id}">✕</button>
+            </div>
+          `).join('')}
         </div>
         <div class="notes-list">
           ${notes.map((note, index) => `
@@ -901,7 +972,7 @@ function createWidgetElement(widget) {
             </div>
           `).join('')}
         </div>
-        <button class="add-note-btn" data-widget-id="${widget.id}">+ Neue Notiz</button>
+        <button class="add-note-btn" data-widget-id="${widget.id}">+ Ausführliche Notiz</button>
       `;
       break;
       
@@ -1184,11 +1255,11 @@ function showPasswordFeedback(widgetId, message, type) {
     passwordDisplay.insertAdjacentElement('afterend', feedback);
   }
   
-  // Auto-remove after 3 seconds
+  // Fix 2: Auto-remove after 2 seconds with smooth fade-out
   setTimeout(() => {
     feedback.classList.add('fade-out');
-    setTimeout(() => feedback.remove(), 300);
-  }, 3000);
+    setTimeout(() => feedback.remove(), 500);
+  }, 2000);
 }
 
 // ============ Feature #17: Quick Actions (Strg+K) ============
@@ -1347,14 +1418,21 @@ function initBackgroundSettings() {
   
   // Fix 6: Background customization settings initialisieren
   const bgSize = document.getElementById('bg-size');
-  const bgPosition = document.getElementById('bg-position');
   const bgRepeat = document.getElementById('bg-repeat');
   const bgFixed = document.getElementById('bg-fixed');
   
   if (bgSize) bgSize.value = settings.bgSize || 'cover';
-  if (bgPosition) bgPosition.value = settings.bgPosition || 'center';
   if (bgRepeat) bgRepeat.checked = settings.bgRepeat || false;
   if (bgFixed) bgFixed.checked = settings.bgFixed !== false;
+  
+  // New Fix 6: Background zoom and position
+  const bgZoomSlider = document.getElementById('bg-zoom');
+  const bgZoomVal = document.getElementById('bg-zoom-val');
+  const bgPosVal = document.getElementById('bg-pos-val');
+  
+  if (bgZoomSlider) bgZoomSlider.value = settings.bgZoom || 100;
+  if (bgZoomVal) bgZoomVal.textContent = `${settings.bgZoom || 100}%`;
+  if (bgPosVal) bgPosVal.textContent = `${settings.bgX || 50}% ${settings.bgY || 50}%`;
   
   // Fix 2: Grid-Einstellungen initialisieren
   const gridSizeSlider = document.getElementById('grid-size');
@@ -1914,26 +1992,6 @@ function renderBookmarkTree(nodes, level = 0) {
 // ============ Feature #12: Notes ============
 let currentNoteWidgetId = null;
 let currentNoteIndex = -1;
-let quickNoteAutoSaveTimeouts = {}; // Fix 3: Track auto-save timeouts
-
-// Fix 3: Auto-save quick notes every 2 seconds
-function autoSaveQuickNote(widgetId, value) {
-  // Clear previous timeout for this widget
-  if (quickNoteAutoSaveTimeouts[widgetId]) {
-    clearTimeout(quickNoteAutoSaveTimeouts[widgetId]);
-  }
-  
-  // Set new timeout for 2 second delay
-  quickNoteAutoSaveTimeouts[widgetId] = setTimeout(() => {
-    const currentPage = settings.pages[settings.currentPage];
-    const widget = currentPage?.widgets.find(w => w.id === widgetId);
-    if (widget) {
-      widget.data = widget.data || {};
-      widget.data.quickNote = value;
-      saveSettings();
-    }
-  }, 2000);
-}
 
 function openNoteEditor(widgetId = null, index = -1) {
   // Wenn kein Widget angegeben, erstes Notes-Widget suchen oder neues erstellen
@@ -2016,6 +2074,38 @@ function deleteNote() {
   closeModal('note-modal');
 }
 
+// ============ Fix 1: Quick Notes Functions (Always Editable) ============
+function addQuickNote(widgetId) {
+  const textarea = document.querySelector(`.quick-note-input[data-widget-id="${widgetId}"]`);
+  if (!textarea) return;
+  
+  const text = textarea.value.trim();
+  if (!text) return;
+  
+  const currentPage = settings.pages[settings.currentPage];
+  const widget = currentPage?.widgets.find(w => w.id === widgetId);
+  
+  if (widget) {
+    widget.data = widget.data || {};
+    widget.data.quickNotes = widget.data.quickNotes || [];
+    widget.data.quickNotes.unshift(text); // Add to beginning
+    
+    saveSettings();
+    renderWidgets();
+  }
+}
+
+function deleteQuickNote(widgetId, index) {
+  const currentPage = settings.pages[settings.currentPage];
+  const widget = currentPage?.widgets.find(w => w.id === widgetId);
+  
+  if (widget && widget.data?.quickNotes && index >= 0) {
+    widget.data.quickNotes.splice(index, 1);
+    saveSettings();
+    renderWidgets();
+  }
+}
+
 // ============ Fix 7: Calendar Widget ============
 let calendarStates = {}; // Track displayed month/year per widget
 
@@ -2023,7 +2113,8 @@ function initCalendarWidget(widgetId, data) {
   const now = new Date();
   calendarStates[widgetId] = {
     year: now.getFullYear(),
-    month: now.getMonth()
+    month: now.getMonth(),
+    viewMode: 'month' // Fix 4: 'month', 'year', or 'decade'
   };
   
   renderCalendar(widgetId, data);
@@ -2033,16 +2124,34 @@ function renderCalendar(widgetId, data) {
   const state = calendarStates[widgetId];
   if (!state) return;
   
+  const { viewMode } = state;
+  
+  // Fix 4: Render based on view mode
+  switch (viewMode) {
+    case 'year':
+      renderYearView(widgetId, data);
+      break;
+    case 'decade':
+      renderDecadeView(widgetId, data);
+      break;
+    default:
+      renderMonthView(widgetId, data);
+  }
+}
+
+// Fix 4: Month view (original calendar)
+function renderMonthView(widgetId, data) {
+  const state = calendarStates[widgetId];
   const { year, month } = state;
   const grid = document.getElementById(`calendar-grid-${widgetId}`);
   const title = document.getElementById(`calendar-title-${widgetId}`);
   
   if (!grid || !title) return;
   
-  // Update title
+  // Update title - click to go to year view
   const monthNames = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 
                       'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
-  title.textContent = `${monthNames[month]} ${year}`;
+  title.innerHTML = `<span class="calendar-title-clickable" data-widget-id="${widgetId}" data-action="year">${monthNames[month]} ${year}</span>`;
   
   // Get first day of month and total days
   const firstDay = new Date(year, month, 1);
@@ -2070,16 +2179,8 @@ function renderCalendar(widgetId, data) {
     const isToday = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     
-    // Check for events on this day (including recurring yearly events)
-    const dayEvents = events.filter(e => {
-      if (e.date === dateStr) return true;
-      // Check for yearly recurring events
-      if (e.repeat === 'yearly') {
-        const eventDate = new Date(e.date);
-        return eventDate.getDate() === day && eventDate.getMonth() === month;
-      }
-      return false;
-    });
+    // Fix 3: Check for events with extended repeat options
+    const dayEvents = getEventsForDate(events, dateStr, day, month, year);
     
     const hasEvents = dayEvents.length > 0;
     const eventColors = dayEvents.map(e => e.color || '#667eea').slice(0, 3);
@@ -2096,23 +2197,168 @@ function renderCalendar(widgetId, data) {
   grid.innerHTML = html;
 }
 
+// Fix 4: Year view - 12 months grid
+function renderYearView(widgetId, data) {
+  const state = calendarStates[widgetId];
+  const { year } = state;
+  const grid = document.getElementById(`calendar-grid-${widgetId}`);
+  const title = document.getElementById(`calendar-title-${widgetId}`);
+  
+  if (!grid || !title) return;
+  
+  // Click to go to decade view
+  title.innerHTML = `<span class="calendar-title-clickable" data-widget-id="${widgetId}" data-action="decade">${year}</span>`;
+  
+  const monthNames = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+  const today = new Date();
+  
+  let html = '';
+  for (let m = 0; m < 12; m++) {
+    const isCurrentMonth = m === today.getMonth() && year === today.getFullYear();
+    html += `
+      <div class="calendar-month-cell ${isCurrentMonth ? 'current' : ''}" 
+           data-month="${m}" data-widget-id="${widgetId}">
+        ${monthNames[m]}
+      </div>
+    `;
+  }
+  
+  grid.innerHTML = html;
+  grid.classList.add('year-view');
+}
+
+// Fix 4: Decade view - 10 years grid
+function renderDecadeView(widgetId, data) {
+  const state = calendarStates[widgetId];
+  const { year } = state;
+  const grid = document.getElementById(`calendar-grid-${widgetId}`);
+  const title = document.getElementById(`calendar-title-${widgetId}`);
+  
+  if (!grid || !title) return;
+  
+  const startYear = Math.floor(year / 10) * 10;
+  title.innerHTML = `<span class="calendar-title-text">${startYear} - ${startYear + 9}</span>`;
+  
+  const today = new Date();
+  
+  let html = '';
+  for (let y = startYear; y < startYear + 10; y++) {
+    const isCurrentYear = y === today.getFullYear();
+    html += `
+      <div class="calendar-year-cell ${isCurrentYear ? 'current' : ''}" 
+           data-year="${y}" data-widget-id="${widgetId}">
+        ${y}
+      </div>
+    `;
+  }
+  
+  grid.innerHTML = html;
+  grid.classList.add('decade-view');
+}
+
+// Fix 3: Extended repeat logic for events
+function getEventsForDate(events, dateStr, day, month, year) {
+  const checkDate = new Date(year, month, day);
+  
+  return events.filter(e => {
+    if (e.date === dateStr) return true;
+    
+    const eventDate = new Date(e.date);
+    const eventDay = eventDate.getDate();
+    const eventMonth = eventDate.getMonth();
+    const eventYear = eventDate.getFullYear();
+    
+    switch (e.repeat) {
+      case 'daily':
+        return checkDate >= eventDate;
+      case 'weekly':
+        if (checkDate < eventDate) return false;
+        const daysDiff = Math.floor((checkDate - eventDate) / (1000 * 60 * 60 * 24));
+        return daysDiff % 7 === 0;
+      case 'monthly':
+        if (checkDate < eventDate) return false;
+        return eventDay === day;
+      case 'yearly':
+        if (checkDate < eventDate) return false;
+        return eventDay === day && eventMonth === month;
+      default:
+        return false;
+    }
+  });
+}
+
 function navigateCalendar(widgetId, direction) {
   const state = calendarStates[widgetId];
   if (!state) return;
   
-  if (direction === 'prev') {
-    state.month--;
-    if (state.month < 0) {
-      state.month = 11;
-      state.year--;
+  // Fix 4: Navigate based on view mode
+  if (state.viewMode === 'decade') {
+    if (direction === 'prev') {
+      state.year -= 10;
+    } else {
+      state.year += 10;
     }
-  } else {
-    state.month++;
-    if (state.month > 11) {
-      state.month = 0;
+  } else if (state.viewMode === 'year') {
+    if (direction === 'prev') {
+      state.year--;
+    } else {
       state.year++;
     }
+  } else {
+    if (direction === 'prev') {
+      state.month--;
+      if (state.month < 0) {
+        state.month = 11;
+        state.year--;
+      }
+    } else {
+      state.month++;
+      if (state.month > 11) {
+        state.month = 0;
+        state.year++;
+      }
+    }
   }
+  
+  const currentPage = settings.pages[settings.currentPage];
+  const widget = currentPage?.widgets.find(w => w.id === widgetId);
+  renderCalendar(widgetId, widget?.data);
+}
+
+// Fix 4: Calendar view mode switching
+function switchCalendarViewMode(widgetId, action) {
+  const state = calendarStates[widgetId];
+  if (!state) return;
+  
+  if (action === 'year') {
+    state.viewMode = 'year';
+  } else if (action === 'decade') {
+    state.viewMode = 'decade';
+  }
+  
+  const currentPage = settings.pages[settings.currentPage];
+  const widget = currentPage?.widgets.find(w => w.id === widgetId);
+  renderCalendar(widgetId, widget?.data);
+}
+
+function selectCalendarMonth(widgetId, month) {
+  const state = calendarStates[widgetId];
+  if (!state) return;
+  
+  state.month = month;
+  state.viewMode = 'month';
+  
+  const currentPage = settings.pages[settings.currentPage];
+  const widget = currentPage?.widgets.find(w => w.id === widgetId);
+  renderCalendar(widgetId, widget?.data);
+}
+
+function selectCalendarYear(widgetId, year) {
+  const state = calendarStates[widgetId];
+  if (!state) return;
+  
+  state.year = year;
+  state.viewMode = 'year';
   
   const currentPage = settings.pages[settings.currentPage];
   const widget = currentPage?.widgets.find(w => w.id === widgetId);
@@ -2136,7 +2382,7 @@ function openCalendarEventModal(widgetId, date, eventId = null) {
   const dateInput = document.getElementById('calendar-event-date');
   const timeInput = document.getElementById('calendar-event-time');
   const descInput = document.getElementById('calendar-event-desc');
-  const repeatCheckbox = document.getElementById('calendar-event-repeat');
+  const repeatSelect = document.getElementById('calendar-event-repeat');
   const colorInput = document.getElementById('calendar-event-color');
   const deleteBtn = document.getElementById('delete-calendar-event-btn');
   const modalTitle = document.getElementById('calendar-event-modal-title');
@@ -2146,7 +2392,7 @@ function openCalendarEventModal(widgetId, date, eventId = null) {
   if (dateInput) dateInput.value = date || '';
   if (timeInput) timeInput.value = '';
   if (descInput) descInput.value = '';
-  if (repeatCheckbox) repeatCheckbox.checked = false;
+  if (repeatSelect) repeatSelect.value = 'none';
   if (colorInput) colorInput.value = '#667eea';
   
   if (eventId) {
@@ -2163,7 +2409,7 @@ function openCalendarEventModal(widgetId, date, eventId = null) {
       if (dateInput) dateInput.value = event.date || '';
       if (timeInput) timeInput.value = event.time || '';
       if (descInput) descInput.value = event.description || '';
-      if (repeatCheckbox) repeatCheckbox.checked = event.repeat === 'yearly';
+      if (repeatSelect) repeatSelect.value = event.repeat || 'none';
       if (colorInput) colorInput.value = event.color || '#667eea';
     }
   } else {
@@ -2180,7 +2426,8 @@ function saveCalendarEvent() {
   const date = document.getElementById('calendar-event-date')?.value;
   const time = document.getElementById('calendar-event-time')?.value || '';
   const description = document.getElementById('calendar-event-desc')?.value || '';
-  const repeat = document.getElementById('calendar-event-repeat')?.checked ? 'yearly' : null;
+  const repeatValue = document.getElementById('calendar-event-repeat')?.value;
+  const repeat = repeatValue !== 'none' ? repeatValue : null;
   const color = document.getElementById('calendar-event-color')?.value || '#667eea';
   
   if (!title || !date) return;
@@ -2425,12 +2672,6 @@ function initEventListeners() {
     applyBackgroundSettings();
   });
   
-  document.getElementById('bg-position')?.addEventListener('change', (e) => {
-    settings.bgPosition = e.target.value;
-    saveSettings();
-    applyBackgroundSettings();
-  });
-  
   document.getElementById('bg-repeat')?.addEventListener('change', (e) => {
     settings.bgRepeat = e.target.checked;
     saveSettings();
@@ -2536,13 +2777,27 @@ function initEventListeners() {
     renderPagesManager();
   });
   
-  // Export/Import Settings
-  document.getElementById('export-settings-btn')?.addEventListener('click', exportSettings);
-  document.getElementById('import-settings-btn')?.addEventListener('click', () => {
-    document.getElementById('import-settings-file')?.click();
+  // Fix 7: Export/Import ALL Data
+  document.getElementById('export-all-btn')?.addEventListener('click', exportAllData);
+  document.getElementById('import-all-btn')?.addEventListener('click', () => {
+    document.getElementById('import-all-file')?.click();
   });
-  document.getElementById('import-settings-file')?.addEventListener('change', importSettings);
+  document.getElementById('import-all-file')?.addEventListener('change', importAllData);
   document.getElementById('reset-settings-btn')?.addEventListener('click', resetSettings);
+  
+  // Fix 6: Background zoom slider
+  document.getElementById('bg-zoom')?.addEventListener('input', (e) => {
+    const zoom = parseInt(e.target.value);
+    document.getElementById('bg-zoom-val').textContent = `${zoom}%`;
+    setBgZoom(zoom);
+  });
+  
+  // Fix 6: Background position controls
+  document.getElementById('bg-up')?.addEventListener('click', () => moveBgPosition('up'));
+  document.getElementById('bg-down')?.addEventListener('click', () => moveBgPosition('down'));
+  document.getElementById('bg-left')?.addEventListener('click', () => moveBgPosition('left'));
+  document.getElementById('bg-right')?.addEventListener('click', () => moveBgPosition('right'));
+  document.getElementById('bg-center')?.addEventListener('click', () => moveBgPosition('center'));
   
   // Keyboard Shortcuts
   document.addEventListener('keydown', handleKeydown);
@@ -2630,6 +2885,20 @@ function initEventListeners() {
       return;
     }
     
+    // Fix 1: Quick note add button
+    const addQuickNoteBtn = e.target.closest('.add-quick-note-btn');
+    if (addQuickNoteBtn) {
+      addQuickNote(addQuickNoteBtn.dataset.widgetId);
+      return;
+    }
+    
+    // Fix 1: Delete quick note button
+    const deleteQuickNoteBtn = e.target.closest('.delete-quick-note-btn');
+    if (deleteQuickNoteBtn) {
+      deleteQuickNote(deleteQuickNoteBtn.dataset.widgetId, parseInt(deleteQuickNoteBtn.dataset.index));
+      return;
+    }
+    
     // Password Generator
     const generateBtn = e.target.closest('.generate-btn');
     if (generateBtn) {
@@ -2647,6 +2916,27 @@ function initEventListeners() {
     const calendarNavBtn = e.target.closest('.calendar-nav-btn');
     if (calendarNavBtn) {
       navigateCalendar(calendarNavBtn.dataset.widgetId, calendarNavBtn.dataset.direction);
+      return;
+    }
+    
+    // Fix 4: Calendar title click for view switching
+    const calendarTitleClickable = e.target.closest('.calendar-title-clickable');
+    if (calendarTitleClickable) {
+      switchCalendarViewMode(calendarTitleClickable.dataset.widgetId, calendarTitleClickable.dataset.action);
+      return;
+    }
+    
+    // Fix 4: Calendar month cell click (year view)
+    const calendarMonthCell = e.target.closest('.calendar-month-cell');
+    if (calendarMonthCell) {
+      selectCalendarMonth(calendarMonthCell.dataset.widgetId, parseInt(calendarMonthCell.dataset.month));
+      return;
+    }
+    
+    // Fix 4: Calendar year cell click (decade view)
+    const calendarYearCell = e.target.closest('.calendar-year-cell');
+    if (calendarYearCell) {
+      selectCalendarYear(calendarYearCell.dataset.widgetId, parseInt(calendarYearCell.dataset.year));
       return;
     }
     
@@ -2673,17 +2963,19 @@ function initEventListeners() {
       const widgetId = e.target.id.replace('pw-length-', '');
       document.getElementById(`pw-length-val-${widgetId}`).textContent = e.target.value;
     }
-    
-    // Fix 3: Quick note auto-save
-    if (e.target.classList.contains('quick-note-textarea')) {
-      const widgetId = e.target.dataset.widgetId;
-      autoSaveQuickNote(widgetId, e.target.value);
+  });
+  
+  // Fix 1: Quick note input - Enter to add, prevent dragging
+  document.getElementById('widget-container')?.addEventListener('keydown', (e) => {
+    if (e.target.classList.contains('quick-note-input') && e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      addQuickNote(e.target.dataset.widgetId);
     }
   });
   
-  // Fix 3: Prevent dragging when interacting with quick notes textarea
+  // Fix 1: Prevent dragging when interacting with quick notes input
   document.getElementById('widget-container')?.addEventListener('mousedown', (e) => {
-    if (e.target.classList.contains('quick-note-textarea')) {
+    if (e.target.classList.contains('quick-note-input')) {
       e.stopPropagation();
     }
   });
@@ -2726,7 +3018,97 @@ function handleKeydown(e) {
   }
 }
 
-// ============ Settings Export/Import ============
+// ============ Fix 7: Export/Import ALL Data ============
+async function exportAllData() {
+  try {
+    let allData;
+    
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      allData = await chrome.storage.local.get(null); // Get EVERYTHING
+    } else {
+      // Fallback for local development
+      allData = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        try {
+          allData[key] = JSON.parse(localStorage.getItem(key));
+        } catch {
+          allData[key] = localStorage.getItem(key);
+        }
+      }
+    }
+    
+    const exportData = {
+      version: '1.0',
+      exportDate: new Date().toISOString(),
+      data: {
+        ...allData,
+        // Explicitly include common data keys
+        [STORAGE_KEY]: settings,
+        backgroundData: allData.backgroundData || settings.customBackground,
+        bgX: settings.bgX,
+        bgY: settings.bgY,
+        bgZoom: settings.bgZoom
+      }
+    };
+    
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `chrome-ex-backup-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    alert('Alle Daten wurden erfolgreich exportiert!');
+  } catch (error) {
+    alert('Fehler beim Exportieren: ' + error.message);
+  }
+}
+
+async function importAllData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  try {
+    const text = await file.text();
+    const imported = JSON.parse(text);
+    
+    if (!imported.data) {
+      // Legacy format - just settings
+      settings = { ...DEFAULT_SETTINGS, ...imported };
+      await saveSettings();
+    } else {
+      // New format with all data
+      if (typeof chrome !== 'undefined' && chrome.storage) {
+        await chrome.storage.local.set(imported.data);
+      } else {
+        for (const [key, value] of Object.entries(imported.data)) {
+          localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
+        }
+      }
+      
+      // Update settings from imported data
+      if (imported.data[STORAGE_KEY]) {
+        settings = { ...DEFAULT_SETTINGS, ...imported.data[STORAGE_KEY] };
+      }
+    }
+    
+    // Reload everything
+    initTheme();
+    initFont();
+    initBackground();
+    initPageTabs();
+    renderWidgets();
+    updateEditModeUI();
+    
+    alert('Alle Daten wurden erfolgreich importiert!');
+  } catch (error) {
+    alert('Fehler beim Importieren: ' + error.message);
+  }
+}
+
+// Legacy export/import for backwards compatibility
 function exportSettings() {
   const dataStr = JSON.stringify(settings, null, 2);
   const blob = new Blob([dataStr], { type: 'application/json' });
