@@ -43,6 +43,11 @@ const DEFAULT_SETTINGS = {
   customBackground: null,
   animatedBgType: 'particles',
   pageOpacity: 100, // Neue Feature 5: Seiten-Transparenz
+  // Fix 6: Background customization settings
+  bgSize: 'cover',
+  bgPosition: 'center',
+  bgRepeat: false,
+  bgFixed: true,
   // Fix 2: Grid-Einstellungen
   gridSize: 20,
   gridColor: '#ff00ff',
@@ -94,7 +99,8 @@ const WIDGET_TYPES = [
   { id: 'shortcuts', name: 'Schnellzugriff', icon: '🔗' },
   { id: 'notes', name: 'Notizen', icon: '📝' },
   { id: 'weather', name: 'Wetter', icon: '☀️' },
-  { id: 'password', name: 'Passwort Generator', icon: '🔐' }
+  { id: 'password', name: 'Passwort Generator', icon: '🔐' },
+  { id: 'calendar', name: 'Kalender', icon: '📅' } // Fix 7: Calendar Widget
 ];
 
 const QUICK_ACTIONS = [
@@ -259,6 +265,9 @@ function initBackground() {
     removeVideoBackground();
   }
   
+  // Fix 6: Apply background customization settings
+  applyBackgroundSettings();
+  
   // Video-Hintergrund (Fix 8-9)
   if ((settings.backgroundType === 'video' || settings.backgroundType === 'video-url') && settings.backgroundData) {
     restoreVideoBackground();
@@ -297,6 +306,19 @@ function initBackground() {
     document.body.classList.remove('custom-background', 'animated-gradient');
     hideParticles();
   }
+}
+
+// Fix 6: Apply background customization settings
+function applyBackgroundSettings() {
+  const size = settings.bgSize || 'cover';
+  const position = settings.bgPosition || 'center';
+  const repeat = settings.bgRepeat ? 'repeat' : 'no-repeat';
+  const attachment = settings.bgFixed ? 'fixed' : 'scroll';
+  
+  document.documentElement.style.setProperty('--bg-size', size);
+  document.documentElement.style.setProperty('--bg-position', position);
+  document.documentElement.style.setProperty('--bg-repeat', repeat);
+  document.documentElement.style.setProperty('--bg-attachment', attachment);
 }
 
 function hideParticles() {
@@ -846,10 +868,13 @@ function createWidgetElement(widget) {
       content.innerHTML = `
         <div class="shortcuts-grid">
           ${shortcuts.map((shortcut, index) => `
-            <a href="${shortcut.url}" class="shortcut-item" data-index="${index}" data-widget-id="${widget.id}">
-              <img src="${getIconFromUrl(shortcut.url)}" class="shortcut-icon" alt="${shortcut.name}">
-              <span class="shortcut-name">${shortcut.name}</span>
-            </a>
+            <div class="shortcut-item-wrapper" data-index="${index}" data-widget-id="${widget.id}">
+              <a href="${shortcut.url}" class="shortcut-item" data-index="${index}" data-widget-id="${widget.id}">
+                <img src="${shortcut.customIcon || getIconFromUrl(shortcut.url)}" class="shortcut-icon" alt="${shortcut.name}">
+                <span class="shortcut-name">${shortcut.name}</span>
+              </a>
+              <button class="shortcut-settings-btn" data-index="${index}" data-widget-id="${widget.id}" title="Einstellungen">⚙️</button>
+            </div>
           `).join('')}
           <button class="add-shortcut-btn" data-widget-id="${widget.id}">
             <span class="add-shortcut-icon">+</span>
@@ -862,7 +887,12 @@ function createWidgetElement(widget) {
     case 'notes':
       div.classList.add('notes-widget');
       const notes = widget.data?.notes || [];
+      // Fix 3: Add inline textarea for quick notes (always editable)
+      const savedQuickNote = widget.data?.quickNote || '';
       content.innerHTML = `
+        <div class="quick-note-container">
+          <textarea class="quick-note-textarea" data-widget-id="${widget.id}" placeholder="Schnelle Notizen hier eingeben...">${savedQuickNote}</textarea>
+        </div>
         <div class="notes-list">
           ${notes.map((note, index) => `
             <div class="note-item" data-index="${index}" data-widget-id="${widget.id}">
@@ -908,6 +938,25 @@ function createWidgetElement(widget) {
         <div class="strength-text" id="strength-text-${widget.id}">--</div>
         <button class="generate-btn" data-widget-id="${widget.id}">🔄 Generieren</button>
       `;
+      break;
+      
+    // Fix 7: Calendar Widget
+    case 'calendar':
+      div.classList.add('calendar-widget');
+      content.innerHTML = `
+        <div class="calendar-header">
+          <button class="calendar-nav-btn" data-direction="prev" data-widget-id="${widget.id}">◀</button>
+          <span class="calendar-month-year" id="calendar-title-${widget.id}"></span>
+          <button class="calendar-nav-btn" data-direction="next" data-widget-id="${widget.id}">▶</button>
+        </div>
+        <div class="calendar-days-header">
+          <span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span>
+        </div>
+        <div class="calendar-grid" id="calendar-grid-${widget.id}"></div>
+        <button class="calendar-add-event-btn" data-widget-id="${widget.id}">+ Event</button>
+      `;
+      // Initialize calendar after element is appended
+      setTimeout(() => initCalendarWidget(widget.id, widget.data), 0);
       break;
   }
   
@@ -1100,12 +1149,46 @@ function updatePasswordStrength(widgetId, password) {
   if (textEl) textEl.textContent = strengthText;
 }
 
-function copyPassword(widgetId) {
+// Fix 5: Updated copyPassword to show feedback in overlay instead of alert/notification
+async function copyPassword(widgetId) {
   const pwInput = document.getElementById(`generated-pw-${widgetId}`);
   if (pwInput && pwInput.value) {
-    navigator.clipboard.writeText(pwInput.value);
-    alert('Passwort kopiert!');
+    try {
+      await navigator.clipboard.writeText(pwInput.value);
+      showPasswordFeedback(widgetId, '✅ Passwort kopiert!', 'success');
+    } catch (error) {
+      showPasswordFeedback(widgetId, '❌ Kopieren fehlgeschlagen', 'error');
+    }
   }
+}
+
+// Fix 5: Show feedback message in the password widget
+function showPasswordFeedback(widgetId, message, type) {
+  const widget = document.getElementById(widgetId);
+  if (!widget) return;
+  
+  // Remove existing feedback
+  const existingFeedback = widget.querySelector('.copy-feedback');
+  if (existingFeedback) {
+    existingFeedback.remove();
+  }
+  
+  // Create new feedback element
+  const feedback = document.createElement('div');
+  feedback.className = `copy-feedback copy-feedback-${type}`;
+  feedback.textContent = message;
+  
+  // Insert after password display
+  const passwordDisplay = widget.querySelector('.password-display');
+  if (passwordDisplay) {
+    passwordDisplay.insertAdjacentElement('afterend', feedback);
+  }
+  
+  // Auto-remove after 3 seconds
+  setTimeout(() => {
+    feedback.classList.add('fade-out');
+    setTimeout(() => feedback.remove(), 300);
+  }, 3000);
 }
 
 // ============ Feature #17: Quick Actions (Strg+K) ============
@@ -1261,6 +1344,17 @@ function initBackgroundSettings() {
       pageOpacityValue.textContent = `${currentOpacity}%`;
     }
   }
+  
+  // Fix 6: Background customization settings initialisieren
+  const bgSize = document.getElementById('bg-size');
+  const bgPosition = document.getElementById('bg-position');
+  const bgRepeat = document.getElementById('bg-repeat');
+  const bgFixed = document.getElementById('bg-fixed');
+  
+  if (bgSize) bgSize.value = settings.bgSize || 'cover';
+  if (bgPosition) bgPosition.value = settings.bgPosition || 'center';
+  if (bgRepeat) bgRepeat.checked = settings.bgRepeat || false;
+  if (bgFixed) bgFixed.checked = settings.bgFixed !== false;
   
   // Fix 2: Grid-Einstellungen initialisieren
   const gridSizeSlider = document.getElementById('grid-size');
@@ -1473,6 +1567,9 @@ function initWidgetResize(widget) {
   if (!handle) return;
   
   handle.addEventListener('mousedown', (e) => {
+    // Resize only allowed in edit mode (as per requirement #2)
+    if (!document.body.classList.contains('edit-mode')) return;
+    
     e.stopPropagation();
     e.preventDefault();
     
@@ -1607,6 +1704,8 @@ function openShortcutModal(widgetId, index = -1) {
   const urlInput = document.getElementById('shortcut-url');
   const indexInput = document.getElementById('shortcut-index');
   const deleteBtn = document.getElementById('delete-shortcut-btn');
+  const iconPreview = document.getElementById('shortcut-icon-preview');
+  const customIconInput = document.getElementById('shortcut-custom-icon');
   
   if (index >= 0) {
     // Bearbeiten
@@ -1618,6 +1717,10 @@ function openShortcutModal(widgetId, index = -1) {
       titleEl.textContent = 'Shortcut bearbeiten';
       nameInput.value = shortcut.name;
       urlInput.value = shortcut.url;
+      // Fix 4: Load custom icon if exists
+      const iconSrc = shortcut.customIcon || getIconFromUrl(shortcut.url);
+      if (iconPreview) iconPreview.src = iconSrc;
+      if (customIconInput) customIconInput.value = shortcut.customIcon || '';
       deleteBtn.classList.remove('hidden');
     }
   } else {
@@ -1625,6 +1728,8 @@ function openShortcutModal(widgetId, index = -1) {
     titleEl.textContent = 'Shortcut hinzufügen';
     nameInput.value = '';
     urlInput.value = '';
+    if (iconPreview) iconPreview.src = '';
+    if (customIconInput) customIconInput.value = '';
     deleteBtn.classList.add('hidden');
   }
   
@@ -1637,6 +1742,7 @@ function saveShortcut(e) {
   
   const name = document.getElementById('shortcut-name').value.trim();
   let url = document.getElementById('shortcut-url').value.trim();
+  const customIcon = document.getElementById('shortcut-custom-icon')?.value || '';
   
   if (!name || !url) return;
   
@@ -1652,10 +1758,16 @@ function saveShortcut(e) {
     widget.data = widget.data || {};
     widget.data.shortcuts = widget.data.shortcuts || [];
     
+    // Fix 4: Include custom icon in shortcut data
+    const shortcutData = { name, url };
+    if (customIcon) {
+      shortcutData.customIcon = customIcon;
+    }
+    
     if (currentShortcutIndex >= 0) {
-      widget.data.shortcuts[currentShortcutIndex] = { name, url };
+      widget.data.shortcuts[currentShortcutIndex] = shortcutData;
     } else {
-      widget.data.shortcuts.push({ name, url });
+      widget.data.shortcuts.push(shortcutData);
     }
     
     saveSettings();
@@ -1802,6 +1914,26 @@ function renderBookmarkTree(nodes, level = 0) {
 // ============ Feature #12: Notes ============
 let currentNoteWidgetId = null;
 let currentNoteIndex = -1;
+let quickNoteAutoSaveTimeouts = {}; // Fix 3: Track auto-save timeouts
+
+// Fix 3: Auto-save quick notes every 2 seconds
+function autoSaveQuickNote(widgetId, value) {
+  // Clear previous timeout for this widget
+  if (quickNoteAutoSaveTimeouts[widgetId]) {
+    clearTimeout(quickNoteAutoSaveTimeouts[widgetId]);
+  }
+  
+  // Set new timeout for 2 second delay
+  quickNoteAutoSaveTimeouts[widgetId] = setTimeout(() => {
+    const currentPage = settings.pages[settings.currentPage];
+    const widget = currentPage?.widgets.find(w => w.id === widgetId);
+    if (widget) {
+      widget.data = widget.data || {};
+      widget.data.quickNote = value;
+      saveSettings();
+    }
+  }, 2000);
+}
 
 function openNoteEditor(widgetId = null, index = -1) {
   // Wenn kein Widget angegeben, erstes Notes-Widget suchen oder neues erstellen
@@ -1884,6 +2016,281 @@ function deleteNote() {
   closeModal('note-modal');
 }
 
+// ============ Fix 7: Calendar Widget ============
+let calendarStates = {}; // Track displayed month/year per widget
+
+function initCalendarWidget(widgetId, data) {
+  const now = new Date();
+  calendarStates[widgetId] = {
+    year: now.getFullYear(),
+    month: now.getMonth()
+  };
+  
+  renderCalendar(widgetId, data);
+}
+
+function renderCalendar(widgetId, data) {
+  const state = calendarStates[widgetId];
+  if (!state) return;
+  
+  const { year, month } = state;
+  const grid = document.getElementById(`calendar-grid-${widgetId}`);
+  const title = document.getElementById(`calendar-title-${widgetId}`);
+  
+  if (!grid || !title) return;
+  
+  // Update title
+  const monthNames = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 
+                      'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+  title.textContent = `${monthNames[month]} ${year}`;
+  
+  // Get first day of month and total days
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const totalDays = lastDay.getDate();
+  
+  // Get the day of week for the first day (0 = Sunday, adjust for Monday start)
+  let startDayOfWeek = firstDay.getDay();
+  startDayOfWeek = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1; // Convert to Monday start
+  
+  // Get events
+  const events = data?.events || [];
+  const today = new Date();
+  
+  // Build calendar grid
+  let html = '';
+  
+  // Empty cells before first day
+  for (let i = 0; i < startDayOfWeek; i++) {
+    html += '<div class="calendar-day empty"></div>';
+  }
+  
+  // Days of the month
+  for (let day = 1; day <= totalDays; day++) {
+    const isToday = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    
+    // Check for events on this day (including recurring yearly events)
+    const dayEvents = events.filter(e => {
+      if (e.date === dateStr) return true;
+      // Check for yearly recurring events
+      if (e.repeat === 'yearly') {
+        const eventDate = new Date(e.date);
+        return eventDate.getDate() === day && eventDate.getMonth() === month;
+      }
+      return false;
+    });
+    
+    const hasEvents = dayEvents.length > 0;
+    const eventColors = dayEvents.map(e => e.color || '#667eea').slice(0, 3);
+    
+    html += `
+      <div class="calendar-day ${isToday ? 'today' : ''} ${hasEvents ? 'has-events' : ''}" 
+           data-date="${dateStr}" data-widget-id="${widgetId}">
+        <span class="day-number">${day}</span>
+        ${hasEvents ? `<div class="event-indicators">${eventColors.map(c => `<span class="event-dot" style="background: ${c}"></span>`).join('')}</div>` : ''}
+      </div>
+    `;
+  }
+  
+  grid.innerHTML = html;
+}
+
+function navigateCalendar(widgetId, direction) {
+  const state = calendarStates[widgetId];
+  if (!state) return;
+  
+  if (direction === 'prev') {
+    state.month--;
+    if (state.month < 0) {
+      state.month = 11;
+      state.year--;
+    }
+  } else {
+    state.month++;
+    if (state.month > 11) {
+      state.month = 0;
+      state.year++;
+    }
+  }
+  
+  const currentPage = settings.pages[settings.currentPage];
+  const widget = currentPage?.widgets.find(w => w.id === widgetId);
+  renderCalendar(widgetId, widget?.data);
+}
+
+// Calendar Event Modal
+let currentCalendarWidgetId = null;
+let currentCalendarDate = null;
+let currentCalendarEventId = null;
+
+function openCalendarEventModal(widgetId, date, eventId = null) {
+  currentCalendarWidgetId = widgetId;
+  currentCalendarDate = date;
+  currentCalendarEventId = eventId;
+  
+  const modal = document.getElementById('calendar-event-modal');
+  if (!modal) return;
+  
+  const titleInput = document.getElementById('calendar-event-title');
+  const dateInput = document.getElementById('calendar-event-date');
+  const timeInput = document.getElementById('calendar-event-time');
+  const descInput = document.getElementById('calendar-event-desc');
+  const repeatCheckbox = document.getElementById('calendar-event-repeat');
+  const colorInput = document.getElementById('calendar-event-color');
+  const deleteBtn = document.getElementById('delete-calendar-event-btn');
+  const modalTitle = document.getElementById('calendar-event-modal-title');
+  
+  // Reset form
+  if (titleInput) titleInput.value = '';
+  if (dateInput) dateInput.value = date || '';
+  if (timeInput) timeInput.value = '';
+  if (descInput) descInput.value = '';
+  if (repeatCheckbox) repeatCheckbox.checked = false;
+  if (colorInput) colorInput.value = '#667eea';
+  
+  if (eventId) {
+    // Edit existing event
+    if (modalTitle) modalTitle.textContent = 'Event bearbeiten';
+    deleteBtn?.classList.remove('hidden');
+    
+    const currentPage = settings.pages[settings.currentPage];
+    const widget = currentPage?.widgets.find(w => w.id === widgetId);
+    const event = widget?.data?.events?.find(e => e.id === eventId);
+    
+    if (event) {
+      if (titleInput) titleInput.value = event.title || '';
+      if (dateInput) dateInput.value = event.date || '';
+      if (timeInput) timeInput.value = event.time || '';
+      if (descInput) descInput.value = event.description || '';
+      if (repeatCheckbox) repeatCheckbox.checked = event.repeat === 'yearly';
+      if (colorInput) colorInput.value = event.color || '#667eea';
+    }
+  } else {
+    // New event
+    if (modalTitle) modalTitle.textContent = 'Event hinzufügen';
+    deleteBtn?.classList.add('hidden');
+  }
+  
+  openModal('calendar-event-modal');
+}
+
+function saveCalendarEvent() {
+  const title = document.getElementById('calendar-event-title')?.value.trim();
+  const date = document.getElementById('calendar-event-date')?.value;
+  const time = document.getElementById('calendar-event-time')?.value || '';
+  const description = document.getElementById('calendar-event-desc')?.value || '';
+  const repeat = document.getElementById('calendar-event-repeat')?.checked ? 'yearly' : null;
+  const color = document.getElementById('calendar-event-color')?.value || '#667eea';
+  
+  if (!title || !date) return;
+  
+  const currentPage = settings.pages[settings.currentPage];
+  const widget = currentPage?.widgets.find(w => w.id === currentCalendarWidgetId);
+  
+  if (widget) {
+    widget.data = widget.data || {};
+    widget.data.events = widget.data.events || [];
+    
+    const eventData = {
+      id: currentCalendarEventId || `event-${Date.now()}`,
+      title,
+      date,
+      time,
+      description,
+      repeat,
+      color
+    };
+    
+    if (currentCalendarEventId) {
+      // Update existing event
+      const index = widget.data.events.findIndex(e => e.id === currentCalendarEventId);
+      if (index >= 0) {
+        widget.data.events[index] = eventData;
+      }
+    } else {
+      // Add new event
+      widget.data.events.push(eventData);
+    }
+    
+    saveSettings();
+    renderCalendar(currentCalendarWidgetId, widget.data);
+  }
+  
+  closeModal('calendar-event-modal');
+}
+
+function deleteCalendarEvent() {
+  if (!currentCalendarEventId) return;
+  
+  const currentPage = settings.pages[settings.currentPage];
+  const widget = currentPage?.widgets.find(w => w.id === currentCalendarWidgetId);
+  
+  if (widget && widget.data?.events) {
+    widget.data.events = widget.data.events.filter(e => e.id !== currentCalendarEventId);
+    saveSettings();
+    renderCalendar(currentCalendarWidgetId, widget.data);
+  }
+  
+  closeModal('calendar-event-modal');
+}
+
+function showDayEvents(widgetId, date) {
+  const currentPage = settings.pages[settings.currentPage];
+  const widget = currentPage?.widgets.find(w => w.id === widgetId);
+  const events = widget?.data?.events || [];
+  
+  // Get events for this date (including yearly recurring)
+  const dateObj = new Date(date);
+  const dayEvents = events.filter(e => {
+    if (e.date === date) return true;
+    if (e.repeat === 'yearly') {
+      const eventDate = new Date(e.date);
+      return eventDate.getDate() === dateObj.getDate() && eventDate.getMonth() === dateObj.getMonth();
+    }
+    return false;
+  });
+  
+  if (dayEvents.length === 0) {
+    // No events, open add event modal
+    openCalendarEventModal(widgetId, date);
+    return;
+  }
+  
+  // Show events list modal
+  const modal = document.getElementById('calendar-day-events-modal');
+  const list = document.getElementById('calendar-day-events-list');
+  const dateDisplay = document.getElementById('calendar-day-events-date');
+  
+  if (!modal || !list) return;
+  
+  currentCalendarWidgetId = widgetId;
+  currentCalendarDate = date;
+  
+  // Format date for display
+  const displayDate = new Date(date).toLocaleDateString('de-DE', { 
+    weekday: 'long', 
+    day: 'numeric', 
+    month: 'long', 
+    year: 'numeric' 
+  });
+  if (dateDisplay) dateDisplay.textContent = displayDate;
+  
+  list.innerHTML = dayEvents.map(event => `
+    <div class="calendar-event-item" data-event-id="${event.id}">
+      <div class="event-color-indicator" style="background: ${event.color || '#667eea'}"></div>
+      <div class="event-details">
+        <div class="event-title">${event.title}${event.repeat === 'yearly' ? ' 🔄' : ''}</div>
+        ${event.time ? `<div class="event-time">🕐 ${event.time}</div>` : ''}
+        ${event.description ? `<div class="event-description">${event.description}</div>` : ''}
+      </div>
+      <button class="event-edit-btn" data-event-id="${event.id}" data-widget-id="${widgetId}">✏️</button>
+    </div>
+  `).join('');
+  
+  openModal('calendar-day-events-modal');
+}
+
 // ============ Event Listeners ============
 function initEventListeners() {
   // Settings Button
@@ -1900,10 +2307,59 @@ function initEventListeners() {
   document.getElementById('settings-modal-close')?.addEventListener('click', () => closeModal('settings-modal'));
   document.getElementById('tabs-modal-close')?.addEventListener('click', () => closeModal('tabs-modal'));
   document.getElementById('bookmarks-modal-close')?.addEventListener('click', () => closeModal('bookmarks-modal'));
+  // Fix 7: Calendar modal close buttons
+  document.getElementById('calendar-event-modal-close')?.addEventListener('click', () => closeModal('calendar-event-modal'));
+  document.getElementById('calendar-day-events-modal-close')?.addEventListener('click', () => closeModal('calendar-day-events-modal'));
+  
+  // Fix 7: Calendar event form
+  document.getElementById('calendar-event-form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    saveCalendarEvent();
+  });
+  document.getElementById('delete-calendar-event-btn')?.addEventListener('click', deleteCalendarEvent);
+  document.getElementById('calendar-add-new-event-btn')?.addEventListener('click', () => {
+    closeModal('calendar-day-events-modal');
+    openCalendarEventModal(currentCalendarWidgetId, currentCalendarDate);
+  });
   
   // Shortcut Form
   document.getElementById('shortcut-form')?.addEventListener('submit', saveShortcut);
   document.getElementById('delete-shortcut-btn')?.addEventListener('click', deleteShortcut);
+  
+  // Fix 4: Shortcut icon customization
+  document.getElementById('shortcut-use-favicon-btn')?.addEventListener('click', () => {
+    const url = document.getElementById('shortcut-url')?.value;
+    if (url) {
+      const faviconUrl = getIconFromUrl(url);
+      document.getElementById('shortcut-icon-preview').src = faviconUrl;
+      document.getElementById('shortcut-custom-icon').value = ''; // Clear custom icon to use favicon
+    }
+  });
+  
+  document.getElementById('shortcut-upload-icon-btn')?.addEventListener('click', () => {
+    document.getElementById('shortcut-icon-upload')?.click();
+  });
+  
+  document.getElementById('shortcut-icon-upload')?.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        document.getElementById('shortcut-icon-preview').src = event.target.result;
+        document.getElementById('shortcut-custom-icon').value = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+  
+  // Update icon preview when URL changes
+  document.getElementById('shortcut-url')?.addEventListener('change', (e) => {
+    const url = e.target.value;
+    const customIcon = document.getElementById('shortcut-custom-icon')?.value;
+    if (url && !customIcon) {
+      document.getElementById('shortcut-icon-preview').src = getIconFromUrl(url);
+    }
+  });
   
   // Special Shortcuts (#7)
   document.querySelectorAll('.special-shortcut-btn').forEach(btn => {
@@ -1960,6 +2416,31 @@ function initEventListeners() {
   document.getElementById('page-opacity')?.addEventListener('input', (e) => {
     document.getElementById('page-opacity-value').textContent = `${e.target.value}%`;
     setPageOpacity(parseInt(e.target.value));
+  });
+  
+  // Fix 6: Background customization settings
+  document.getElementById('bg-size')?.addEventListener('change', (e) => {
+    settings.bgSize = e.target.value;
+    saveSettings();
+    applyBackgroundSettings();
+  });
+  
+  document.getElementById('bg-position')?.addEventListener('change', (e) => {
+    settings.bgPosition = e.target.value;
+    saveSettings();
+    applyBackgroundSettings();
+  });
+  
+  document.getElementById('bg-repeat')?.addEventListener('change', (e) => {
+    settings.bgRepeat = e.target.checked;
+    saveSettings();
+    applyBackgroundSettings();
+  });
+  
+  document.getElementById('bg-fixed')?.addEventListener('change', (e) => {
+    settings.bgFixed = e.target.checked;
+    saveSettings();
+    applyBackgroundSettings();
   });
   
   // Edit Mode Toggle
@@ -2110,6 +2591,17 @@ function initEventListeners() {
       return;
     }
     
+    // Fix 4: Shortcut Settings Button (gear icon)
+    const shortcutSettingsBtn = e.target.closest('.shortcut-settings-btn');
+    if (shortcutSettingsBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const widgetId = shortcutSettingsBtn.dataset.widgetId;
+      const index = parseInt(shortcutSettingsBtn.dataset.index);
+      openShortcutModal(widgetId, index);
+      return;
+    }
+    
     // Shortcut Click
     const shortcutItem = e.target.closest('.shortcut-item');
     if (shortcutItem) {
@@ -2150,6 +2642,29 @@ function initEventListeners() {
       copyPassword(copyBtn.dataset.widgetId);
       return;
     }
+    
+    // Fix 7: Calendar navigation buttons
+    const calendarNavBtn = e.target.closest('.calendar-nav-btn');
+    if (calendarNavBtn) {
+      navigateCalendar(calendarNavBtn.dataset.widgetId, calendarNavBtn.dataset.direction);
+      return;
+    }
+    
+    // Fix 7: Calendar day click
+    const calendarDay = e.target.closest('.calendar-day:not(.empty)');
+    if (calendarDay) {
+      showDayEvents(calendarDay.dataset.widgetId, calendarDay.dataset.date);
+      return;
+    }
+    
+    // Fix 7: Calendar add event button
+    const calendarAddBtn = e.target.closest('.calendar-add-event-btn');
+    if (calendarAddBtn) {
+      const today = new Date();
+      const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      openCalendarEventModal(calendarAddBtn.dataset.widgetId, dateStr);
+      return;
+    }
   });
   
   // Password length slider
@@ -2157,6 +2672,28 @@ function initEventListeners() {
     if (e.target.id?.startsWith('pw-length-')) {
       const widgetId = e.target.id.replace('pw-length-', '');
       document.getElementById(`pw-length-val-${widgetId}`).textContent = e.target.value;
+    }
+    
+    // Fix 3: Quick note auto-save
+    if (e.target.classList.contains('quick-note-textarea')) {
+      const widgetId = e.target.dataset.widgetId;
+      autoSaveQuickNote(widgetId, e.target.value);
+    }
+  });
+  
+  // Fix 3: Prevent dragging when interacting with quick notes textarea
+  document.getElementById('widget-container')?.addEventListener('mousedown', (e) => {
+    if (e.target.classList.contains('quick-note-textarea')) {
+      e.stopPropagation();
+    }
+  });
+  
+  // Fix 7: Calendar day events modal event delegation
+  document.getElementById('calendar-day-events-modal')?.addEventListener('click', (e) => {
+    const eventEditBtn = e.target.closest('.event-edit-btn');
+    if (eventEditBtn) {
+      closeModal('calendar-day-events-modal');
+      openCalendarEventModal(eventEditBtn.dataset.widgetId, currentCalendarDate, eventEditBtn.dataset.eventId);
     }
   });
 }
