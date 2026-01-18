@@ -1,6 +1,7 @@
 /**
  * Chrome-Ex Service Worker
  * Feature #19: Offline-Modus
+ * Feature: Distraction Counter - Track tab switches, new tabs, and global clicks
  * 
  * Cached alle wichtigen Ressourcen für Offline-Nutzung
  */
@@ -16,6 +17,78 @@ const CACHE_URLS = [
   '/icons/icon128.png',
   '/icons/default.png'
 ];
+
+// Distraction Counter Storage
+const DISTRACTION_KEY = 'distractionStats';
+
+// Get today's date string
+function getTodayDate() {
+  return new Date().toISOString().split('T')[0];
+}
+
+// Get or initialize today's stats
+async function getTodayStats() {
+  const today = getTodayDate();
+  const result = await chrome.storage.local.get(DISTRACTION_KEY);
+  const stats = result[DISTRACTION_KEY] || {};
+  
+  // Reset if new day
+  if (stats.date !== today) {
+    return {
+      date: today,
+      tabSwitches: 0,
+      newTabs: 0,
+      clicks: 0
+    };
+  }
+  
+  return stats;
+}
+
+// Save stats
+async function saveStats(stats) {
+  await chrome.storage.local.set({ [DISTRACTION_KEY]: stats });
+  
+  // Broadcast update to all tabs
+  const tabs = await chrome.tabs.query({});
+  tabs.forEach(tab => {
+    chrome.tabs.sendMessage(tab.id, {
+      type: 'DISTRACTION_STATS_UPDATE',
+      stats: stats
+    }).catch(() => {}); // Ignore errors for tabs that don't have content script
+  });
+}
+
+// Track tab activation (tab switches)
+chrome.tabs.onActivated.addListener(async (activeInfo) => {
+  const stats = await getTodayStats();
+  stats.tabSwitches++;
+  await saveStats(stats);
+});
+
+// Track new tabs
+chrome.tabs.onCreated.addListener(async (tab) => {
+  const stats = await getTodayStats();
+  stats.newTabs++;
+  await saveStats(stats);
+});
+
+// Message handler for content script clicks
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'CLICK_TRACKED') {
+    // Update click count
+    getTodayStats().then(stats => {
+      stats.clicks++;
+      saveStats(stats);
+    });
+  } else if (message.type === 'GET_DISTRACTION_STATS') {
+    // Send current stats
+    getTodayStats().then(stats => {
+      sendResponse({ stats });
+    });
+    return true; // Keep channel open for async response
+  }
+});
 
 // Installation: Cache alle wichtigen Dateien
 self.addEventListener('install', (event) => {
