@@ -442,15 +442,17 @@ body.animated-gradient {
   gap: 8px;
   text-decoration: none;
   color: var(--text);
-  transition: transform 0.2s;
-  cursor: pointer;
+  transition: all 0.2s;
+  cursor: pointer !important;
   padding: 10px;
   border-radius: 12px;
+  position: relative;
+  user-select: none;
 }
 
 .shortcut-item:hover {
-  transform: translateY(-5px);
-  background: rgba(255, 255, 255, 0.05);
+  transform: scale(1.05);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 /* Fix 4: Shortcut item wrapper for settings button */
@@ -526,20 +528,26 @@ body.edit-mode .shortcut-settings-btn {
 }
 
 .shortcut-icon {
-  width: 48px;
-  height: 48px;
+  width: 70px;
+  height: 70px;
   border-radius: 12px;
-  object-fit: cover;
-  background: var(--bg-secondary);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  padding: 5px;
+  background: rgba(255, 255, 255, 0.05);
+  object-fit: contain;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .shortcut-name {
-  font-size: 12px;
+  font-size: 13px;
   text-align: center;
-  max-width: 80px;
+  max-width: 85px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: white;
 }
 
 .add-shortcut-btn {
@@ -2425,136 +2433,3 @@ body.edit-mode .widget:hover .widget-menu-btn {
 
 /* ============ Weather Location Style ============ */
 .weather-location {
-  color: white;
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 10px;
-  text-align: center;
-}
-
-/* ============ Shortcut Item Clickable Area Fix ============ */
-.shortcut-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 10px;
-  border-radius: 12px;
-  cursor: pointer !important;
-  transition: all 0.2s;
-  position: relative;
-  user-select: none;
-  text-decoration: none;
-  color: inherit;
-}
-
-.shortcut-item:hover {
-  background: rgba(255, 255, 255, 0.15);
-  transform: scale(1.05);
-}
-
-.shortcut-icon {
-  width: 70px;
-  height: 70px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  padding: 5px;
-  background: rgba(255, 255, 255, 0.05);
-  object-fit: contain;
-}
-
-.shortcut-name {
-  color: white;
-  font-size: 13px;
-  text-align: center;
-  max-width: 85px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* ============ Distraction Counter Widget ============ */
-.distraction-counter-widget {
-  text-align: center;
-}
-
-.distraction-count {
-  font-size: 72px;
-  font-weight: bold;
-  color: var(--primary);
-  margin: 20px 0;
-}
-
-.distraction-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.distraction-increment-btn,
-.distraction-reset-btn {
-  padding: 12px 20px;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.distraction-increment-btn {
-  background: var(--primary);
-  color: white;
-}
-
-.distraction-increment-btn:hover {
-  background: var(--secondary);
-  transform: scale(1.05);
-}
-
-.distraction-reset-btn {
-  background: rgba(255, 71, 87, 0.8);
-  color: white;
-}
-
-.distraction-reset-btn:hover {
-  background: #ff4757;
-  transform: scale(1.05);
-}
-
-/* ============ Decision Coin Widget ============ */
-.decision-coin-widget {
-  text-align: center;
-}
-
-.coin-result {
-  font-size: 48px;
-  font-weight: bold;
-  color: var(--primary);
-  margin: 30px 0;
-  min-height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.coin-flip-btn {
-  padding: 12px 30px;
-  background: var(--primary);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.coin-flip-btn:hover {
-  background: var(--secondary);
-  transform: scale(1.05);
-}
