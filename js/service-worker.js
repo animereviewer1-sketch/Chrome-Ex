@@ -98,8 +98,7 @@ function extractDomain(url) {
 
 // Fix 5: Midnight reset alarm
 chrome.alarms.create('dailyReset', {
-  when: getNextMidnight(),
-  periodInMinutes: 24 * 60
+  when: getNextMidnight()
 });
 
 chrome.alarms.onAlarm.addListener((alarm) => {
@@ -114,8 +113,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
     
     // Schedule next reset
     chrome.alarms.create('dailyReset', {
-      when: getNextMidnight(),
-      periodInMinutes: 24 * 60
+      when: getNextMidnight()
     });
   }
 });

@@ -34,6 +34,10 @@ const MIN_WIDGET_HEIGHT = 150;
 // Throttle-Konstante für Drag-Events (Fix 1)
 const DRAG_THROTTLE_MS = 16; // ~60fps
 
+// Fix 3: Weather constants
+const DEFAULT_CITY_COORDS = { lat: 48.1374, lon: 11.5755 }; // Munich
+const GEOCODING_USER_AGENT = 'Chrome-Ex/1.0';
+
 const DEFAULT_SETTINGS = {
   editMode: false,
   currentPage: '1',
@@ -1139,7 +1143,7 @@ async function getCityCoordinates(city) {
   try {
     const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1`;
     const response = await fetch(url, {
-      headers: { 'User-Agent': 'Chrome-Ex/1.0' }
+      headers: { 'User-Agent': GEOCODING_USER_AGENT }
     });
     const data = await response.json();
     
@@ -1153,7 +1157,7 @@ async function getCityCoordinates(city) {
   } catch (error) {
     console.error('Geocoding error:', error);
     // Default to Munich
-    return { lat: 48.1374, lon: 11.5755 };
+    return DEFAULT_CITY_COORDS;
   }
 }
 
