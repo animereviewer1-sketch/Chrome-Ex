@@ -436,21 +436,24 @@ body.animated-gradient {
 }
 
 .shortcut-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  text-decoration: none;
-  color: var(--text);
-  transition: transform 0.2s;
-  cursor: pointer;
-  padding: 10px;
-  border-radius: 12px;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 8px !important;
+  text-decoration: none !important;
+  color: var(--text) !important;
+  transition: transform 0.2s !important;
+  cursor: pointer !important;
+  padding: 10px !important;
+  border-radius: 12px !important;
+  position: relative !important;
+  background: transparent !important;
+  /* KRITISCH: NO pointer-events restriction */
 }
 
 .shortcut-item:hover {
-  transform: translateY(-5px);
-  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-5px) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
 }
 
 /* Fix 4: Shortcut item wrapper for settings button */
@@ -529,17 +532,40 @@ body.edit-mode .shortcut-settings-btn {
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  object-fit: cover;
-  background: var(--bg-secondary);
+  object-fit: contain;
+  background: transparent;
+  /* KRITISCH: NO pointer-events: none! */
+  pointer-events: auto;
 }
 
-.shortcut-name {
+.shortcut-name,
+.shortcut-label {
   font-size: 12px;
   text-align: center;
   max-width: 80px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  /* KRITISCH: NO pointer-events restriction */
+  pointer-events: auto;
+}
+
+/* Icon Container with optional border */
+.shortcut-icon-container {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  overflow: hidden;
+  pointer-events: auto;
+}
+
+.shortcut-icon-container.has-border {
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .add-shortcut-btn {
@@ -582,6 +608,41 @@ body.edit-mode .shortcut-settings-btn {
 .notes-widget h3 {
   margin-bottom: 12px;
   font-size: 16px;
+}
+
+/* FIX: Notes Search Box */
+.notes-search-box {
+  margin: 15px 0;
+}
+
+.notes-search-input {
+  width: 100%;
+  padding: 12px 15px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  font-size: 14px;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.notes-search-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.notes-search-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.no-notes {
+  text-align: center;
+  padding: 40px 20px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
 }
 
 /* Fix 1: Quick notes (always editable) */
@@ -2202,6 +2263,98 @@ body.edit-mode.grid-hidden::before {
 
 .calendar-title-clickable:hover {
   color: var(--primary);
+}
+
+/* ============ FIX: Calendar Icon Picker Styles ============ */
+.calendar-icon-picker {
+  position: relative;
+  display: inline-block;
+}
+
+.calendar-icon-display {
+  width: 60px;
+  height: 60px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.calendar-icon-display:hover {
+  border-color: var(--primary);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.calendar-icon-popup {
+  position: absolute;
+  top: 70px;
+  left: 0;
+  background: var(--modal-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 15px;
+  min-width: 300px;
+  max-width: 400px;
+  z-index: 1000;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.calendar-icon-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 15px;
+}
+
+.calendar-icon-category-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s ease;
+}
+
+.calendar-icon-category-btn:hover,
+.calendar-icon-category-btn.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+
+.calendar-icon-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.calendar-icon-item {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.03);
+  transition: all 0.2s ease;
+}
+
+.calendar-icon-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--primary);
+  transform: scale(1.1);
 }
 
 /* ============ Fix 10: Widget Menu Only in Edit Mode ============ */

@@ -43,6 +43,7 @@ const DEFAULT_SETTINGS = {
   customBackground: null,
   animatedBgType: 'particles',
   pageOpacity: 100, // Neue Feature 5: Seiten-Transparenz
+  shortcutShowBorder: false, // FIX: Shortcut icon border setting
   // Fix 6: Background customization settings
   bgSize: 'cover',
   bgPosition: 'center',
@@ -927,14 +928,17 @@ function createWidgetElement(widget) {
     case 'shortcuts':
       div.classList.add('shortcuts-widget');
       const shortcuts = widget.data?.shortcuts || [];
+      const showBorder = settings.shortcutShowBorder || false;
       content.innerHTML = `
-        <div class="shortcuts-grid">
+        <div class="shortcuts-grid" id="shortcuts-grid-${widget.id}">
           ${shortcuts.map((shortcut, index) => `
             <div class="shortcut-item-wrapper" data-index="${index}" data-widget-id="${widget.id}">
-              <a href="${shortcut.url}" class="shortcut-item" data-index="${index}" data-widget-id="${widget.id}">
-                <img src="${shortcut.customIcon || getIconFromUrl(shortcut.url)}" class="shortcut-icon" alt="${shortcut.name}">
-                <span class="shortcut-name">${shortcut.name}</span>
-              </a>
+              <div class="shortcut-item" data-index="${index}" data-url="${shortcut.url}" data-widget-id="${widget.id}">
+                <div class="shortcut-icon-container ${showBorder ? 'has-border' : ''}">
+                  <img src="${shortcut.customIcon || getIconFromUrl(shortcut.url)}" class="shortcut-icon" alt="${shortcut.name}">
+                </div>
+                <div class="shortcut-label">${shortcut.name}</div>
+              </div>
               <button class="shortcut-settings-btn" data-index="${index}" data-widget-id="${widget.id}" title="Einstellungen">⚙️</button>
             </div>
           `).join('')}
@@ -944,6 +948,11 @@ function createWidgetElement(widget) {
           </button>
         </div>
       `;
+      
+      // FIX: Attach shortcut click listeners AFTER HTML insertion
+      setTimeout(() => {
+        attachShortcutClickListeners(widget.id);
+      }, 0);
       break;
       
     case 'notes':
@@ -951,7 +960,16 @@ function createWidgetElement(widget) {
       const notes = widget.data?.notes || [];
       const quickNotes = widget.data?.quickNotes || [];
       content.innerHTML = `
-        <h3>📝 Schnelle Notizen</h3>
+        <h3>📝 Notizen</h3>
+        
+        <!-- FIX: Notes Search Field -->
+        <div class="notes-search-box">
+          <input type="text" 
+                 id="notes-search-${widget.id}" 
+                 class="notes-search-input"
+                 placeholder="🔍 Notizen durchsuchen...">
+        </div>
+        
         <div class="quick-note-container">
           <textarea class="quick-note-input" data-widget-id="${widget.id}" placeholder="Schnelle Notizen hier eingeben..."></textarea>
           <button class="add-quick-note-btn" data-widget-id="${widget.id}">+ Neue Notiz</button>
@@ -964,7 +982,7 @@ function createWidgetElement(widget) {
             </div>
           `).join('')}
         </div>
-        <div class="notes-list">
+        <div class="notes-list" id="notes-list-${widget.id}">
           ${notes.map((note, index) => `
             <div class="note-item" data-index="${index}" data-widget-id="${widget.id}">
               <div class="note-item-title">${note.title || 'Ohne Titel'}</div>
@@ -974,6 +992,45 @@ function createWidgetElement(widget) {
         </div>
         <button class="add-note-btn" data-widget-id="${widget.id}">+ Ausführliche Notiz</button>
       `;
+      
+      // FIX: Event Listener für Notizen-Suche
+      setTimeout(() => {
+        const searchInput = document.getElementById(`notes-search-${widget.id}`);
+        if (searchInput) {
+          searchInput.addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase().trim();
+            const notesList = document.getElementById(`notes-list-${widget.id}`);
+            
+            if (query === '') {
+              // Zeige alle
+              notesList.innerHTML = notes.map((note, index) => `
+                <div class="note-item" data-index="${index}" data-widget-id="${widget.id}">
+                  <div class="note-item-title">${note.title || 'Ohne Titel'}</div>
+                  <div class="note-item-preview">${note.content?.substring(0, 50) || '...'}</div>
+                </div>
+              `).join('');
+            } else {
+              // Filtere
+              const filtered = notes.filter(note => 
+                (note.title || '').toLowerCase().includes(query) ||
+                (note.content || '').toLowerCase().includes(query)
+              );
+              
+              notesList.innerHTML = filtered.length > 0 
+                ? filtered.map((note, index) => {
+                    const originalIndex = notes.indexOf(note);
+                    return `
+                      <div class="note-item" data-index="${originalIndex}" data-widget-id="${widget.id}">
+                        <div class="note-item-title">${note.title || 'Ohne Titel'}</div>
+                        <div class="note-item-preview">${note.content?.substring(0, 50) || '...'}</div>
+                      </div>
+                    `;
+                  }).join('')
+                : '<div class="no-notes">Keine Notizen gefunden</div>';
+            }
+          });
+        }
+      }, 0);
       break;
       
     case 'weather':
@@ -984,7 +1041,8 @@ function createWidgetElement(widget) {
         <div class="weather-desc">Laden...</div>
         <div class="weather-location">--</div>
       `;
-      loadWeather(div);
+      // FIX: Load weather with auto-refresh
+      loadWeatherWithRefresh(div, widget.id);
       break;
       
     case 'password':
@@ -1061,6 +1119,25 @@ function startClock() {
 }
 
 // ============ Weather Widget (Fix 11: Mit API-Key Unterstützung) ============
+// FIX: Weather refresh intervals per widget
+let weatherRefreshIntervals = {};
+
+function loadWeatherWithRefresh(widgetEl, widgetId) {
+  // Initial load
+  loadWeather(widgetEl);
+  
+  // Clear existing interval
+  if (weatherRefreshIntervals[widgetId]) {
+    clearInterval(weatherRefreshIntervals[widgetId]);
+  }
+  
+  // Auto-Refresh alle 5 Minuten
+  weatherRefreshIntervals[widgetId] = setInterval(() => {
+    console.log('Weather auto-refresh:', widgetId);
+    loadWeather(widgetEl);
+  }, 5 * 60 * 1000); // 5 Minuten
+}
+
 async function loadWeather(widgetEl) {
   const apiKey = settings.weatherApiKey;
   const city = settings.weatherCity || 'Munich';
@@ -1451,6 +1528,17 @@ function initBackgroundSettings() {
   
   if (weatherApiKey) weatherApiKey.value = settings.weatherApiKey || '';
   if (weatherCity) weatherCity.value = settings.weatherCity || 'Munich';
+  
+  // FIX: Shortcut border setting initialisieren
+  const shortcutShowBorder = document.getElementById('shortcut-show-border');
+  if (shortcutShowBorder) {
+    shortcutShowBorder.checked = settings.shortcutShowBorder || false;
+    shortcutShowBorder.addEventListener('change', () => {
+      settings.shortcutShowBorder = shortcutShowBorder.checked;
+      saveSettings();
+      renderWidgets(); // Re-render to apply border changes
+    });
+  }
 }
 
 // ============ Widget Management ============
@@ -1767,6 +1855,56 @@ function saveShortcutOrder(widgetId, container) {
   widget.data.shortcuts = newOrder;
   saveSettings();
   renderWidgets(); // Neu rendern um die Indizes zu aktualisieren
+}
+
+// FIX: Attach shortcut click listeners
+function attachShortcutClickListeners(widgetId) {
+  const grid = document.getElementById(`shortcuts-grid-${widgetId}`);
+  if (!grid) return;
+  
+  grid.querySelectorAll('.shortcut-item').forEach(item => {
+    item.addEventListener('click', function(event) {
+      // Stop nur wenn Settings-Button geklickt
+      if (event.target.closest('.shortcut-settings-btn')) {
+        return;
+      }
+      
+      // Im Edit-Modus: Bearbeiten öffnen
+      if (settings.editMode) {
+        event.preventDefault();
+        const widgetId = this.dataset.widgetId;
+        const index = parseInt(this.dataset.index);
+        openShortcutModal(widgetId, index);
+        return;
+      }
+      
+      const url = this.dataset.url;
+      console.log('Shortcut clicked:', url);
+      
+      // Spezielle URLs (#7)
+      if (url && url.includes('tabs.html')) {
+        event.preventDefault();
+        openTabsModal();
+        return;
+      }
+      
+      if (url && url.includes('bookmarks.html')) {
+        event.preventDefault();
+        openBookmarksModal();
+        return;
+      }
+      
+      // Normale URL - navigieren
+      if (url) {
+        window.location.href = url;
+      }
+    });
+    
+    // Debug: Log click area
+    item.addEventListener('mouseenter', function() {
+      console.log('Hover over shortcut:', this.dataset.url);
+    });
+  });
 }
 
 // ============ Feature #3 & #7: Shortcuts ============
@@ -2386,6 +2524,8 @@ function openCalendarEventModal(widgetId, date, eventId = null) {
   const colorInput = document.getElementById('calendar-event-color');
   const deleteBtn = document.getElementById('delete-calendar-event-btn');
   const modalTitle = document.getElementById('calendar-event-modal-title');
+  const iconDisplay = document.getElementById('calendar-icon-display');
+  const iconInput = document.getElementById('calendar-event-icon');
   
   // Reset form
   if (titleInput) titleInput.value = '';
@@ -2394,6 +2534,8 @@ function openCalendarEventModal(widgetId, date, eventId = null) {
   if (descInput) descInput.value = '';
   if (repeatSelect) repeatSelect.value = 'none';
   if (colorInput) colorInput.value = '#667eea';
+  if (iconDisplay) iconDisplay.textContent = '📅';
+  if (iconInput) iconInput.value = '📅';
   
   if (eventId) {
     // Edit existing event
@@ -2411,6 +2553,8 @@ function openCalendarEventModal(widgetId, date, eventId = null) {
       if (descInput) descInput.value = event.description || '';
       if (repeatSelect) repeatSelect.value = event.repeat || 'none';
       if (colorInput) colorInput.value = event.color || '#667eea';
+      if (iconDisplay) iconDisplay.textContent = event.icon || '📅';
+      if (iconInput) iconInput.value = event.icon || '📅';
     }
   } else {
     // New event
@@ -2418,7 +2562,98 @@ function openCalendarEventModal(widgetId, date, eventId = null) {
     deleteBtn?.classList.add('hidden');
   }
   
+  // FIX: KRITISCH - Initialisiere Icon Picker IMMER
+  setTimeout(() => {
+    initializeCalendarIconPicker();
+  }, 50);
+  
   openModal('calendar-event-modal');
+}
+
+// FIX: Initialize Calendar Icon Picker
+function initializeCalendarIconPicker() {
+  const pickerBtn = document.getElementById('calendar-icon-picker-btn');
+  const popup = document.getElementById('calendar-icon-popup');
+  const grid = document.getElementById('calendar-icon-grid');
+  const display = document.getElementById('calendar-icon-display');
+  const hiddenInput = document.getElementById('calendar-event-icon');
+  
+  if (!pickerBtn || !popup) {
+    console.error('Icon picker elements not found!');
+    return;
+  }
+  
+  // Remove old listeners
+  const newBtn = pickerBtn.cloneNode(true);
+  pickerBtn.parentNode.replaceChild(newBtn, pickerBtn);
+  
+  // Toggle popup
+  newBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    popup.classList.toggle('hidden');
+  });
+  
+  // Category buttons
+  document.querySelectorAll('.calendar-icon-category-btn').forEach(catBtn => {
+    const newCatBtn = catBtn.cloneNode(true);
+    catBtn.parentNode.replaceChild(newCatBtn, catBtn);
+    
+    newCatBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      
+      // Active state
+      document.querySelectorAll('.calendar-icon-category-btn').forEach(b => 
+        b.classList.remove('active')
+      );
+      newCatBtn.classList.add('active');
+      
+      // Render icons
+      const category = newCatBtn.dataset.category;
+      renderCalendarIconGrid(category, grid, display, hiddenInput, popup);
+    });
+  });
+  
+  // Initial render
+  renderCalendarIconGrid('events', grid, display, hiddenInput, popup);
+  
+  // Close on outside click
+  document.addEventListener('click', (e) => {
+    if (!newBtn.contains(e.target) && !popup.contains(e.target)) {
+      popup.classList.add('hidden');
+    }
+  });
+}
+
+function renderCalendarIconGrid(category, grid, display, hiddenInput, popup) {
+  const iconLibrary = {
+    events: ['🎉', '🎂', '🎁', '🎊', '🎈', '🎓', '💒', '🎭', '🎪', '🎨', '🎵', '🎬', '📅', '🏆', '🥇'],
+    travel: ['✈️', '🚗', '🚂', '🚢', '🏖️', '🗺️', '🧳', '🏔️', '🌍', '🗼', '🏰', '🎢', '🎡', '🚁', '⛵'],
+    work: ['💼', '📝', '💻', '📊', '📈', '📞', '✉️', '📧', '🏢', '🗂️', '📋', '✅', '📌', '🎯', '⏰'],
+    food: ['🍕', '🍔', '🍣', '🍰', '☕', '🍷', '🍺', '🥘', '🍜', '🍪', '🍩', '🥗', '🍎', '🥑', '🌮'],
+    sports: ['⚽', '🏀', '🎾', '🏊', '🚴', '🏋️', '⛷️', '🏆', '🥇', '🎮', '🎯', '🏓', '🏐', '⛳', '🥊'],
+    other: ['📌', '⭐', '❤️', '💚', '💙', '🔔', '⏰', '🌟', '💡', '🔥', '⚡', '🌈', '🎯', '✨', '💫']
+  };
+  
+  const icons = iconLibrary[category] || iconLibrary.events;
+  
+  grid.innerHTML = icons.map(icon => 
+    `<button type="button" class="calendar-icon-item" data-icon="${icon}">${icon}</button>`
+  ).join('');
+  
+  // Click handlers
+  grid.querySelectorAll('.calendar-icon-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+      const icon = item.dataset.icon;
+      
+      display.textContent = icon;
+      hiddenInput.value = icon;
+      popup.classList.add('hidden');
+      
+      console.log('Icon selected:', icon);
+    });
+  });
 }
 
 function saveCalendarEvent() {
@@ -2429,6 +2664,7 @@ function saveCalendarEvent() {
   const repeatValue = document.getElementById('calendar-event-repeat')?.value;
   const repeat = repeatValue !== 'none' ? repeatValue : null;
   const color = document.getElementById('calendar-event-color')?.value || '#667eea';
+  const icon = document.getElementById('calendar-event-icon')?.value || '📅'; // FIX: Get icon
   
   if (!title || !date) return;
   
@@ -2446,7 +2682,8 @@ function saveCalendarEvent() {
       time,
       description,
       repeat,
-      color
+      color,
+      icon // FIX: Include icon
     };
     
     if (currentCalendarEventId) {

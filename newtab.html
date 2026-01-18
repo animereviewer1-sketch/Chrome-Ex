@@ -375,6 +375,18 @@
         </div>
       </div>
       
+      <!-- FIX: Schnellzugriff Einstellungen -->
+      <div class="settings-section">
+        <h3>🔗 Schnellzugriff Einstellungen</h3>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="shortcut-show-border"> 
+            Icon-Umrandung anzeigen
+          </label>
+          <p class="hint">Zeigt eine Umrandung um Shortcut-Icons an</p>
+        </div>
+      </div>
+      
       <!-- Fix 11: Wetter-Einstellungen -->
       <div class="settings-section">
         <h3>Wetter-Einstellungen</h3>
@@ -474,6 +486,29 @@
             <option value="monthly">Monatlich</option>
             <option value="yearly">Jährlich</option>
           </select>
+        </div>
+        <!-- FIX: Calendar Event Icon Picker -->
+        <div class="form-group">
+          <label>Event-Icon</label>
+          <div class="calendar-icon-picker">
+            <button type="button" id="calendar-icon-picker-btn" class="calendar-icon-display">
+              <span id="calendar-icon-display">📅</span>
+            </button>
+            <input type="hidden" id="calendar-event-icon" value="📅">
+            <div id="calendar-icon-popup" class="calendar-icon-popup hidden">
+              <div class="calendar-icon-categories">
+                <button type="button" class="calendar-icon-category-btn active" data-category="events">🎉 Events</button>
+                <button type="button" class="calendar-icon-category-btn" data-category="travel">✈️ Reise</button>
+                <button type="button" class="calendar-icon-category-btn" data-category="work">💼 Arbeit</button>
+                <button type="button" class="calendar-icon-category-btn" data-category="food">🍕 Essen</button>
+                <button type="button" class="calendar-icon-category-btn" data-category="sports">⚽ Sport</button>
+                <button type="button" class="calendar-icon-category-btn" data-category="other">📌 Andere</button>
+              </div>
+              <div id="calendar-icon-grid" class="calendar-icon-grid">
+                <!-- Icons werden dynamisch eingefügt -->
+              </div>
+            </div>
+          </div>
         </div>
         <div class="form-group">
           <label for="calendar-event-color">Farbe</label>
