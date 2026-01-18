@@ -3618,7 +3618,6 @@ function resetDistractionStats(widgetId) {
   updateDistractionDisplay(widgetId);
 }
 
-// ============ Fix 6: Calendar Event with Countdown Settings ============
 // ============ Fix 8: Execute Pending Scripts on Page Load ============
 document.addEventListener('DOMContentLoaded', async () => {
   // Check for pending script to execute
@@ -3635,19 +3634,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Execute the script
             eval(script);
             console.log('Custom script executed successfully');
-          } catch (error) {
-            console.error('Error executing custom script:', error);
-          }
-        }
-      }
-      
-      // Clear pending script
-      chrome.storage.local.remove('pendingScript');
-    }
-  } catch (error) {
-    console.error('Error checking pending scripts:', error);
-  }
-});
           } catch (error) {
             console.error('Error executing custom script:', error);
           }
