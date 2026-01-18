@@ -80,11 +80,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     getTodayStats().then(stats => {
       stats.clicks++;
       saveStats(stats);
+    }).catch(error => {
+      console.error('Error tracking click:', error);
     });
   } else if (message.type === 'GET_DISTRACTION_STATS') {
     // Send current stats
     getTodayStats().then(stats => {
       sendResponse({ stats });
+    }).catch(error => {
+      console.error('Error getting stats:', error);
+      sendResponse({ stats: { date: getTodayDate(), tabSwitches: 0, newTabs: 0, clicks: 0 } });
     });
     return true; // Keep channel open for async response
   }

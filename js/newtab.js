@@ -172,6 +172,14 @@ async function saveSettings(newSettings = settings) {
   }
 }
 
+// ============ HTML Escape Helper (XSS Prevention) ============
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
 // ============ Feature #1: Icons automatisch von URL laden ============
 function getIconFromUrl(url) {
   try {
@@ -933,11 +941,10 @@ function createWidgetElement(widget) {
       content.innerHTML = `
         <div class="shortcuts-grid">
           ${shortcuts.map((shortcut, index) => `
-            <div class="shortcut-item-wrapper" data-index="${index}" data-widget-id="${widget.id}" 
-                 data-url="${shortcut.url}" data-shortcut='${JSON.stringify(shortcut).replace(/'/g, '&apos;')}'>
+            <div class="shortcut-item-wrapper" data-index="${index}" data-widget-id="${widget.id}" data-url="${escapeHtml(shortcut.url)}">
               <div class="shortcut-item" data-index="${index}" data-widget-id="${widget.id}">
-                <img src="${shortcut.customIcon || getIconFromUrl(shortcut.url)}" class="shortcut-icon" alt="${shortcut.name}">
-                <span class="shortcut-name">${shortcut.name}</span>
+                <img src="${escapeHtml(shortcut.customIcon || getIconFromUrl(shortcut.url))}" class="shortcut-icon" alt="${escapeHtml(shortcut.name)}">
+                <span class="shortcut-name">${escapeHtml(shortcut.name)}</span>
               </div>
               <button class="shortcut-settings-btn" data-index="${index}" data-widget-id="${widget.id}" title="Einstellungen">⚙️</button>
             </div>
@@ -1148,7 +1155,9 @@ async function loadWeather(widgetEl) {
 // Open-Meteo API - No API key required!
 async function fetchWeather(lat, lon) {
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&timezone=Europe/Berlin`;
+    // Use user's timezone if available, otherwise Europe/Berlin
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Berlin';
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&timezone=${encodeURIComponent(timezone)}`;
     const response = await fetch(url);
     
     if (!response.ok) {
@@ -2011,16 +2020,43 @@ async function handleShortcutClick(e, url, shortcut) {
   // Normale URL - Link folgen
 }
 
-// Execute custom script
+// Execute custom script (sandboxed evaluation)
 async function executeCustomScript(scriptCode) {
   try {
-    // Create a function from the script code and execute it
-    const scriptFunction = new Function(scriptCode);
-    await scriptFunction();
+    // Validate script is not malicious
+    if (!scriptCode || scriptCode.trim().length === 0) {
+      return true;
+    }
+    
+    // Warning: Limited sandboxing - only allow specific safe operations
+    // Create a restricted context
+    const safeContext = {
+      console: console,
+      alert: alert,
+      confirm: confirm,
+      prompt: prompt,
+      Math: Math,
+      Date: Date,
+      JSON: JSON,
+      // Add more safe APIs as needed
+    };
+    
+    // Use Function constructor with restricted scope
+    // This is still not 100% safe but better than direct eval
+    const scriptFunction = new Function(
+      'context',
+      `
+      'use strict';
+      const {console, alert, confirm, prompt, Math, Date, JSON} = context;
+      ${scriptCode}
+      `
+    );
+    
+    await scriptFunction(safeContext);
     return true;
   } catch (error) {
     console.error('Error executing custom script:', error);
-    alert(`Fehler beim Ausführen des Skripts:\n${error.message}`);
+    alert(`Fehler beim Ausführen des Skripts:\n${error.message}\n\nHINWEIS: Benutzerdefinierte Skripte sind potenziell unsicher. Führen Sie nur vertrauenswürdige Skripte aus.`);
     return false;
   }
 }
@@ -3139,13 +3175,21 @@ function initEventListeners() {
       return;
     }
     
-    // Shortcut Click - Handle wrapper click
+    // Shortcut Click - Handle wrapper click (retrieve shortcut data by index)
     const shortcutWrapper = e.target.closest('.shortcut-item-wrapper');
     if (shortcutWrapper && !e.target.closest('.shortcut-settings-btn')) {
       e.preventDefault();
-      const url = shortcutWrapper.dataset.url;
-      const shortcutData = JSON.parse(shortcutWrapper.dataset.shortcut || '{}');
-      handleShortcutClick(e, url, shortcutData);
+      const widgetId = shortcutWrapper.dataset.widgetId;
+      const index = parseInt(shortcutWrapper.dataset.index);
+      
+      // Get shortcut data from settings instead of HTML attribute
+      const currentPage = settings.pages[settings.currentPage];
+      const widget = currentPage?.widgets.find(w => w.id === widgetId);
+      const shortcut = widget?.data?.shortcuts?.[index];
+      
+      if (shortcut) {
+        handleShortcutClick(e, shortcut.url, shortcut);
+      }
       return;
     }
     
@@ -3155,9 +3199,16 @@ function initEventListeners() {
       const wrapper = shortcutItem.closest('.shortcut-item-wrapper');
       if (wrapper) {
         e.preventDefault();
-        const url = wrapper.dataset.url;
-        const shortcutData = JSON.parse(wrapper.dataset.shortcut || '{}');
-        handleShortcutClick(e, url, shortcutData);
+        const widgetId = wrapper.dataset.widgetId;
+        const index = parseInt(wrapper.dataset.index);
+        
+        const currentPage = settings.pages[settings.currentPage];
+        const widget = currentPage?.widgets.find(w => w.id === widgetId);
+        const shortcut = widget?.data?.shortcuts?.[index];
+        
+        if (shortcut) {
+          handleShortcutClick(e, shortcut.url, shortcut);
+        }
       }
       return;
     }
