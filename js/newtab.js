@@ -964,7 +964,15 @@ function createWidgetElement(widget) {
             </div>
           `).join('')}
         </div>
-        <div class="notes-list">
+        <button class="add-note-btn" data-widget-id="${widget.id}">+ Ausführliche Notiz</button>
+        <div class="notes-search">
+          <input type="text" 
+                 class="notes-search-input" 
+                 placeholder="🔍 Suche in Notizen..." 
+                 id="notes-search-${widget.id}"
+                 data-widget-id="${widget.id}">
+        </div>
+        <div class="notes-list" id="notes-list-${widget.id}">
           ${notes.map((note, index) => `
             <div class="note-item" data-index="${index}" data-widget-id="${widget.id}">
               <div class="note-item-title">${note.title || 'Ohne Titel'}</div>
@@ -972,8 +980,17 @@ function createWidgetElement(widget) {
             </div>
           `).join('')}
         </div>
-        <button class="add-note-btn" data-widget-id="${widget.id}">+ Ausführliche Notiz</button>
       `;
+      
+      // Add search event listener after rendering
+      setTimeout(() => {
+        const searchInput = document.getElementById(`notes-search-${widget.id}`);
+        if (searchInput) {
+          searchInput.addEventListener('input', (e) => {
+            filterNotes(widget.id, e.target.value);
+          });
+        }
+      }, 0);
       break;
       
     case 'weather':
@@ -2106,8 +2123,59 @@ function deleteQuickNote(widgetId, index) {
   }
 }
 
+// Notes search/filter function
+function filterNotes(widgetId, query) {
+  const currentPage = settings.pages[settings.currentPage];
+  const widget = currentPage?.widgets.find(w => w.id === widgetId);
+  
+  if (!widget || !widget.data) return;
+  
+  const notes = widget.data.notes || [];
+  const notesList = document.getElementById(`notes-list-${widgetId}`);
+  
+  if (!notesList) return;
+  
+  // Filter notes by title and content
+  const lowerQuery = query.toLowerCase();
+  const filteredNotes = query 
+    ? notes.filter(note => 
+        (note.title && note.title.toLowerCase().includes(lowerQuery)) ||
+        (note.content && note.content.toLowerCase().includes(lowerQuery))
+      )
+    : notes;
+  
+  // Re-render the filtered notes list
+  notesList.innerHTML = filteredNotes.map((note, index) => {
+    // Find original index
+    const originalIndex = notes.indexOf(note);
+    return `
+      <div class="note-item" data-index="${originalIndex}" data-widget-id="${widgetId}">
+        <div class="note-item-title">${note.title || 'Ohne Titel'}</div>
+        <div class="note-item-preview">${note.content?.substring(0, 50) || '...'}</div>
+      </div>
+    `;
+  }).join('');
+}
+
 // ============ Fix 7: Calendar Widget ============
 let calendarStates = {}; // Track displayed month/year per widget
+
+// Countdown calculation function
+function getCountdown(eventDate) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const event = new Date(eventDate);
+  event.setHours(0, 0, 0, 0);
+  
+  const diffTime = event - today;
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 0) return 'Heute!';
+  if (diffDays === 1) return 'Morgen';
+  if (diffDays < 0) return `Vor ${Math.abs(diffDays)} Tagen`;
+  return `in ${diffDays} Tagen`;
+}
 
 function initCalendarWidget(widgetId, data) {
   const now = new Date();
@@ -2384,6 +2452,7 @@ function openCalendarEventModal(widgetId, date, eventId = null) {
   const descInput = document.getElementById('calendar-event-desc');
   const repeatSelect = document.getElementById('calendar-event-repeat');
   const colorInput = document.getElementById('calendar-event-color');
+  const iconInput = document.getElementById('calendar-event-icon');
   const deleteBtn = document.getElementById('delete-calendar-event-btn');
   const modalTitle = document.getElementById('calendar-event-modal-title');
   
@@ -2394,6 +2463,7 @@ function openCalendarEventModal(widgetId, date, eventId = null) {
   if (descInput) descInput.value = '';
   if (repeatSelect) repeatSelect.value = 'none';
   if (colorInput) colorInput.value = '#667eea';
+  if (iconInput) iconInput.value = '';
   
   if (eventId) {
     // Edit existing event
@@ -2411,6 +2481,7 @@ function openCalendarEventModal(widgetId, date, eventId = null) {
       if (descInput) descInput.value = event.description || '';
       if (repeatSelect) repeatSelect.value = event.repeat || 'none';
       if (colorInput) colorInput.value = event.color || '#667eea';
+      if (iconInput) iconInput.value = event.icon || '';
     }
   } else {
     // New event
@@ -2429,6 +2500,7 @@ function saveCalendarEvent() {
   const repeatValue = document.getElementById('calendar-event-repeat')?.value;
   const repeat = repeatValue !== 'none' ? repeatValue : null;
   const color = document.getElementById('calendar-event-color')?.value || '#667eea';
+  const icon = document.getElementById('calendar-event-icon')?.value.trim() || '';
   
   if (!title || !date) return;
   
@@ -2446,7 +2518,8 @@ function saveCalendarEvent() {
       time,
       description,
       repeat,
-      color
+      color,
+      icon
     };
     
     if (currentCalendarEventId) {
@@ -2523,17 +2596,23 @@ function showDayEvents(widgetId, date) {
   });
   if (dateDisplay) dateDisplay.textContent = displayDate;
   
-  list.innerHTML = dayEvents.map(event => `
-    <div class="calendar-event-item" data-event-id="${event.id}">
-      <div class="event-color-indicator" style="background: ${event.color || '#667eea'}"></div>
-      <div class="event-details">
-        <div class="event-title">${event.title}${event.repeat === 'yearly' ? ' 🔄' : ''}</div>
-        ${event.time ? `<div class="event-time">🕐 ${event.time}</div>` : ''}
-        ${event.description ? `<div class="event-description">${event.description}</div>` : ''}
+  list.innerHTML = dayEvents.map(event => {
+    const countdown = getCountdown(event.date);
+    const icon = event.icon || '📅';
+    
+    return `
+      <div class="calendar-event-item" data-event-id="${event.id}" style="border-left: 3px solid ${event.color || '#667eea'}">
+        <span class="event-icon">${icon}</span>
+        <div class="event-info">
+          <div class="event-title">${event.title}${event.repeat === 'yearly' ? ' 🔄' : ''}</div>
+          <div class="event-countdown">${countdown}</div>
+          ${event.time ? `<div class="event-time">🕐 ${event.time}</div>` : ''}
+          ${event.description ? `<div class="event-description">${event.description}</div>` : ''}
+        </div>
+        <button class="event-edit-btn" data-event-id="${event.id}" data-widget-id="${widgetId}">✏️</button>
       </div>
-      <button class="event-edit-btn" data-event-id="${event.id}" data-widget-id="${widgetId}">✏️</button>
-    </div>
-  `).join('');
+    `;
+  }).join('');
   
   openModal('calendar-day-events-modal');
 }
