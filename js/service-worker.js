@@ -101,3 +101,81 @@ self.addEventListener('message', (event) => {
     });
   }
 });
+
+// ============ Fix 7: Distraction Counter - Tab Tracking ============
+let dailyStats = {
+  date: new Date().toDateString(),
+  tabSwitches: 0,
+  newTabs: 0
+};
+
+// Load stats from storage on startup
+chrome.storage.local.get('dailyStats').then(result => {
+  if (result.dailyStats) {
+    const today = new Date().toDateString();
+    // Reset if new day
+    if (result.dailyStats.date === today) {
+      dailyStats = result.dailyStats;
+    } else {
+      dailyStats = {
+        date: today,
+        tabSwitches: 0,
+        newTabs: 0
+      };
+      saveDailyStats();
+    }
+  }
+}).catch(err => console.error('Error loading daily stats:', err));
+
+// Count tab switches
+chrome.tabs.onActivated.addListener(() => {
+  dailyStats.tabSwitches++;
+  saveDailyStats();
+});
+
+// Count new tabs
+chrome.tabs.onCreated.addListener(() => {
+  dailyStats.newTabs++;
+  saveDailyStats();
+});
+
+function saveDailyStats() {
+  chrome.storage.local.set({ dailyStats }).catch(err => {
+    console.error('Error saving daily stats:', err);
+  });
+  
+  // Broadcast to all tabs
+  chrome.tabs.query({}).then(tabs => {
+    tabs.forEach(tab => {
+      chrome.tabs.sendMessage(tab.id, {
+        type: 'statsUpdated',
+        stats: dailyStats
+      }).catch(() => {}); // Ignore errors (tab may not be ready)
+    });
+  }).catch(err => console.error('Error broadcasting stats:', err));
+}
+
+// Reset stats at midnight
+chrome.alarms.create('resetDailyStats', {
+  when: getNextMidnight(),
+  periodInMinutes: 24 * 60
+});
+
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === 'resetDailyStats') {
+    dailyStats = {
+      date: new Date().toDateString(),
+      tabSwitches: 0,
+      newTabs: 0
+    };
+    saveDailyStats();
+  }
+});
+
+function getNextMidnight() {
+  const now = new Date();
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(0, 0, 0, 0);
+  return tomorrow.getTime();
+}
