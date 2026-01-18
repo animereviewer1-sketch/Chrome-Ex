@@ -686,6 +686,39 @@ body.edit-mode .shortcut-settings-btn {
   overflow-y: auto;
 }
 
+/* Fix 4: Notes search field */
+.notes-search-container {
+  margin: 15px 0;
+}
+
+.notes-search-input {
+  width: 100%;
+  padding: 10px 15px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.notes-search-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.notes-search-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.no-notes {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
 .note-item {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border);

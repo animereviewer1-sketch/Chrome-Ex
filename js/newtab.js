@@ -967,7 +967,14 @@ function createWidgetElement(widget) {
             </div>
           `).join('')}
         </div>
-        <div class="notes-list">
+        <!-- Fix 4: Search field for notes -->
+        <div class="notes-search-container">
+          <input type="text" 
+                 class="notes-search-input" 
+                 data-widget-id="${widget.id}"
+                 placeholder="🔍 Notizen durchsuchen...">
+        </div>
+        <div class="notes-list" data-widget-id="${widget.id}" data-all-notes='${JSON.stringify(notes).replace(/'/g, "&apos;")}'>
           ${notes.map((note, index) => `
             <div class="note-item" data-index="${index}" data-widget-id="${widget.id}">
               <div class="note-item-title">${note.title || 'Ohne Titel'}</div>
@@ -3049,6 +3056,33 @@ function initEventListeners() {
     if (e.target.id?.startsWith('pw-length-')) {
       const widgetId = e.target.id.replace('pw-length-', '');
       document.getElementById(`pw-length-val-${widgetId}`).textContent = e.target.value;
+    }
+    
+    // Fix 4: Notes search
+    if (e.target.classList.contains('notes-search-input')) {
+      const widgetId = e.target.dataset.widgetId;
+      const query = e.target.value.toLowerCase();
+      const notesList = document.querySelector(`.notes-list[data-widget-id="${widgetId}"]`);
+      
+      if (notesList) {
+        const allNotesData = JSON.parse(notesList.dataset.allNotes || '[]');
+        
+        // Filter notes by title and content
+        const filtered = allNotesData.filter(note => 
+          (note.title || '').toLowerCase().includes(query) ||
+          (note.content || '').toLowerCase().includes(query)
+        );
+        
+        // Re-render notes list
+        notesList.innerHTML = filtered.length === 0 && query ? 
+          '<p class="no-notes">Keine passenden Notizen gefunden</p>' :
+          filtered.map((note, index) => `
+            <div class="note-item" data-index="${allNotesData.indexOf(note)}" data-widget-id="${widgetId}">
+              <div class="note-item-title">${note.title || 'Ohne Titel'}</div>
+              <div class="note-item-preview">${(note.content || '').substring(0, 50)}...</div>
+            </div>
+          `).join('');
+      }
     }
   });
   
