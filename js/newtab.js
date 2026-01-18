@@ -1187,10 +1187,6 @@ function getWeatherInfo(code) {
   return weatherCodes[code] || { icon: '🌤️', text: 'Unbekannt' };
 }
 
-function getWeatherIcon(code) {
-  return getWeatherInfo(code).icon;
-}
-
 // Alle Wetter-Widgets aktualisieren
 function updateAllWeatherWidgets() {
   document.querySelectorAll('.weather-widget').forEach(widget => {
@@ -2547,12 +2543,16 @@ function initEmojiPicker() {
   // Initial render
   renderEmojiGrid('events');
   
-  // Close on outside click
-  document.addEventListener('click', (e) => {
-    if (!btn.contains(e.target) && !popup.contains(e.target)) {
-      popup.classList.add('hidden');
-    }
-  });
+  // Close on outside click (using named function to prevent duplicates)
+  if (!btn.dataset.listenerAttached) {
+    const closeOnOutsideClick = (e) => {
+      if (!btn.contains(e.target) && !popup.contains(e.target)) {
+        popup.classList.add('hidden');
+      }
+    };
+    document.addEventListener('click', closeOnOutsideClick);
+    btn.dataset.listenerAttached = 'true';
+  }
 }
 
 // Calendar Event Modal
@@ -2760,7 +2760,8 @@ function incrementDistractionCount(widgetId) {
     saveSettings();
     
     // Update display
-    const countEl = document.querySelector(`.distraction-counter-widget [data-widget-id="${widgetId}"]`)?.closest('.distraction-counter-widget')?.querySelector('.distraction-count');
+    const widgetEl = document.querySelector(`[data-widget-id="${widgetId}"]`)?.closest('.distraction-counter-widget');
+    const countEl = widgetEl?.querySelector('.distraction-count');
     if (countEl) {
       countEl.textContent = widget.data.count;
     }
@@ -2777,7 +2778,8 @@ function resetDistractionCount(widgetId) {
     saveSettings();
     
     // Update display
-    const countEl = document.querySelector(`.distraction-counter-widget [data-widget-id="${widgetId}"]`)?.closest('.distraction-counter-widget')?.querySelector('.distraction-count');
+    const widgetEl = document.querySelector(`[data-widget-id="${widgetId}"]`)?.closest('.distraction-counter-widget');
+    const countEl = widgetEl?.querySelector('.distraction-count');
     if (countEl) {
       countEl.textContent = '0';
     }
@@ -2796,7 +2798,8 @@ function flipCoin(widgetId) {
     saveSettings();
     
     // Animate and update display
-    const resultEl = document.querySelector(`.decision-coin-widget [data-widget-id="${widgetId}"]`)?.closest('.decision-coin-widget')?.querySelector('.coin-result');
+    const widgetEl = document.querySelector(`[data-widget-id="${widgetId}"]`)?.closest('.decision-coin-widget');
+    const resultEl = widgetEl?.querySelector('.coin-result');
     if (resultEl) {
       resultEl.textContent = '🪙 ...';
       setTimeout(() => {
