@@ -78,6 +78,66 @@
           </div>
           <input type="hidden" id="shortcut-custom-icon" value="">
         </div>
+        <!-- Fix 4: Icon Editor -->
+        <div id="icon-editor" class="icon-editor hidden">
+          <h4>🎨 Icon anpassen</h4>
+          
+          <div class="icon-editor-preview">
+            <div class="preview-container" id="preview-container">
+              <img id="icon-edit-preview" src="" draggable="false">
+            </div>
+          </div>
+          
+          <div class="editor-controls">
+            <div class="control-row">
+              <label>Zoom: <span id="zoom-val">100%</span></label>
+              <input type="range" id="zoom-slider" min="100" max="300" value="100" step="5">
+              <span class="hint">Vergrößert das Bild im Icon-Bereich</span>
+            </div>
+            
+            <div class="control-row">
+              <label>Position X: <span id="pos-x-val">0px</span></label>
+              <input type="range" id="pos-x-slider" min="-100" max="100" value="0">
+            </div>
+            
+            <div class="control-row">
+              <label>Position Y: <span id="pos-y-val">0px</span></label>
+              <input type="range" id="pos-y-slider" min="-100" max="100" value="0">
+            </div>
+            
+            <button type="button" id="reset-transform">↺ Zurücksetzen</button>
+          </div>
+        </div>
+        
+        <!-- Fix 8: Custom Script Section -->
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="shortcut-has-script"> 
+            Custom JavaScript ausführen
+          </label>
+        </div>
+
+        <div id="custom-script-section" class="custom-script-section hidden">
+          <label>JavaScript Code:</label>
+          <textarea id="shortcut-custom-script" 
+                    rows="6" 
+                    placeholder="z.B. für Addon-Loader:
+(function(){
+  if(window.FUSAM===undefined){
+    let n=document.createElement('script');
+    n.type='module';
+    n.setAttribute('src','https://sidiousious.gitlab.io/bc-addon-loader/fusam.js?_='+Date.now());
+    document.head.appendChild(n);
+  }
+})();"
+                    style="width: 100%; font-family: monospace; font-size: 12px;"></textarea>
+          
+          <p class="hint">
+            ⚠️ <strong>VORSICHT:</strong> Nur vertrauenswürdigen Code einfügen!<br>
+            Der Code wird auf der Zielseite nach dem Laden ausgeführt.
+          </p>
+        </div>
+        
         <div class="form-group special-shortcuts">
           <label>Oder spezielle Shortcuts:</label>
           <div class="special-shortcuts-list">
@@ -86,6 +146,7 @@
           </div>
         </div>
         <input type="hidden" id="shortcut-index" value="-1">
+        <input type="hidden" id="shortcut-icon-transform" value="">
         <div class="form-actions">
           <button type="button" id="delete-shortcut-btn" class="btn-danger hidden">Löschen</button>
           <button type="submit" class="btn-primary">Speichern</button>
@@ -478,6 +539,18 @@
         <div class="form-group">
           <label for="calendar-event-color">Farbe</label>
           <input type="color" id="calendar-event-color" value="#667eea">
+        </div>
+        <!-- Fix 6: Countdown Settings -->
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="event-show-countdown" checked> 
+            Im Countdown anzeigen
+          </label>
+        </div>
+        <div class="form-group" id="countdown-days-group">
+          <label for="event-countdown-days">Tage im Voraus anzeigen:</label>
+          <input type="number" id="event-countdown-days" min="1" max="365" value="30">
+          <p class="hint">Wie viele Tage vorher soll das Event im Countdown erscheinen?</p>
         </div>
         <div class="form-actions">
           <button type="button" id="delete-calendar-event-btn" class="btn-danger hidden">Löschen</button>

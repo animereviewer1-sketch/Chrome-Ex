@@ -104,7 +104,9 @@ const WIDGET_TYPES = [
   { id: 'notes', name: 'Notizen', icon: '📝' },
   { id: 'weather', name: 'Wetter', icon: '☀️' },
   { id: 'password', name: 'Passwort Generator', icon: '🔐' },
-  { id: 'calendar', name: 'Kalender', icon: '📅' } // Fix 7: Calendar Widget
+  { id: 'calendar', name: 'Kalender', icon: '📅' },
+  { id: 'decision-coin', name: 'Entscheidungs-Münze', icon: '🪙' },
+  { id: 'distraction', name: 'Ablenkungszähler', icon: '📊' }
 ];
 
 const QUICK_ACTIONS = [
@@ -929,15 +931,27 @@ function createWidgetElement(widget) {
       const shortcuts = widget.data?.shortcuts || [];
       content.innerHTML = `
         <div class="shortcuts-grid">
-          ${shortcuts.map((shortcut, index) => `
-            <div class="shortcut-item-wrapper" data-index="${index}" data-widget-id="${widget.id}">
-              <a href="${shortcut.url}" class="shortcut-item" data-index="${index}" data-widget-id="${widget.id}">
-                <img src="${shortcut.customIcon || getIconFromUrl(shortcut.url)}" class="shortcut-icon" alt="${shortcut.name}">
-                <span class="shortcut-name">${shortcut.name}</span>
-              </a>
-              <button class="shortcut-settings-btn" data-index="${index}" data-widget-id="${widget.id}" title="Einstellungen">⚙️</button>
-            </div>
-          `).join('')}
+          ${shortcuts.map((shortcut, index) => {
+            // Fix 4: Apply icon transform if exists
+            let iconStyle = '';
+            if (shortcut.iconTransform) {
+              const t = shortcut.iconTransform;
+              iconStyle = `style="transform: scale(${t.zoom}) translate(${t.x}px, ${t.y}px); transform-origin: center;"`;
+            }
+            
+            // Fix 5 & 8: Make entire area clickable and handle custom scripts
+            return `
+              <div class="shortcut-item-wrapper" data-index="${index}" data-widget-id="${widget.id}">
+                <div class="shortcut-item" data-index="${index}" data-widget-id="${widget.id}" data-url="${shortcut.url}" data-has-script="${shortcut.hasCustomScript || false}">
+                  <div class="shortcut-icon-wrapper">
+                    <img src="${shortcut.customIcon || getIconFromUrl(shortcut.url)}" class="shortcut-icon" ${iconStyle} alt="${shortcut.name}">
+                  </div>
+                  <span class="shortcut-name">${shortcut.name}</span>
+                </div>
+                ${settings.editMode ? `<button class="shortcut-settings-btn" data-index="${index}" data-widget-id="${widget.id}" title="Einstellungen">⚙️</button>` : ''}
+              </div>
+            `;
+          }).join('')}
           <button class="add-shortcut-btn" data-widget-id="${widget.id}">
             <span class="add-shortcut-icon">+</span>
             <span class="shortcut-name">Hinzufügen</span>
@@ -1029,6 +1043,42 @@ function createWidgetElement(widget) {
       // Initialize calendar after element is appended
       setTimeout(() => initCalendarWidget(widget.id, widget.data), 0);
       break;
+      
+    // Fix 1: Decision Coin Widget
+    case 'decision-coin':
+      div.classList.add('decision-coin-widget');
+      const optionA = widget.data?.optionA || 'Option A';
+      const optionB = widget.data?.optionB || 'Option B';
+      content.innerHTML = `
+        <div class="coin-options">
+          <input type="text" class="coin-option-a" data-widget-id="${widget.id}" placeholder="Option A" value="${optionA}">
+          <input type="text" class="coin-option-b" data-widget-id="${widget.id}" placeholder="Option B" value="${optionB}">
+        </div>
+        <button class="flip-coin-btn" data-widget-id="${widget.id}">🪙 Münze werfen</button>
+        <div class="coin-result" data-widget-id="${widget.id}"></div>
+      `;
+      break;
+      
+    // Fix 7: Distraction Counter Widget  
+    case 'distraction':
+      div.classList.add('distraction-widget');
+      const stats = widget.data?.stats || { clicks: 0, tabSwitches: 0, date: new Date().toDateString() };
+      content.innerHTML = `
+        <div class="distraction-stats">
+          <div class="stat-item">
+            <span class="stat-value" id="stat-clicks-${widget.id}">${stats.clicks}</span>
+            <span class="stat-label">Klicks</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value" id="stat-tabs-${widget.id}">${stats.tabSwitches}</span>
+            <span class="stat-label">Tab-Wechsel</span>
+          </div>
+        </div>
+        <button class="reset-stats-btn" data-widget-id="${widget.id}">Zurücksetzen</button>
+      `;
+      // Initialize distraction counter
+      setTimeout(() => initDistractionCounter(widget.id), 0);
+      break;
   }
   
   div.appendChild(content);
@@ -1060,84 +1110,90 @@ function startClock() {
   setInterval(updateClock, 1000);
 }
 
-// ============ Weather Widget (Fix 11: Mit API-Key Unterstützung) ============
+// ============ Fix 2: Weather Widget with Open-Meteo API (Free, No Key Needed) ============
 async function loadWeather(widgetEl) {
-  const apiKey = settings.weatherApiKey;
-  const city = settings.weatherCity || 'Munich';
+  // Use Munich coordinates by default (can be made configurable)
+  const lat = settings.weatherLat || 48.1374;
+  const lon = settings.weatherLon || 11.5755;
+  const locationName = settings.weatherCity || 'Munich';
   
   const iconEl = widgetEl.querySelector('.weather-icon');
   const tempEl = widgetEl.querySelector('.weather-temp');
   const descEl = widgetEl.querySelector('.weather-desc');
   const locEl = widgetEl.querySelector('.weather-location');
   
-  // Wenn kein API-Key vorhanden, Demo-Daten anzeigen
-  if (!apiKey) {
-    if (iconEl) iconEl.textContent = '⚙️';
-    if (tempEl) tempEl.textContent = '--°C';
-    if (descEl) descEl.textContent = 'API-Key fehlt';
-    if (locEl) locEl.textContent = 'Einstellungen → Wetter';
-    return;
-  }
+  // Show loading state
+  if (descEl) descEl.textContent = 'Lädt Wetter...';
   
   try {
-    const weather = await fetchWeather(city, apiKey);
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,weathercode&timezone=auto`;
     
-    if (weather.error) {
-      if (iconEl) iconEl.textContent = '⚠️';
-      if (tempEl) tempEl.textContent = '--°C';
-      if (descEl) descEl.textContent = weather.condition;
-      if (locEl) locEl.textContent = city;
-    } else {
-      if (iconEl) iconEl.textContent = weather.icon;
-      if (tempEl) tempEl.textContent = `${weather.temp}°C`;
-      if (descEl) descEl.textContent = weather.condition;
-      if (locEl) locEl.textContent = city;
-    }
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('API Error');
+    
+    const data = await response.json();
+    const current = data.current_weather;
+    
+    const weatherCodes = {
+      0: { icon: '☀️', text: 'Klar' },
+      1: { icon: '🌤️', text: 'Leicht bewölkt' },
+      2: { icon: '⛅', text: 'Teilweise bewölkt' },
+      3: { icon: '☁️', text: 'Bewölkt' },
+      45: { icon: '🌫️', text: 'Nebel' },
+      48: { icon: '🌫️', text: 'Nebel' },
+      51: { icon: '🌦️', text: 'Nieselregen' },
+      53: { icon: '🌦️', text: 'Nieselregen' },
+      55: { icon: '🌦️', text: 'Starker Nieselregen' },
+      61: { icon: '🌧️', text: 'Regen' },
+      63: { icon: '🌧️', text: 'Starker Regen' },
+      65: { icon: '🌧️', text: 'Sehr starker Regen' },
+      71: { icon: '🌨️', text: 'Schnee' },
+      73: { icon: '🌨️', text: 'Starker Schnee' },
+      75: { icon: '🌨️', text: 'Sehr starker Schnee' },
+      80: { icon: '🌧️', text: 'Regenschauer' },
+      81: { icon: '🌧️', text: 'Starke Regenschauer' },
+      82: { icon: '🌧️', text: 'Sehr starke Regenschauer' },
+      85: { icon: '🌨️', text: 'Schneeschauer' },
+      86: { icon: '🌨️', text: 'Starke Schneeschauer' },
+      95: { icon: '⛈️', text: 'Gewitter' },
+      96: { icon: '⛈️', text: 'Gewitter mit Hagel' },
+      99: { icon: '⛈️', text: 'Gewitter mit Hagel' }
+    };
+    
+    const weather = weatherCodes[current.weathercode] || { icon: '🌡️', text: 'Unbekannt' };
+    
+    // Update DOM with real data
+    if (iconEl) iconEl.textContent = weather.icon;
+    if (tempEl) tempEl.textContent = `${Math.round(current.temperature)}°C`;
+    if (descEl) descEl.textContent = weather.text;
+    if (locEl) locEl.textContent = locationName;
+    
   } catch (error) {
-    console.error('Fehler beim Laden des Wetters:', error);
+    console.error('Weather fetch error:', error);
     if (iconEl) iconEl.textContent = '⚠️';
     if (tempEl) tempEl.textContent = '--°C';
-    if (descEl) descEl.textContent = 'Fehler';
-    if (locEl) locEl.textContent = city;
+    if (descEl) descEl.textContent = 'Fehler beim Laden';
+    if (locEl) locEl.textContent = locationName;
   }
 }
 
-// Fix 11: Wetter-API abrufen
+// Helper function to retry weather loading
+window.retryWeather = function(widgetId) {
+  const widgetEl = document.getElementById(widgetId);
+  if (widgetEl) {
+    loadWeather(widgetEl);
+  }
+};
+
+// Legacy function for backward compatibility - now calls Open-Meteo
 async function fetchWeather(city, apiKey) {
-  if (!apiKey) {
-    return { 
-      temp: '--', 
-      condition: 'API-Key fehlt',
-      error: true 
-    };
-  }
-  
-  try {
-    const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric&lang=de`;
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-    
-    const data = await response.json();
-    
-    return {
-      temp: Math.round(data.main.temp),
-      condition: data.weather[0].description,
-      humidity: data.main.humidity,
-      wind: data.wind.speed,
-      icon: getWeatherIcon(data.weather[0].icon),
-      error: false
-    };
-  } catch (error) {
-    console.error('Wetter-Fehler:', error);
-    return { 
-      temp: '--', 
-      condition: 'Fehler beim Laden',
-      error: true 
-    };
-  }
+  // This function is kept for backward compatibility but now uses Open-Meteo
+  // In future, we could implement geocoding to convert city name to coordinates
+  return {
+    temp: '--',
+    condition: 'Verwende Open-Meteo API',
+    error: false
+  };
 }
 
 // Fix 11: Wetter-Icons zuordnen
@@ -1784,6 +1840,18 @@ function openShortcutModal(widgetId, index = -1) {
   const deleteBtn = document.getElementById('delete-shortcut-btn');
   const iconPreview = document.getElementById('shortcut-icon-preview');
   const customIconInput = document.getElementById('shortcut-custom-icon');
+  const iconTransformInput = document.getElementById('shortcut-icon-transform');
+  const hasScriptCheckbox = document.getElementById('shortcut-has-script');
+  const scriptTextarea = document.getElementById('shortcut-custom-script');
+  const scriptSection = document.getElementById('custom-script-section');
+  const iconEditor = document.getElementById('icon-editor');
+  
+  // Reset form
+  if (hasScriptCheckbox) hasScriptCheckbox.checked = false;
+  if (scriptTextarea) scriptTextarea.value = '';
+  if (scriptSection) scriptSection.classList.add('hidden');
+  if (iconEditor) iconEditor.classList.add('hidden');
+  if (iconTransformInput) iconTransformInput.value = '';
   
   if (index >= 0) {
     // Bearbeiten
@@ -1799,6 +1867,19 @@ function openShortcutModal(widgetId, index = -1) {
       const iconSrc = shortcut.customIcon || getIconFromUrl(shortcut.url);
       if (iconPreview) iconPreview.src = iconSrc;
       if (customIconInput) customIconInput.value = shortcut.customIcon || '';
+      
+      // Load icon transform
+      if (shortcut.iconTransform && iconTransformInput) {
+        iconTransformInput.value = JSON.stringify(shortcut.iconTransform);
+      }
+      
+      // Fix 8: Load custom script
+      if (shortcut.hasCustomScript) {
+        if (hasScriptCheckbox) hasScriptCheckbox.checked = true;
+        if (scriptTextarea) scriptTextarea.value = shortcut.customScript || '';
+        if (scriptSection) scriptSection.classList.remove('hidden');
+      }
+      
       deleteBtn.classList.remove('hidden');
     }
   } else {
@@ -1821,11 +1902,14 @@ function saveShortcut(e) {
   const name = document.getElementById('shortcut-name').value.trim();
   let url = document.getElementById('shortcut-url').value.trim();
   const customIcon = document.getElementById('shortcut-custom-icon')?.value || '';
+  const iconTransform = document.getElementById('shortcut-icon-transform')?.value || '';
+  const hasScript = document.getElementById('shortcut-has-script')?.checked || false;
+  const customScript = hasScript ? document.getElementById('shortcut-custom-script')?.value || '' : '';
   
   if (!name || !url) return;
   
   // URL normalisieren
-  if (!url.startsWith('http') && !url.startsWith('chrome://')) {
+  if (!url.startsWith('http') && !url.startsWith('chrome://') && !url.startsWith('javascript:')) {
     url = 'https://' + url;
   }
   
@@ -1836,10 +1920,21 @@ function saveShortcut(e) {
     widget.data = widget.data || {};
     widget.data.shortcuts = widget.data.shortcuts || [];
     
-    // Fix 4: Include custom icon in shortcut data
+    // Fix 4 & Fix 8: Include custom icon, transform, and script in shortcut data
     const shortcutData = { name, url };
     if (customIcon) {
       shortcutData.customIcon = customIcon;
+    }
+    if (iconTransform) {
+      try {
+        shortcutData.iconTransform = JSON.parse(iconTransform);
+      } catch (e) {
+        console.error('Invalid icon transform', e);
+      }
+    }
+    if (hasScript && customScript) {
+      shortcutData.hasCustomScript = true;
+      shortcutData.customScript = customScript;
     }
     
     if (currentShortcutIndex >= 0) {
@@ -2384,6 +2479,8 @@ function openCalendarEventModal(widgetId, date, eventId = null) {
   const descInput = document.getElementById('calendar-event-desc');
   const repeatSelect = document.getElementById('calendar-event-repeat');
   const colorInput = document.getElementById('calendar-event-color');
+  const showCountdownCheckbox = document.getElementById('event-show-countdown');
+  const countdownDaysInput = document.getElementById('event-countdown-days');
   const deleteBtn = document.getElementById('delete-calendar-event-btn');
   const modalTitle = document.getElementById('calendar-event-modal-title');
   
@@ -2394,6 +2491,8 @@ function openCalendarEventModal(widgetId, date, eventId = null) {
   if (descInput) descInput.value = '';
   if (repeatSelect) repeatSelect.value = 'none';
   if (colorInput) colorInput.value = '#667eea';
+  if (showCountdownCheckbox) showCountdownCheckbox.checked = true;
+  if (countdownDaysInput) countdownDaysInput.value = '30';
   
   if (eventId) {
     // Edit existing event
@@ -2411,6 +2510,9 @@ function openCalendarEventModal(widgetId, date, eventId = null) {
       if (descInput) descInput.value = event.description || '';
       if (repeatSelect) repeatSelect.value = event.repeat || 'none';
       if (colorInput) colorInput.value = event.color || '#667eea';
+      // Fix 6: Load countdown settings
+      if (showCountdownCheckbox) showCountdownCheckbox.checked = event.showInCountdown !== false;
+      if (countdownDaysInput) countdownDaysInput.value = event.countdownDays || 30;
     }
   } else {
     // New event
@@ -2429,6 +2531,9 @@ function saveCalendarEvent() {
   const repeatValue = document.getElementById('calendar-event-repeat')?.value;
   const repeat = repeatValue !== 'none' ? repeatValue : null;
   const color = document.getElementById('calendar-event-color')?.value || '#667eea';
+  // Fix 6: Get countdown settings
+  const showInCountdown = document.getElementById('event-show-countdown')?.checked !== false;
+  const countdownDays = parseInt(document.getElementById('event-countdown-days')?.value) || 30;
   
   if (!title || !date) return;
   
@@ -2446,7 +2551,9 @@ function saveCalendarEvent() {
       time,
       description,
       repeat,
-      color
+      color,
+      showInCountdown,
+      countdownDays
     };
     
     if (currentCalendarEventId) {
@@ -2587,15 +2694,20 @@ function initEventListeners() {
     document.getElementById('shortcut-icon-upload')?.click();
   });
   
-  document.getElementById('shortcut-icon-upload')?.addEventListener('change', (e) => {
+  document.getElementById('shortcut-icon-upload')?.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        document.getElementById('shortcut-icon-preview').src = event.target.result;
-        document.getElementById('shortcut-custom-icon').value = event.target.result;
-      };
-      reader.readAsDataURL(file);
+      try {
+        const dataUrl = await handleIconUpload(file);
+        document.getElementById('shortcut-icon-preview').src = dataUrl;
+        document.getElementById('shortcut-custom-icon').value = dataUrl;
+        
+        // Show icon editor
+        showIconEditor(dataUrl);
+      } catch (error) {
+        console.error('Error uploading icon:', error);
+        alert('Fehler beim Hochladen des Icons');
+      }
     }
   });
   
@@ -2614,6 +2726,22 @@ function initEventListeners() {
       document.getElementById('shortcut-name').value = btn.dataset.name;
       document.getElementById('shortcut-url').value = btn.dataset.url;
     });
+  });
+  
+  // Fix 8: Custom Script Toggle
+  document.getElementById('shortcut-has-script')?.addEventListener('change', (e) => {
+    const scriptSection = document.getElementById('custom-script-section');
+    if (scriptSection) {
+      scriptSection.classList.toggle('hidden', !e.target.checked);
+    }
+  });
+  
+  // Fix 6: Countdown Checkbox Toggle
+  document.getElementById('event-show-countdown')?.addEventListener('change', (e) => {
+    const daysGroup = document.getElementById('countdown-days-group');
+    if (daysGroup) {
+      daysGroup.style.display = e.target.checked ? 'block' : 'none';
+    }
   });
   
   // Note Editor
@@ -2857,10 +2985,63 @@ function initEventListeners() {
       return;
     }
     
-    // Shortcut Click
+    // Shortcut Click - Fix 5 & Fix 8: Handle full area click and custom scripts
     const shortcutItem = e.target.closest('.shortcut-item');
-    if (shortcutItem) {
-      handleShortcutClick(e, shortcutItem.href);
+    if (shortcutItem && !shortcutItem.classList.contains('add-shortcut-btn')) {
+      e.preventDefault();
+      
+      // In edit mode, open editor
+      if (settings.editMode) {
+        const widgetId = shortcutItem.dataset.widgetId;
+        const index = parseInt(shortcutItem.dataset.index);
+        openShortcutModal(widgetId, index);
+        return;
+      }
+      
+      // Get shortcut data
+      const widgetId = shortcutItem.dataset.widgetId;
+      const index = parseInt(shortcutItem.dataset.index);
+      const url = shortcutItem.dataset.url;
+      const hasScript = shortcutItem.dataset.hasScript === 'true';
+      
+      // Special URLs
+      if (url.includes('tabs.html')) {
+        openTabsModal();
+        return;
+      }
+      if (url.includes('bookmarks.html')) {
+        openBookmarksModal();
+        return;
+      }
+      
+      // Fix 8: Handle custom script execution AFTER navigation
+      if (hasScript) {
+        const currentPage = settings.pages[settings.currentPage];
+        const widget = currentPage?.widgets.find(w => w.id === widgetId);
+        const shortcut = widget?.data?.shortcuts?.[index];
+        
+        if (shortcut && shortcut.customScript) {
+          // Save script to execute after navigation
+          chrome.storage.local.set({
+            pendingScript: {
+              script: shortcut.customScript,
+              url: url,
+              timestamp: Date.now()
+            }
+          }).then(() => {
+            // Navigate to URL
+            window.location.href = url;
+          }).catch(err => {
+            console.error('Failed to save script:', err);
+            // Fallback: just navigate
+            window.location.href = url;
+          });
+          return;
+        }
+      }
+      
+      // Normal navigation
+      window.location.href = url;
       return;
     }
     
@@ -2868,6 +3049,20 @@ function initEventListeners() {
     const addShortcutBtn = e.target.closest('.add-shortcut-btn');
     if (addShortcutBtn) {
       openShortcutModal(addShortcutBtn.dataset.widgetId);
+      return;
+    }
+    
+    // Fix 1: Decision Coin - Flip Button
+    const flipCoinBtn = e.target.closest('.flip-coin-btn');
+    if (flipCoinBtn) {
+      flipDecisionCoin(flipCoinBtn.dataset.widgetId);
+      return;
+    }
+    
+    // Fix 7: Distraction Counter - Reset Button
+    const resetStatsBtn = e.target.closest('.reset-stats-btn');
+    if (resetStatsBtn) {
+      resetDistractionStats(resetStatsBtn.dataset.widgetId);
       return;
     }
     
@@ -2962,6 +3157,23 @@ function initEventListeners() {
     if (e.target.id?.startsWith('pw-length-')) {
       const widgetId = e.target.id.replace('pw-length-', '');
       document.getElementById(`pw-length-val-${widgetId}`).textContent = e.target.value;
+    }
+  });
+  
+  // Fix 1: Decision Coin - Save options on change
+  document.getElementById('widget-container')?.addEventListener('change', (e) => {
+    if (e.target.classList.contains('coin-option-a') || e.target.classList.contains('coin-option-b')) {
+      const widgetId = e.target.dataset.widgetId;
+      const currentPage = settings.pages[settings.currentPage];
+      const widget = currentPage?.widgets.find(w => w.id === widgetId);
+      if (widget) {
+        widget.data = widget.data || {};
+        const optionAInput = document.querySelector(`.coin-option-a[data-widget-id="${widgetId}"]`);
+        const optionBInput = document.querySelector(`.coin-option-b[data-widget-id="${widgetId}"]`);
+        widget.data.optionA = optionAInput?.value || 'Option A';
+        widget.data.optionB = optionBInput?.value || 'Option B';
+        saveSettings();
+      }
     }
   });
   
@@ -3163,3 +3375,289 @@ async function resetSettings() {
     alert('Einstellungen zurückgesetzt.');
   }
 }
+
+// ============ Fix 3: Icon Upload with Transparency ============
+function handleIconUpload(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    
+    reader.onload = (e) => {
+      const img = new Image();
+      
+      img.onload = () => {
+        // Canvas with ALPHA Channel
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d', { 
+          alpha: true,
+          willReadFrequently: false 
+        });
+        
+        // Size for better quality
+        const size = 128;
+        canvas.width = size;
+        canvas.height = size;
+        
+        // IMPORTANT: NO clearRect or fillRect - stays transparent!
+        
+        // Draw icon centered
+        const scale = Math.min(size / img.width, size / img.height);
+        const x = (size - img.width * scale) / 2;
+        const y = (size - img.height * scale) / 2;
+        
+        ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+        
+        // PNG with full transparency
+        const dataUrl = canvas.toDataURL('image/png');
+        
+        resolve(dataUrl);
+      };
+      
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = e.target.result;
+    };
+    
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.readAsDataURL(file);
+  });
+}
+
+// ============ Fix 4: Icon Editor Functions ============
+let currentIconTransform = { zoom: 1, x: 0, y: 0 };
+
+function showIconEditor(iconSrc) {
+  const iconEditor = document.getElementById('icon-editor');
+  const preview = document.getElementById('icon-edit-preview');
+  const zoomSlider = document.getElementById('zoom-slider');
+  const xSlider = document.getElementById('pos-x-slider');
+  const ySlider = document.getElementById('pos-y-slider');
+  
+  if (!iconEditor || !preview) return;
+  
+  // Show editor
+  iconEditor.classList.remove('hidden');
+  preview.src = iconSrc;
+  
+  // Reset sliders
+  zoomSlider.value = 100;
+  xSlider.value = 0;
+  ySlider.value = 0;
+  currentIconTransform = { zoom: 1, x: 0, y: 0 };
+  
+  // Update transform function
+  function updateTransform() {
+    const zoom = parseFloat(zoomSlider.value) / 100; // 1.0 to 3.0
+    const x = parseInt(xSlider.value);
+    const y = parseInt(ySlider.value);
+    
+    // IMPORTANT: scale ENLARGES, translate shifts
+    preview.style.transform = `scale(${zoom}) translate(${x}px, ${y}px)`;
+    
+    // Update labels
+    document.getElementById('zoom-val').textContent = Math.round(zoom * 100) + '%';
+    document.getElementById('pos-x-val').textContent = x + 'px';
+    document.getElementById('pos-y-val').textContent = y + 'px';
+    
+    // Save for later
+    currentIconTransform = { zoom, x, y };
+    document.getElementById('shortcut-icon-transform').value = JSON.stringify(currentIconTransform);
+  }
+  
+  // Remove old listeners
+  const newZoomSlider = zoomSlider.cloneNode(true);
+  const newXSlider = xSlider.cloneNode(true);
+  const newYSlider = ySlider.cloneNode(true);
+  const newResetBtn = document.getElementById('reset-transform').cloneNode(true);
+  
+  zoomSlider.parentNode.replaceChild(newZoomSlider, zoomSlider);
+  xSlider.parentNode.replaceChild(newXSlider, xSlider);
+  ySlider.parentNode.replaceChild(newYSlider, ySlider);
+  document.getElementById('reset-transform').parentNode.replaceChild(newResetBtn, document.getElementById('reset-transform'));
+  
+  // Add listeners
+  newZoomSlider.addEventListener('input', updateTransform);
+  newXSlider.addEventListener('input', updateTransform);
+  newYSlider.addEventListener('input', updateTransform);
+  
+  newResetBtn.addEventListener('click', () => {
+    newZoomSlider.value = 100;
+    newXSlider.value = 0;
+    newYSlider.value = 0;
+    updateTransform();
+  });
+  
+  updateTransform();
+}
+
+// ============ Fix 1: Decision Coin Functions ============
+function flipDecisionCoin(widgetId) {
+  const currentPage = settings.pages[settings.currentPage];
+  const widget = currentPage?.widgets.find(w => w.id === widgetId);
+  if (!widget) return;
+  
+  // Get options from inputs
+  const optionAInput = document.querySelector(`.coin-option-a[data-widget-id="${widgetId}"]`);
+  const optionBInput = document.querySelector(`.coin-option-b[data-widget-id="${widgetId}"]`);
+  const resultDiv = document.querySelector(`.coin-result[data-widget-id="${widgetId}"]`);
+  
+  const optionA = optionAInput?.value || 'Option A';
+  const optionB = optionBInput?.value || 'Option B';
+  
+  // Save options
+  widget.data = widget.data || {};
+  widget.data.optionA = optionA;
+  widget.data.optionB = optionB;
+  saveSettings();
+  
+  // Animate coin flip
+  if (resultDiv) {
+    resultDiv.innerHTML = '<div class="coin-animation">🪙</div>';
+    
+    setTimeout(() => {
+      // Random result
+      const isHeads = Math.random() < 0.5;
+      const result = isHeads ? optionA : optionB;
+      
+      // Fix 1: NO EMOJIS in result!
+      resultDiv.innerHTML = `
+        <div class="result-display">
+          <div class="result-text">${result}</div>
+        </div>
+      `;
+    }, 1000);
+  }
+}
+
+// ============ Fix 7: Distraction Counter Functions ============
+function initDistractionCounter(widgetId) {
+  const currentPage = settings.pages[settings.currentPage];
+  const widget = currentPage?.widgets.find(w => w.id === widgetId);
+  if (!widget) return;
+  
+  // Initialize stats
+  widget.data = widget.data || {};
+  widget.data.stats = widget.data.stats || {
+    clicks: 0,
+    tabSwitches: 0,
+    date: new Date().toDateString()
+  };
+  
+  // Check if new day - reset stats
+  const today = new Date().toDateString();
+  if (widget.data.stats.date !== today) {
+    widget.data.stats = {
+      clicks: 0,
+      tabSwitches: 0,
+      date: today
+    };
+    saveSettings();
+  }
+  
+  // Track clicks on this page only
+  let clicksSinceLastSave = 0;
+  const clickHandler = () => {
+    clicksSinceLastSave++;
+    
+    // Save every 5 clicks
+    if (clicksSinceLastSave >= 5) {
+      widget.data.stats.clicks += clicksSinceLastSave;
+      clicksSinceLastSave = 0;
+      saveSettings();
+      updateDistractionDisplay(widgetId);
+    }
+  };
+  
+  document.addEventListener('click', clickHandler, { passive: true });
+  
+  // Save remaining clicks on page unload
+  window.addEventListener('beforeunload', () => {
+    if (clicksSinceLastSave > 0) {
+      widget.data.stats.clicks += clicksSinceLastSave;
+      saveSettings();
+    }
+  });
+  
+  // Listen for tab switch updates from service worker
+  chrome.runtime.onMessage.addListener((message) => {
+    if (message.type === 'statsUpdated' && message.widgetId === widgetId) {
+      widget.data.stats.tabSwitches = message.stats.tabSwitches;
+      saveSettings();
+      updateDistractionDisplay(widgetId);
+    }
+  });
+  
+  // Initial display update
+  updateDistractionDisplay(widgetId);
+}
+
+function updateDistractionDisplay(widgetId) {
+  const currentPage = settings.pages[settings.currentPage];
+  const widget = currentPage?.widgets.find(w => w.id === widgetId);
+  if (!widget || !widget.data?.stats) return;
+  
+  const clicksEl = document.getElementById(`stat-clicks-${widgetId}`);
+  const tabsEl = document.getElementById(`stat-tabs-${widgetId}`);
+  
+  if (clicksEl) clicksEl.textContent = widget.data.stats.clicks;
+  if (tabsEl) tabsEl.textContent = widget.data.stats.tabSwitches;
+}
+
+function resetDistractionStats(widgetId) {
+  if (!confirm('Statistiken wirklich zurücksetzen?')) return;
+  
+  const currentPage = settings.pages[settings.currentPage];
+  const widget = currentPage?.widgets.find(w => w.id === widgetId);
+  if (!widget) return;
+  
+  widget.data.stats = {
+    clicks: 0,
+    tabSwitches: 0,
+    date: new Date().toDateString()
+  };
+  
+  saveSettings();
+  updateDistractionDisplay(widgetId);
+}
+
+// ============ Fix 6: Calendar Event with Countdown Settings ============
+// ============ Fix 8: Execute Pending Scripts on Page Load ============
+document.addEventListener('DOMContentLoaded', async () => {
+  // Check for pending script to execute
+  try {
+    const result = await chrome.storage.local.get('pendingScript');
+    if (result.pendingScript) {
+      const { script, url, timestamp } = result.pendingScript;
+      
+      // Check if script is recent (within 5 seconds)
+      if (Date.now() - timestamp < 5000) {
+        // Check if we're on the target URL
+        if (window.location.href.startsWith(url) || url === 'about:blank') {
+          try {
+            // Execute the script
+            eval(script);
+            console.log('Custom script executed successfully');
+          } catch (error) {
+            console.error('Error executing custom script:', error);
+          }
+        }
+      }
+      
+      // Clear pending script
+      chrome.storage.local.remove('pendingScript');
+    }
+  } catch (error) {
+    console.error('Error checking pending scripts:', error);
+  }
+});
+          } catch (error) {
+            console.error('Error executing custom script:', error);
+          }
+        }
+      }
+      
+      // Clear pending script
+      chrome.storage.local.remove('pendingScript');
+    }
+  } catch (error) {
+    console.error('Error checking pending scripts:', error);
+  }
+});
