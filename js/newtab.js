@@ -56,6 +56,8 @@ const DEFAULT_SETTINGS = {
   gridSize: 20,
   gridColor: '#ff00ff',
   gridVisible: true,
+  // Shortcut borders setting
+  shortcutBordersEnabled: false,
   // Weather Settings - Open-Meteo
   weatherConfig: {
     latitude: 48.1374,
@@ -139,6 +141,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initQuickActions();
   updateEditModeUI();
   startClock();
+  initWeatherAutoSync(); // Weather auto-sync
 });
 
 // ============ Storage Funktionen ============
@@ -204,6 +207,53 @@ function toggleEditMode() {
   settings.editMode = !settings.editMode;
   saveSettings();
   updateEditModeUI();
+}
+
+// ============ Shortcut Borders Setting ============
+function applyShortcutBordersSetting() {
+  const enabled = settings.shortcutBordersEnabled || false;
+  const widgets = document.querySelectorAll('.shortcuts-widget');
+  
+  widgets.forEach(widget => {
+    if (enabled) {
+      widget.classList.add('shortcuts-borders-enabled');
+    } else {
+      widget.classList.remove('shortcuts-borders-enabled');
+    }
+  });
+}
+
+// ============ Notes Search Functionality ============
+function initNotesSearch() {
+  const searchInputs = document.querySelectorAll('.notes-search-input');
+  
+  searchInputs.forEach(searchInput => {
+    const widgetId = searchInput.dataset.widgetId;
+    const notesWidget = document.getElementById(widgetId);
+    
+    if (!notesWidget) return;
+    
+    searchInput.addEventListener('input', (e) => {
+      const searchTerm = e.target.value.toLowerCase().trim();
+      const quickNoteItems = notesWidget.querySelectorAll('.quick-note-item');
+      const noteItems = notesWidget.querySelectorAll('.note-item');
+      
+      // Search quick notes
+      quickNoteItems.forEach(item => {
+        const noteText = item.querySelector('.quick-note-text')?.textContent.toLowerCase() || '';
+        const matches = noteText.includes(searchTerm) || searchTerm === '';
+        item.style.display = matches ? '' : 'none';
+      });
+      
+      // Search detailed notes
+      noteItems.forEach(item => {
+        const noteTitle = item.querySelector('.note-item-title')?.textContent.toLowerCase() || '';
+        const notePreview = item.querySelector('.note-item-preview')?.textContent.toLowerCase() || '';
+        const matches = noteTitle.includes(searchTerm) || notePreview.includes(searchTerm) || searchTerm === '';
+        item.style.display = matches ? '' : 'none';
+      });
+    });
+  });
 }
 
 // ============ Feature #8: Themes ============
@@ -796,6 +846,12 @@ function renderWidgets() {
       }
     }
   });
+  
+  // Apply shortcut borders setting after rendering widgets
+  applyShortcutBordersSetting();
+  
+  // Initialize notes search for all notes widgets
+  initNotesSearch();
 }
 
 function createWidgetElement(widget) {
@@ -957,6 +1013,7 @@ function createWidgetElement(widget) {
       const quickNotes = widget.data?.quickNotes || [];
       content.innerHTML = `
         <h3>📝 Schnelle Notizen</h3>
+        <input type="text" class="notes-search-input" data-widget-id="${widget.id}" placeholder="🔍 Notizen durchsuchen...">
         <div class="quick-note-container">
           <textarea class="quick-note-input" data-widget-id="${widget.id}" placeholder="Schnelle Notizen hier eingeben..."></textarea>
           <button class="add-quick-note-btn" data-widget-id="${widget.id}">+ Neue Notiz</button>
@@ -1194,6 +1251,37 @@ function updateAllWeatherWidgets() {
   });
 }
 
+// ============ Weather Auto-Sync ============
+let weatherUpdateInterval = null;
+
+function initWeatherAutoSync() {
+  // Update weather immediately on load
+  updateAllWeatherWidgets();
+  
+  // Set up 5-minute auto-refresh
+  if (weatherUpdateInterval) {
+    clearInterval(weatherUpdateInterval);
+  }
+  weatherUpdateInterval = setInterval(() => {
+    updateAllWeatherWidgets();
+    localStorage.setItem('weatherLastUpdate', Date.now().toString());
+  }, 5 * 60 * 1000); // 5 minutes
+}
+
+// Update weather on tab visibility change
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    const lastUpdate = localStorage.getItem('weatherLastUpdate');
+    const now = Date.now();
+    
+    // If more than 5 minutes since last update, refresh
+    if (!lastUpdate || (now - parseInt(lastUpdate)) > 5 * 60 * 1000) {
+      updateAllWeatherWidgets();
+      localStorage.setItem('weatherLastUpdate', now.toString());
+    }
+  }
+});
+
 // ============ Feature #18: Password Generator ============
 function generatePassword(widgetId) {
   const length = parseInt(document.getElementById(`pw-length-${widgetId}`)?.value || 16);
@@ -1401,6 +1489,12 @@ function openSettingsModal() {
   
   const editToggle = document.getElementById('edit-mode-toggle');
   if (editToggle) editToggle.checked = settings.editMode;
+  
+  // Initialize shortcut borders setting
+  const shortcutBordersCheckbox = document.getElementById('setting-shortcut-borders');
+  if (shortcutBordersCheckbox) {
+    shortcutBordersCheckbox.checked = settings.shortcutBordersEnabled || false;
+  }
   
   openModal('settings-modal');
 }
@@ -1726,14 +1820,10 @@ function initShortcutDragDrop(widgetId, container) {
   const shortcuts = container.querySelectorAll('.shortcut-item');
   
   shortcuts.forEach(item => {
-    // Nur im Edit-Modus verschiebbar
+    // Always draggable (not just in edit mode)
     item.draggable = true;
     
     item.addEventListener('dragstart', (e) => {
-      if (!settings.editMode) {
-        e.preventDefault();
-        return;
-      }
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text/plain', item.dataset.index);
       item.classList.add('dragging');
@@ -1751,7 +1841,6 @@ function initShortcutDragDrop(widgetId, container) {
   const DRAGOVER_THROTTLE_MS = 50;
   
   container.addEventListener('dragover', (e) => {
-    if (!settings.editMode) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     
@@ -2490,6 +2579,8 @@ const emojiLibrary = {
 };
 
 // Initialize Emoji Picker
+let emojiPickerInitialized = false;
+
 function initEmojiPicker() {
   const btn = document.getElementById('emoji-picker-btn');
   const popup = document.getElementById('emoji-picker-popup');
@@ -2499,26 +2590,39 @@ function initEmojiPicker() {
   
   if (!btn || !popup || !grid || !display || !hiddenInput) return;
   
-  // Toggle Popup
-  btn.addEventListener('click', (e) => {
-    e.preventDefault();
-    popup.classList.toggle('hidden');
-  });
-  
-  // Category Buttons
-  document.querySelectorAll('.emoji-cat-btn').forEach(catBtn => {
-    catBtn.addEventListener('click', (e) => {
+  // Only attach event listeners once
+  if (!emojiPickerInitialized) {
+    // Toggle Popup
+    btn.addEventListener('click', (e) => {
       e.preventDefault();
-      
-      // Update active
-      document.querySelectorAll('.emoji-cat-btn').forEach(b => b.classList.remove('active'));
-      catBtn.classList.add('active');
-      
-      // Render emojis
-      const category = catBtn.dataset.cat;
-      renderEmojiGrid(category);
+      popup.classList.toggle('hidden');
     });
-  });
+    
+    // Category Buttons
+    document.querySelectorAll('.emoji-cat-btn').forEach(catBtn => {
+      catBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        
+        // Update active
+        document.querySelectorAll('.emoji-cat-btn').forEach(b => b.classList.remove('active'));
+        catBtn.classList.add('active');
+        
+        // Render emojis
+        const category = catBtn.dataset.cat;
+        renderEmojiGrid(category);
+      });
+    });
+    
+    // Close on outside click
+    const closeOnOutsideClick = (e) => {
+      if (!btn.contains(e.target) && !popup.contains(e.target)) {
+        popup.classList.add('hidden');
+      }
+    };
+    document.addEventListener('click', closeOnOutsideClick);
+    
+    emojiPickerInitialized = true;
+  }
   
   function renderEmojiGrid(category) {
     const emojis = emojiLibrary[category] || [];
@@ -2542,17 +2646,6 @@ function initEmojiPicker() {
   
   // Initial render
   renderEmojiGrid('events');
-  
-  // Close on outside click (using named function to prevent duplicates)
-  if (!btn.dataset.listenerAttached) {
-    const closeOnOutsideClick = (e) => {
-      if (!btn.contains(e.target) && !popup.contains(e.target)) {
-        popup.classList.add('hidden');
-      }
-    };
-    document.addEventListener('click', closeOnOutsideClick);
-    btn.dataset.listenerAttached = 'true';
-  }
 }
 
 // Calendar Event Modal
@@ -2960,6 +3053,13 @@ function initEventListeners() {
     settings.editMode = e.target.checked;
     saveSettings();
     updateEditModeUI();
+  });
+  
+  // Shortcut borders setting
+  document.getElementById('setting-shortcut-borders')?.addEventListener('change', (e) => {
+    settings.shortcutBordersEnabled = e.target.checked;
+    saveSettings();
+    applyShortcutBordersSetting();
   });
   
   // Custom Background Upload (Fix 8-9: Mit Video-Unterstützung)
