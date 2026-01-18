@@ -3493,9 +3493,10 @@ function initEventListeners() {
           let title = note.title || 'Ohne Titel';
           let preview = note.content?.substring(0, 50) || '...';
           
-          // Highlight search term
+          // Highlight search term (escape special regex characters)
           if (searchTerm) {
-            const regex = new RegExp(`(${searchTerm})`, 'gi');
+            const escapedTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`(${escapedTerm})`, 'gi');
             title = title.replace(regex, '<mark>$1</mark>');
             preview = preview.replace(regex, '<mark>$1</mark>');
           }

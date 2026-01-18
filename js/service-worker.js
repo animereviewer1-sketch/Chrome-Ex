@@ -104,16 +104,21 @@ self.addEventListener('message', (event) => {
 
 // ============ Fix 4: Event Notifications ============
 
+// Constants
+const CHECK_EVENTS_INTERVAL_MINUTES = 60;
+const DAILY_RESET_INTERVAL_MINUTES = 24 * 60;
+const NOTIFIED_EVENTS_STORAGE_KEY = 'notifiedEventIds';
+
 // Create alarm to check events every hour
 chrome.alarms.create('checkEvents', {
-  periodInMinutes: 60,
+  periodInMinutes: CHECK_EVENTS_INTERVAL_MINUTES,
   delayInMinutes: 0 // Start immediately
 });
 
 // Reset notified events at midnight
 chrome.alarms.create('resetNotifications', {
   when: getNextMidnight(),
-  periodInMinutes: 24 * 60
+  periodInMinutes: DAILY_RESET_INTERVAL_MINUTES
 });
 
 function getNextMidnight() {
@@ -123,51 +128,95 @@ function getNextMidnight() {
   return midnight.getTime();
 }
 
-// Track notified events (reset daily)
-let notifiedEventIds = new Set();
-
 // Alarm listener
-chrome.alarms.onAlarm.addListener((alarm) => {
+chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === 'checkEvents') {
-    checkTodayEvents();
+    await checkTodayEvents();
   } else if (alarm.name === 'resetNotifications') {
-    notifiedEventIds.clear();
+    await chrome.storage.local.set({ [NOTIFIED_EVENTS_STORAGE_KEY]: [] });
+  } else if (alarm.name.startsWith('remind-')) {
+    // Handle one-time reminder alarms
+    const eventId = alarm.name.replace('remind-', '');
+    
+    // Get event details and show notification again
+    try {
+      const data = await chrome.storage.local.get('settings');
+      const settings = data.settings || {};
+      
+      if (settings.pages) {
+        for (const page of Object.values(settings.pages)) {
+          if (page.widgets) {
+            for (const widget of page.widgets) {
+              if (widget.type === 'calendar' && widget.data?.events) {
+                const event = widget.data.events.find(e => e.id === eventId);
+                if (event) {
+                  showEventNotification(event);
+                  return;
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error showing reminder:', error);
+    }
   }
 });
 
+async function getNotifiedEventIds() {
+  const data = await chrome.storage.local.get(NOTIFIED_EVENTS_STORAGE_KEY);
+  return new Set(data[NOTIFIED_EVENTS_STORAGE_KEY] || []);
+}
+
+async function addNotifiedEventId(eventId) {
+  const notifiedEventIds = await getNotifiedEventIds();
+  notifiedEventIds.add(eventId);
+  await chrome.storage.local.set({ [NOTIFIED_EVENTS_STORAGE_KEY]: Array.from(notifiedEventIds) });
+}
+
+async function removeNotifiedEventId(eventId) {
+  const notifiedEventIds = await getNotifiedEventIds();
+  notifiedEventIds.delete(eventId);
+  await chrome.storage.local.set({ [NOTIFIED_EVENTS_STORAGE_KEY]: Array.from(notifiedEventIds) });
+}
+
 async function checkTodayEvents() {
   try {
-    // Get settings from storage
-    const data = await chrome.storage.local.get('settings');
+    // Get settings and notified events from storage
+    const data = await chrome.storage.local.get(['settings', NOTIFIED_EVENTS_STORAGE_KEY]);
     const settings = data.settings || {};
+    const notifiedEventIds = new Set(data[NOTIFIED_EVENTS_STORAGE_KEY] || []);
     
     const today = new Date();
     const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     
     // Check all pages and widgets for calendar events
     if (settings.pages) {
-      Object.values(settings.pages).forEach(page => {
-        page.widgets?.forEach(widget => {
-          if (widget.type === 'calendar' && widget.data?.events) {
-            widget.data.events.forEach(event => {
-              // Check if event is today and hasn't been notified
-              if (event.date === todayStr && !notifiedEventIds.has(event.id)) {
-                showEventNotification(event);
-                notifiedEventIds.add(event.id);
-              }
-              
-              // Check yearly recurring events
-              if (event.repeat === 'yearly' && !notifiedEventIds.has(event.id)) {
-                const eventDate = new Date(event.date);
-                if (eventDate.getDate() === today.getDate() && eventDate.getMonth() === today.getMonth()) {
+      for (const page of Object.values(settings.pages)) {
+        if (page.widgets) {
+          for (const widget of page.widgets) {
+            if (widget.type === 'calendar' && widget.data?.events) {
+              for (const event of widget.data.events) {
+                // Check if event is today and hasn't been notified
+                if (event.date === todayStr && !notifiedEventIds.has(event.id)) {
                   showEventNotification(event);
-                  notifiedEventIds.add(event.id);
+                  await addNotifiedEventId(event.id);
+                }
+                
+                // Check yearly recurring events
+                if (event.repeat === 'yearly' && !notifiedEventIds.has(event.id)) {
+                  const eventDate = new Date(event.date);
+                  if (eventDate.getDate() === today.getDate() && eventDate.getMonth() === today.getMonth()) {
+                    showEventNotification(event);
+                    await addNotifiedEventId(event.id);
+                  }
                 }
               }
-            });
+            }
           }
-        });
-      });
+        }
+      }
     }
   } catch (error) {
     console.error('Error checking events:', error);
@@ -196,7 +245,7 @@ function showEventNotification(event) {
 }
 
 // Handle notification button clicks
-chrome.notifications.onButtonClicked.addListener((notificationId, buttonIndex) => {
+chrome.notifications.onButtonClicked.addListener(async (notificationId, buttonIndex) => {
   if (notificationId.startsWith('event-')) {
     if (buttonIndex === 0) {
       // OK button - clear notification
@@ -207,7 +256,7 @@ chrome.notifications.onButtonClicked.addListener((notificationId, buttonIndex) =
       const eventId = notificationId.replace('event-', '');
       
       // Remove from notified list so it can be shown again
-      notifiedEventIds.delete(eventId);
+      await removeNotifiedEventId(eventId);
       
       // Set a one-time alarm for 1 hour
       chrome.alarms.create(`remind-${eventId}`, {
@@ -217,30 +266,3 @@ chrome.notifications.onButtonClicked.addListener((notificationId, buttonIndex) =
   }
 });
 
-// Handle one-time reminder alarms
-chrome.alarms.onAlarm.addListener(async (alarm) => {
-  if (alarm.name.startsWith('remind-')) {
-    const eventId = alarm.name.replace('remind-', '');
-    
-    // Get event details and show notification again
-    try {
-      const data = await chrome.storage.local.get('settings');
-      const settings = data.settings || {};
-      
-      if (settings.pages) {
-        Object.values(settings.pages).forEach(page => {
-          page.widgets?.forEach(widget => {
-            if (widget.type === 'calendar' && widget.data?.events) {
-              const event = widget.data.events.find(e => e.id === eventId);
-              if (event) {
-                showEventNotification(event);
-              }
-            }
-          });
-        });
-      }
-    } catch (error) {
-      console.error('Error showing reminder:', error);
-    }
-  }
-});
