@@ -134,6 +134,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   initQuickActions();
   updateEditModeUI();
   startClock();
+  
+  // Fix 3: Auto-refresh weather widgets
+  updateAllWeatherWidgets();
 });
 
 // ============ Storage Funktionen ============
@@ -1061,8 +1064,10 @@ function startClock() {
 }
 
 // ============ Weather Widget (Fix 11: Mit API-Key Unterstützung) ============
+// ============ Weather Widget (Fix 3: Open-Meteo API + Auto-Refresh) ============
+let weatherRefreshInterval = null;
+
 async function loadWeather(widgetEl) {
-  const apiKey = settings.weatherApiKey;
   const city = settings.weatherCity || 'Munich';
   
   const iconEl = widgetEl.querySelector('.weather-icon');
@@ -1070,50 +1075,59 @@ async function loadWeather(widgetEl) {
   const descEl = widgetEl.querySelector('.weather-desc');
   const locEl = widgetEl.querySelector('.weather-location');
   
-  // Wenn kein API-Key vorhanden, Demo-Daten anzeigen
-  if (!apiKey) {
-    if (iconEl) iconEl.textContent = '⚙️';
-    if (tempEl) tempEl.textContent = '--°C';
-    if (descEl) descEl.textContent = 'API-Key fehlt';
-    if (locEl) locEl.textContent = 'Einstellungen → Wetter';
-    return;
-  }
-  
   try {
-    const weather = await fetchWeather(city, apiKey);
-    
-    if (weather.error) {
-      if (iconEl) iconEl.textContent = '⚠️';
-      if (tempEl) tempEl.textContent = '--°C';
-      if (descEl) descEl.textContent = weather.condition;
-      if (locEl) locEl.textContent = city;
-    } else {
-      if (iconEl) iconEl.textContent = weather.icon;
-      if (tempEl) tempEl.textContent = `${weather.temp}°C`;
-      if (descEl) descEl.textContent = weather.condition;
-      if (locEl) locEl.textContent = city;
+    // Get coordinates for the city first
+    const coords = await getCityCoordinates(city);
+    if (!coords) {
+      throw new Error('Stadt nicht gefunden');
     }
+    
+    // Fetch weather from Open-Meteo (no API key needed!)
+    const weather = await fetchWeatherOpenMeteo(coords.lat, coords.lon);
+    
+    if (iconEl) iconEl.textContent = weather.icon;
+    if (tempEl) tempEl.textContent = `${weather.temp}°C`;
+    if (descEl) descEl.textContent = weather.condition;
+    if (locEl) locEl.textContent = `${city} - ${new Date().toLocaleTimeString('de-DE', {hour: '2-digit', minute: '2-digit'})}`;
   } catch (error) {
     console.error('Fehler beim Laden des Wetters:', error);
     if (iconEl) iconEl.textContent = '⚠️';
     if (tempEl) tempEl.textContent = '--°C';
     if (descEl) descEl.textContent = 'Fehler';
-    if (locEl) locEl.textContent = city;
+    if (locEl) locEl.innerHTML = `${city} <button onclick="retryWeather()" style="background: none; border: none; color: var(--primary); cursor: pointer; text-decoration: underline;">↻ Erneut</button>`;
   }
 }
 
-// Fix 11: Wetter-API abrufen
-async function fetchWeather(city, apiKey) {
-  if (!apiKey) {
-    return { 
-      temp: '--', 
-      condition: 'API-Key fehlt',
-      error: true 
-    };
-  }
-  
+// Get city coordinates from Nominatim (OpenStreetMap)
+async function getCityCoordinates(city) {
   try {
-    const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric&lang=de`;
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1`;
+    const response = await fetch(url, {
+      headers: { 'User-Agent': 'Chrome-Ex/1.0' }
+    });
+    const data = await response.json();
+    
+    if (data && data.length > 0) {
+      return {
+        lat: parseFloat(data[0].lat),
+        lon: parseFloat(data[0].lon)
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error('Geocoding error:', error);
+    // Default to Munich
+    return { lat: 48.1374, lon: 11.5755 };
+  }
+}
+
+// Fix 3: Fetch weather from Open-Meteo API (no API key needed!)
+async function fetchWeatherOpenMeteo(lat, lon) {
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&timezone=auto`;
+    
+    console.log('Fetching weather:', url);
+    
     const response = await fetch(url);
     
     if (!response.ok) {
@@ -1121,13 +1135,14 @@ async function fetchWeather(city, apiKey) {
     }
     
     const data = await response.json();
+    const current = data.current_weather;
+    const weatherInfo = getWeatherInfo(current.weathercode);
     
     return {
-      temp: Math.round(data.main.temp),
-      condition: data.weather[0].description,
-      humidity: data.main.humidity,
-      wind: data.wind.speed,
-      icon: getWeatherIcon(data.weather[0].icon),
+      temp: Math.round(current.temperature),
+      condition: weatherInfo.text,
+      wind: Math.round(current.windspeed),
+      icon: weatherInfo.icon,
       error: false
     };
   } catch (error) {
@@ -1135,33 +1150,67 @@ async function fetchWeather(city, apiKey) {
     return { 
       temp: '--', 
       condition: 'Fehler beim Laden',
-      error: true 
+      error: true,
+      icon: '⚠️'
     };
   }
 }
 
-// Fix 11: Wetter-Icons zuordnen
-function getWeatherIcon(code) {
-  const icons = {
-    '01d': '☀️', '01n': '🌙',
-    '02d': '⛅', '02n': '☁️',
-    '03d': '☁️', '03n': '☁️',
-    '04d': '☁️', '04n': '☁️',
-    '09d': '🌧️', '09n': '🌧️',
-    '10d': '🌦️', '10n': '🌧️',
-    '11d': '⛈️', '11n': '⛈️',
-    '13d': '❄️', '13n': '❄️',
-    '50d': '🌫️', '50n': '🌫️'
+// Fix 3: Weather codes for Open-Meteo API
+function getWeatherInfo(code) {
+  const codes = {
+    0: { icon: '☀️', text: 'Sonnig' },
+    1: { icon: '🌤️', text: 'Leicht bewölkt' },
+    2: { icon: '⛅', text: 'Wolkig' },
+    3: { icon: '☁️', text: 'Bewölkt' },
+    45: { icon: '🌫️', text: 'Nebel' },
+    48: { icon: '🌫️', text: 'Nebel' },
+    51: { icon: '🌦️', text: 'Nieselregen' },
+    53: { icon: '🌦️', text: 'Nieselregen' },
+    55: { icon: '🌦️', text: 'Starker Nieselregen' },
+    61: { icon: '🌧️', text: 'Regen' },
+    63: { icon: '🌧️', text: 'Starker Regen' },
+    65: { icon: '🌧️', text: 'Sehr starker Regen' },
+    71: { icon: '🌨️', text: 'Schnee' },
+    73: { icon: '🌨️', text: 'Starker Schnee' },
+    75: { icon: '🌨️', text: 'Sehr starker Schnee' },
+    77: { icon: '🌨️', text: 'Schneegriesel' },
+    80: { icon: '🌧️', text: 'Regenschauer' },
+    81: { icon: '🌧️', text: 'Starke Regenschauer' },
+    82: { icon: '🌧️', text: 'Sehr starke Regenschauer' },
+    85: { icon: '🌨️', text: 'Schneeschauer' },
+    86: { icon: '🌨️', text: 'Starke Schneeschauer' },
+    95: { icon: '⛈️', text: 'Gewitter' },
+    96: { icon: '⛈️', text: 'Gewitter mit Hagel' },
+    99: { icon: '⛈️', text: 'Starkes Gewitter mit Hagel' }
   };
-  return icons[code] || '🌤️';
+  return codes[code] || { icon: '🌡️', text: 'Unbekannt' };
 }
 
-// Fix 11: Alle Wetter-Widgets aktualisieren
+// Fix 3: Update all weather widgets + setup auto-refresh
 function updateAllWeatherWidgets() {
+  // Clear existing interval
+  if (weatherRefreshInterval) {
+    clearInterval(weatherRefreshInterval);
+  }
+  
+  // Update all weather widgets immediately
   document.querySelectorAll('.weather-widget').forEach(widget => {
     loadWeather(widget);
   });
+  
+  // Setup auto-refresh every 5 minutes
+  weatherRefreshInterval = setInterval(() => {
+    document.querySelectorAll('.weather-widget').forEach(widget => {
+      loadWeather(widget);
+    });
+  }, 5 * 60 * 1000); // 5 minutes
 }
+
+// Retry weather loading (called from retry button)
+window.retryWeather = function() {
+  updateAllWeatherWidgets();
+};
 
 // ============ Feature #18: Password Generator ============
 function generatePassword(widgetId) {
