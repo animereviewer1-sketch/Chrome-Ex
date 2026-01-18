@@ -2230,3 +2230,68 @@ body.edit-mode .widget:hover .widget-menu-btn {
   background: var(--primary);
   transform: scale(1.1);
 }
+
+/* ============ Notes Search ============ */
+.notes-search {
+  margin: 10px 0;
+}
+
+.notes-search-input {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.notes-search-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.notes-search-input::placeholder {
+  color: var(--text-secondary);
+}
+
+/* ============ Calendar Countdown & Icons ============ */
+.event-countdown {
+  font-size: 12px;
+  color: var(--primary);
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.event-icon {
+  font-size: 24px;
+  margin-right: 10px;
+}
+
+.calendar-event-item {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  border-radius: 4px;
+  margin: 4px 0;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.event-info {
+  flex: 1;
+}
+
+.event-title {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+/* ============ Transparent Icon Background ============ */
+.shortcut-icon {
+  background: transparent !important;
+}
+
+.shortcut-item-wrapper {
+  position: relative;
+}
