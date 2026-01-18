@@ -76,7 +76,41 @@
               <input type="file" id="shortcut-icon-upload" accept="image/*" class="hidden">
             </div>
           </div>
+          <!-- Fix 7: Icon URL loader -->
+          <div class="icon-url-input">
+            <input type="url" id="shortcut-icon-url" placeholder="Icon-URL (https://...)">
+            <button type="button" id="shortcut-load-icon-url-btn" class="btn-secondary">Laden</button>
+          </div>
+          <!-- Fix 8: Icon editor -->
+          <div id="icon-editor" class="icon-editor hidden">
+            <h4>Icon anpassen</h4>
+            <div class="preview-box">
+              <img id="icon-editor-preview" src="" alt="Preview">
+            </div>
+            <div class="control-group">
+              <label>
+                <span>Zoom:</span>
+                <span class="value-display" id="icon-zoom-val">100%</span>
+              </label>
+              <input type="range" id="icon-zoom" min="50" max="200" value="100">
+            </div>
+            <div class="control-group">
+              <label>
+                <span>Position X:</span>
+                <span class="value-display" id="icon-pos-x-val">0px</span>
+              </label>
+              <input type="range" id="icon-pos-x" min="-50" max="50" value="0">
+            </div>
+            <div class="control-group">
+              <label>
+                <span>Position Y:</span>
+                <span class="value-display" id="icon-pos-y-val">0px</span>
+              </label>
+              <input type="range" id="icon-pos-y" min="-50" max="50" value="0">
+            </div>
+          </div>
           <input type="hidden" id="shortcut-custom-icon" value="">
+          <input type="hidden" id="shortcut-icon-transform" value="">
         </div>
         <div class="form-group special-shortcuts">
           <label>Oder spezielle Shortcuts:</label>
@@ -375,22 +409,24 @@
         </div>
       </div>
       
-      <!-- Fix 11: Wetter-Einstellungen -->
+      <!-- Fix 10: Wetter-Einstellungen (Open-Meteo) -->
       <div class="settings-section">
         <h3>Wetter-Einstellungen</h3>
         <div class="weather-settings">
-          <div class="form-group">
-            <label>API-Key (OpenWeatherMap):</label>
-            <input type="password" id="weather-api-key" placeholder="Hier eingeben" style="width: 100%;">
-          </div>
           <p class="hint" style="margin-bottom: 15px;">
-            <a href="https://openweathermap.org/api" target="_blank" style="color: var(--primary);">
-              Kostenlosen API-Key hier holen →
-            </a>
+            Verwendet <a href="https://open-meteo.com/" target="_blank" style="color: var(--primary);">Open-Meteo API</a> (kein API-Key benötigt)
           </p>
           <div class="form-group">
-            <label>Stadt:</label>
+            <label>Stadt/Ort:</label>
             <input type="text" id="weather-city" value="Munich" placeholder="z.B. Berlin" style="width: 100%;">
+          </div>
+          <div class="form-group">
+            <label>Latitude:</label>
+            <input type="number" id="weather-lat" value="48.1351" placeholder="z.B. 48.1351" step="0.0001" style="width: 100%;">
+          </div>
+          <div class="form-group">
+            <label>Longitude:</label>
+            <input type="number" id="weather-lon" value="11.5820" placeholder="z.B. 11.5820" step="0.0001" style="width: 100%;">
           </div>
           <button type="button" id="save-weather" class="btn-secondary" style="margin-top: 10px;">Speichern & Testen</button>
           <div id="weather-status" style="margin-top: 10px;"></div>
@@ -466,6 +502,25 @@
           <textarea id="calendar-event-desc" placeholder="Details zum Event..." rows="3"></textarea>
         </div>
         <div class="form-group">
+          <label for="calendar-event-icon">Event-Icon (Emoji)</label>
+          <div class="emoji-picker-container">
+            <input type="text" id="calendar-event-icon" placeholder="🎉" maxlength="2" readonly>
+            <button type="button" id="show-emoji-picker-btn" class="btn-secondary">Emoji wählen</button>
+          </div>
+          <div id="emoji-picker" class="emoji-picker hidden">
+            <div class="emoji-tabs">
+              <button type="button" class="emoji-tab active" data-category="events">🎉 Events</button>
+              <button type="button" class="emoji-tab" data-category="travel">✈️ Travel</button>
+              <button type="button" class="emoji-tab" data-category="work">💼 Work</button>
+              <button type="button" class="emoji-tab" data-category="food">🍕 Food</button>
+              <button type="button" class="emoji-tab" data-category="sports">⚽ Sports</button>
+            </div>
+            <div class="emoji-grid" id="emoji-grid">
+              <!-- Emojis werden dynamisch geladen -->
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
           <label for="calendar-event-repeat">Wiederholung</label>
           <select id="calendar-event-repeat">
             <option value="none">Keine</option>
@@ -497,6 +552,24 @@
         <!-- Events werden dynamisch eingefügt -->
       </div>
       <button type="button" id="calendar-add-new-event-btn" class="btn-secondary">+ Neues Event</button>
+    </div>
+  </div>
+
+  <!-- Fix 3: Countdown Settings Modal -->
+  <div id="countdown-settings-modal" class="modal hidden">
+    <div class="modal-content">
+      <button class="modal-close" id="countdown-settings-modal-close">✕</button>
+      <h2>Countdown-Einstellungen</h2>
+      <form id="countdown-settings-form">
+        <div class="form-group">
+          <label for="countdown-days-ahead">Vorlaufzeit (Tage):</label>
+          <input type="number" id="countdown-days-ahead" min="1" max="365" value="30">
+          <p class="hint">Zeige Events der nächsten X Tage im Countdown</p>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-primary">Speichern</button>
+        </div>
+      </form>
     </div>
   </div>
 
