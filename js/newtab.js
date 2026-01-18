@@ -180,6 +180,14 @@ function getIconFromUrl(url) {
   }
 }
 
+// ============ HTML Escaping Helper ============
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
 // ============ Feature #2: Edit-Modus ============
 function updateEditModeUI() {
   if (settings.editMode) {
@@ -946,9 +954,9 @@ function createWidgetElement(widget) {
         <div class="shortcuts-grid">
           ${shortcuts.map((shortcut, index) => `
             <div class="shortcut-item-wrapper" data-index="${index}" data-widget-id="${widget.id}">
-              <a href="${shortcut.url}" class="shortcut-item" data-index="${index}" data-widget-id="${widget.id}">
-                <img src="${shortcut.customIcon || getIconFromUrl(shortcut.url)}" class="shortcut-icon" alt="${shortcut.name}">
-                <span class="shortcut-name">${shortcut.name}</span>
+              <a href="${escapeHtml(shortcut.url)}" class="shortcut-item" data-index="${index}" data-widget-id="${widget.id}">
+                <img src="${escapeHtml(shortcut.customIcon || getIconFromUrl(shortcut.url))}" class="shortcut-icon" alt="${escapeHtml(shortcut.name)}">
+                <span class="shortcut-name">${escapeHtml(shortcut.name)}</span>
               </a>
               <button class="shortcut-settings-btn" data-index="${index}" data-widget-id="${widget.id}" title="Einstellungen">⚙️</button>
             </div>
@@ -990,8 +998,8 @@ function createWidgetElement(widget) {
         <div class="notes-list" id="notes-list-${widget.id}">
           ${notes.map((note, index) => `
             <div class="note-item" data-index="${index}" data-widget-id="${widget.id}">
-              <div class="note-item-title">${note.title || 'Ohne Titel'}</div>
-              <div class="note-item-preview">${note.content?.substring(0, 50) || '...'}</div>
+              <div class="note-item-title">${escapeHtml(note.title) || 'Ohne Titel'}</div>
+              <div class="note-item-preview">${escapeHtml(note.content?.substring(0, 50)) || '...'}</div>
             </div>
           `).join('')}
         </div>
@@ -2152,8 +2160,8 @@ function filterNotes(widgetId, query) {
   // Re-render the filtered notes list
   notesList.innerHTML = filteredNotesWithIndex.map(({ note, index }) => `
     <div class="note-item" data-index="${index}" data-widget-id="${widgetId}">
-      <div class="note-item-title">${note.title || 'Ohne Titel'}</div>
-      <div class="note-item-preview">${note.content?.substring(0, 50) || '...'}</div>
+      <div class="note-item-title">${escapeHtml(note.title) || 'Ohne Titel'}</div>
+      <div class="note-item-preview">${escapeHtml(note.content?.substring(0, 50)) || '...'}</div>
     </div>
   `).join('');
 }
@@ -2599,18 +2607,18 @@ function showDayEvents(widgetId, date) {
   
   list.innerHTML = dayEvents.map(event => {
     const countdown = getCountdown(event.date);
-    const icon = event.icon || '📅';
+    const icon = escapeHtml(event.icon) || '📅';
     
     return `
-      <div class="calendar-event-item" data-event-id="${event.id}" style="border-left: 3px solid ${event.color || '#667eea'}">
+      <div class="calendar-event-item" data-event-id="${escapeHtml(event.id)}" style="border-left: 3px solid ${escapeHtml(event.color || '#667eea')}">
         <span class="event-icon">${icon}</span>
         <div class="event-info">
-          <div class="event-title">${event.title}${event.repeat === 'yearly' ? ' 🔄' : ''}</div>
-          <div class="event-countdown">${countdown}</div>
-          ${event.time ? `<div class="event-time">🕐 ${event.time}</div>` : ''}
-          ${event.description ? `<div class="event-description">${event.description}</div>` : ''}
+          <div class="event-title">${escapeHtml(event.title)}${event.repeat === 'yearly' ? ' 🔄' : ''}</div>
+          <div class="event-countdown">${escapeHtml(countdown)}</div>
+          ${event.time ? `<div class="event-time">🕐 ${escapeHtml(event.time)}</div>` : ''}
+          ${event.description ? `<div class="event-description">${escapeHtml(event.description)}</div>` : ''}
         </div>
-        <button class="event-edit-btn" data-event-id="${event.id}" data-widget-id="${widgetId}">✏️</button>
+        <button class="event-edit-btn" data-event-id="${escapeHtml(event.id)}" data-widget-id="${escapeHtml(widgetId)}">✏️</button>
       </div>
     `;
   }).join('');

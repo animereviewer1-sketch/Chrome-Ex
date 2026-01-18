@@ -174,11 +174,14 @@ async function checkCalendarEvents() {
     const newNotifications = [];
     const storageUpdates = {};
     
-    // Simple sanitization function for notification text
+    // Sanitization function for notification text (remove HTML and decode entities)
     const sanitizeText = (text) => {
       if (!text) return '';
-      // Remove HTML tags and limit length
-      return text.replace(/<[^>]*>/g, '').substring(0, 200);
+      // Create a temporary DOM element to handle HTML entities and strip tags
+      const doc = new DOMParser().parseFromString(text, 'text/html');
+      const sanitized = doc.body.textContent || '';
+      // Limit length and trim
+      return sanitized.trim().substring(0, 200);
     };
     
     for (const event of todaysEvents) {
