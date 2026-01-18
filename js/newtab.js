@@ -941,7 +941,7 @@ function createWidgetElement(widget) {
       content.innerHTML = `
         <div class="shortcuts-grid">
           ${shortcuts.map((shortcut, index) => `
-            <div class="shortcut-item-wrapper" data-index="${index}" data-widget-id="${widget.id}" data-url="${escapeHtml(shortcut.url)}">
+            <div class="shortcut-item-wrapper" data-index="${index}" data-widget-id="${widget.id}">
               <div class="shortcut-item" data-index="${index}" data-widget-id="${widget.id}">
                 <img src="${escapeHtml(shortcut.customIcon || getIconFromUrl(shortcut.url))}" class="shortcut-icon" alt="${escapeHtml(shortcut.name)}">
                 <span class="shortcut-name">${escapeHtml(shortcut.name)}</span>
@@ -1155,8 +1155,8 @@ async function loadWeather(widgetEl) {
 // Open-Meteo API - No API key required!
 async function fetchWeather(lat, lon) {
   try {
-    // Use user's timezone if available, otherwise Europe/Berlin
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Berlin';
+    // Use user's timezone if available, otherwise UTC as universal fallback
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&timezone=${encodeURIComponent(timezone)}`;
     const response = await fetch(url);
     
@@ -1848,6 +1848,23 @@ function saveShortcutOrder(widgetId, container) {
 let currentShortcutWidgetId = null;
 let currentShortcutIndex = -1;
 
+// Helper function to retrieve and handle shortcut click from wrapper
+function handleShortcutClickFromWrapper(wrapper) {
+  const widgetId = wrapper.dataset.widgetId;
+  const index = parseInt(wrapper.dataset.index);
+  
+  // Get shortcut data from settings
+  const currentPage = settings.pages[settings.currentPage];
+  const widget = currentPage?.widgets.find(w => w.id === widgetId);
+  const shortcut = widget?.data?.shortcuts?.[index];
+  
+  if (shortcut) {
+    // Create a fake event object for handleShortcutClick
+    const fakeEvent = { preventDefault: () => {}, currentTarget: wrapper };
+    handleShortcutClick(fakeEvent, shortcut.url, shortcut);
+  }
+}
+
 function openShortcutModal(widgetId, index = -1) {
   currentShortcutWidgetId = widgetId;
   currentShortcutIndex = index;
@@ -2021,6 +2038,8 @@ async function handleShortcutClick(e, url, shortcut) {
 }
 
 // Execute custom script (sandboxed evaluation)
+// WARNING: This is still not completely secure. Use at own risk.
+// Consider implementing Web Workers or iframe sandboxes for better security.
 async function executeCustomScript(scriptCode) {
   try {
     // Validate script is not malicious
@@ -2028,8 +2047,10 @@ async function executeCustomScript(scriptCode) {
       return true;
     }
     
-    // Warning: Limited sandboxing - only allow specific safe operations
-    // Create a restricted context
+    // Show warning to user about executing custom scripts
+    console.warn('⚠️ Executing custom user script. This feature has inherent security risks.');
+    
+    // Create a restricted context with only safe APIs
     const safeContext = {
       console: console,
       alert: alert,
@@ -2039,10 +2060,11 @@ async function executeCustomScript(scriptCode) {
       Date: Date,
       JSON: JSON,
       // Add more safe APIs as needed
+      // Explicitly exclude: window, document, chrome, etc.
     };
     
     // Use Function constructor with restricted scope
-    // This is still not 100% safe but better than direct eval
+    // Note: This provides limited sandboxing. For production, use Web Workers or iframe sandboxes.
     const scriptFunction = new Function(
       'context',
       `
@@ -2056,7 +2078,7 @@ async function executeCustomScript(scriptCode) {
     return true;
   } catch (error) {
     console.error('Error executing custom script:', error);
-    alert(`Fehler beim Ausführen des Skripts:\n${error.message}\n\nHINWEIS: Benutzerdefinierte Skripte sind potenziell unsicher. Führen Sie nur vertrauenswürdige Skripte aus.`);
+    alert(`Fehler beim Ausführen des Skripts:\n${error.message}\n\n⚠️ SICHERHEITSHINWEIS: Benutzerdefinierte Skripte sind potenziell unsicher.\nFühren Sie nur vertrauenswürdige Skripte aus, die Sie selbst geschrieben oder geprüft haben.`);
     return false;
   }
 }
@@ -3179,17 +3201,7 @@ function initEventListeners() {
     const shortcutWrapper = e.target.closest('.shortcut-item-wrapper');
     if (shortcutWrapper && !e.target.closest('.shortcut-settings-btn')) {
       e.preventDefault();
-      const widgetId = shortcutWrapper.dataset.widgetId;
-      const index = parseInt(shortcutWrapper.dataset.index);
-      
-      // Get shortcut data from settings instead of HTML attribute
-      const currentPage = settings.pages[settings.currentPage];
-      const widget = currentPage?.widgets.find(w => w.id === widgetId);
-      const shortcut = widget?.data?.shortcuts?.[index];
-      
-      if (shortcut) {
-        handleShortcutClick(e, shortcut.url, shortcut);
-      }
+      handleShortcutClickFromWrapper(shortcutWrapper);
       return;
     }
     
@@ -3199,16 +3211,7 @@ function initEventListeners() {
       const wrapper = shortcutItem.closest('.shortcut-item-wrapper');
       if (wrapper) {
         e.preventDefault();
-        const widgetId = wrapper.dataset.widgetId;
-        const index = parseInt(wrapper.dataset.index);
-        
-        const currentPage = settings.pages[settings.currentPage];
-        const widget = currentPage?.widgets.find(w => w.id === widgetId);
-        const shortcut = widget?.data?.shortcuts?.[index];
-        
-        if (shortcut) {
-          handleShortcutClick(e, shortcut.url, shortcut);
-        }
+        handleShortcutClickFromWrapper(wrapper);
       }
       return;
     }

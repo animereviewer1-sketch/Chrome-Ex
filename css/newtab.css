@@ -2478,7 +2478,7 @@ body.edit-mode .widget:hover .widget-menu-btn {
 }
 
 #shortcut-custom-script {
-  font-family: 'Fira Code', monospace;
+  font-family: 'Fira Code', 'Courier New', Courier, monospace;
   font-size: 13px;
   background: rgba(0, 0, 0, 0.3);
   border: 1px solid var(--border);
