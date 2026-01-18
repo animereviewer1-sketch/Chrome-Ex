@@ -2384,8 +2384,13 @@ function openCalendarEventModal(widgetId, date, eventId = null) {
   const descInput = document.getElementById('calendar-event-desc');
   const repeatSelect = document.getElementById('calendar-event-repeat');
   const colorInput = document.getElementById('calendar-event-color');
+  const iconInput = document.getElementById('calendar-event-icon');
+  const showCountdownCheckbox = document.getElementById('event-show-countdown');
+  const countdownDaysInput = document.getElementById('event-countdown-days');
+  const countdownDaysSection = document.getElementById('countdown-days-section');
   const deleteBtn = document.getElementById('delete-calendar-event-btn');
   const modalTitle = document.getElementById('calendar-event-modal-title');
+  const eventIdInput = document.getElementById('event-id');
   
   // Reset form
   if (titleInput) titleInput.value = '';
@@ -2394,6 +2399,15 @@ function openCalendarEventModal(widgetId, date, eventId = null) {
   if (descInput) descInput.value = '';
   if (repeatSelect) repeatSelect.value = 'none';
   if (colorInput) colorInput.value = '#667eea';
+  if (iconInput) iconInput.value = '📅';
+  if (showCountdownCheckbox) showCountdownCheckbox.checked = true;
+  if (countdownDaysInput) countdownDaysInput.value = '30';
+  if (eventIdInput) eventIdInput.value = '';
+  
+  // Set up countdown section toggle
+  if (showCountdownCheckbox && countdownDaysSection) {
+    countdownDaysSection.style.display = showCountdownCheckbox.checked ? 'block' : 'none';
+  }
   
   if (eventId) {
     // Edit existing event
@@ -2411,6 +2425,15 @@ function openCalendarEventModal(widgetId, date, eventId = null) {
       if (descInput) descInput.value = event.description || '';
       if (repeatSelect) repeatSelect.value = event.repeat || 'none';
       if (colorInput) colorInput.value = event.color || '#667eea';
+      if (iconInput) iconInput.value = event.icon || '📅';
+      if (showCountdownCheckbox) showCountdownCheckbox.checked = event.showInCountdown !== false;
+      if (countdownDaysInput) countdownDaysInput.value = event.countdownDays || 30;
+      if (eventIdInput) eventIdInput.value = event.id || '';
+      
+      // Toggle visibility
+      if (countdownDaysSection) {
+        countdownDaysSection.style.display = event.showInCountdown !== false ? 'block' : 'none';
+      }
     }
   } else {
     // New event
@@ -2429,6 +2452,10 @@ function saveCalendarEvent() {
   const repeatValue = document.getElementById('calendar-event-repeat')?.value;
   const repeat = repeatValue !== 'none' ? repeatValue : null;
   const color = document.getElementById('calendar-event-color')?.value || '#667eea';
+  const icon = document.getElementById('calendar-event-icon')?.value || '📅';
+  const showInCountdown = document.getElementById('event-show-countdown')?.checked !== false;
+  const countdownDays = parseInt(document.getElementById('event-countdown-days')?.value) || 30;
+  const eventIdInput = document.getElementById('event-id')?.value;
   
   if (!title || !date) return;
   
@@ -2440,18 +2467,21 @@ function saveCalendarEvent() {
     widget.data.events = widget.data.events || [];
     
     const eventData = {
-      id: currentCalendarEventId || `event-${Date.now()}`,
+      id: eventIdInput || currentCalendarEventId || `event-${Date.now()}`,
       title,
       date,
       time,
       description,
       repeat,
-      color
+      color,
+      icon,
+      showInCountdown,
+      countdownDays
     };
     
-    if (currentCalendarEventId) {
+    if (currentCalendarEventId || eventIdInput) {
       // Update existing event
-      const index = widget.data.events.findIndex(e => e.id === currentCalendarEventId);
+      const index = widget.data.events.findIndex(e => e.id === (eventIdInput || currentCalendarEventId));
       if (index >= 0) {
         widget.data.events[index] = eventData;
       }
@@ -2567,6 +2597,14 @@ function initEventListeners() {
   document.getElementById('calendar-add-new-event-btn')?.addEventListener('click', () => {
     closeModal('calendar-day-events-modal');
     openCalendarEventModal(currentCalendarWidgetId, currentCalendarDate);
+  });
+  
+  // Countdown checkbox toggle
+  document.getElementById('event-show-countdown')?.addEventListener('change', (e) => {
+    const countdownDaysSection = document.getElementById('countdown-days-section');
+    if (countdownDaysSection) {
+      countdownDaysSection.style.display = e.target.checked ? 'block' : 'none';
+    }
   });
   
   // Shortcut Form
