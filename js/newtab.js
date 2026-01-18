@@ -799,6 +799,11 @@ function renderWidgets() {
           });
         }
       }
+      
+      // Calendar: Initialize calendar widget after DOM insertion
+      if (widget.type === 'calendar') {
+        initCalendarWidget(widget.id, widget.data);
+      }
     }
   });
 }
@@ -1043,8 +1048,6 @@ function createWidgetElement(widget) {
         <div class="calendar-grid" id="calendar-grid-${widget.id}"></div>
         <button class="calendar-add-event-btn" data-widget-id="${widget.id}">+ Event</button>
       `;
-      // Initialize calendar after element is appended
-      setTimeout(() => initCalendarWidget(widget.id, widget.data), 0);
       break;
   }
   
@@ -2136,11 +2139,12 @@ function filterNotes(widgetId, query) {
   if (!notesList) return;
   
   // Filter notes by title and content, preserving original indices
-  const lowerQuery = query.toLowerCase();
+  const trimmedQuery = query.trim();
+  const lowerQuery = trimmedQuery.toLowerCase();
   const filteredNotesWithIndex = notes
     .map((note, index) => ({ note, index }))
     .filter(({ note }) => 
-      !query ||
+      !trimmedQuery ||
       (note.title && note.title.toLowerCase().includes(lowerQuery)) ||
       (note.content && note.content.toLowerCase().includes(lowerQuery))
     );

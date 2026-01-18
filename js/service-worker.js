@@ -153,10 +153,10 @@ async function checkCalendarEvents() {
     const todaysEvents = allEvents.filter(event => {
       if (event.date === today) return true;
       
-      // Check for recurring yearly events
+      // Check for recurring yearly events (normalized to local timezone)
       if (event.repeat === 'yearly') {
-        const eventDate = new Date(event.date);
-        const todayDate = new Date(today);
+        const eventDate = new Date(event.date + 'T00:00:00');
+        const todayDate = new Date(today + 'T00:00:00');
         return eventDate.getDate() === todayDate.getDate() && 
                eventDate.getMonth() === todayDate.getMonth();
       }
@@ -174,16 +174,26 @@ async function checkCalendarEvents() {
     const newNotifications = [];
     const storageUpdates = {};
     
+    // Simple sanitization function for notification text
+    const sanitizeText = (text) => {
+      if (!text) return '';
+      // Remove HTML tags and limit length
+      return text.replace(/<[^>]*>/g, '').substring(0, 200);
+    };
+    
     for (const event of todaysEvents) {
       const notificationId = `calendar-event-${event.id}`;
       const notificationKey = `notified-${notificationId}-${today}`;
       
       // Check if we already notified about this event today
       if (!notifiedResults[notificationKey]) {
+        const safeTitle = sanitizeText(event.title);
+        const safeDescription = event.description ? sanitizeText(event.description) : `Heute ist ${safeTitle}`;
+        
         newNotifications.push({
           id: notificationId,
-          title: `📅 Event heute: ${event.title}`,
-          message: event.description || `Heute ist ${event.title}`
+          title: `📅 Event heute: ${safeTitle}`,
+          message: safeDescription
         });
         
         storageUpdates[notificationKey] = true;
