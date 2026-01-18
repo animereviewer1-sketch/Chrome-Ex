@@ -409,22 +409,24 @@
         </div>
       </div>
       
-      <!-- Fix 11: Wetter-Einstellungen -->
+      <!-- Fix 10: Wetter-Einstellungen (Open-Meteo) -->
       <div class="settings-section">
         <h3>Wetter-Einstellungen</h3>
         <div class="weather-settings">
-          <div class="form-group">
-            <label>API-Key (OpenWeatherMap):</label>
-            <input type="password" id="weather-api-key" placeholder="Hier eingeben" style="width: 100%;">
-          </div>
           <p class="hint" style="margin-bottom: 15px;">
-            <a href="https://openweathermap.org/api" target="_blank" style="color: var(--primary);">
-              Kostenlosen API-Key hier holen →
-            </a>
+            Verwendet <a href="https://open-meteo.com/" target="_blank" style="color: var(--primary);">Open-Meteo API</a> (kein API-Key benötigt)
           </p>
           <div class="form-group">
-            <label>Stadt:</label>
+            <label>Stadt/Ort:</label>
             <input type="text" id="weather-city" value="Munich" placeholder="z.B. Berlin" style="width: 100%;">
+          </div>
+          <div class="form-group">
+            <label>Latitude:</label>
+            <input type="number" id="weather-lat" value="48.1351" placeholder="z.B. 48.1351" step="0.0001" style="width: 100%;">
+          </div>
+          <div class="form-group">
+            <label>Longitude:</label>
+            <input type="number" id="weather-lon" value="11.5820" placeholder="z.B. 11.5820" step="0.0001" style="width: 100%;">
           </div>
           <button type="button" id="save-weather" class="btn-secondary" style="margin-top: 10px;">Speichern & Testen</button>
           <div id="weather-status" style="margin-top: 10px;"></div>

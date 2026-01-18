@@ -56,9 +56,10 @@ const DEFAULT_SETTINGS = {
   gridSize: 20,
   gridColor: '#ff00ff',
   gridVisible: true,
-  // Fix 11: Wetter-Einstellungen
-  weatherApiKey: '',
+  // Fix 10: Wetter-Einstellungen (Open-Meteo)
   weatherCity: 'Munich',
+  weatherLat: 48.1351,
+  weatherLon: 11.5820,
   pages: {
     '1': {
       name: 'Start',
@@ -1124,7 +1125,8 @@ function startClock() {
 
 // ============ Weather Widget (Fix 11: Mit API-Key Unterstützung) ============
 async function loadWeather(widgetEl) {
-  const apiKey = settings.weatherApiKey;
+  const latitude = settings.weatherLat || 48.1351; // Munich default
+  const longitude = settings.weatherLon || 11.5820;
   const city = settings.weatherCity || 'Munich';
   
   const iconEl = widgetEl.querySelector('.weather-icon');
@@ -1132,17 +1134,8 @@ async function loadWeather(widgetEl) {
   const descEl = widgetEl.querySelector('.weather-desc');
   const locEl = widgetEl.querySelector('.weather-location');
   
-  // Wenn kein API-Key vorhanden, Demo-Daten anzeigen
-  if (!apiKey) {
-    if (iconEl) iconEl.textContent = '⚙️';
-    if (tempEl) tempEl.textContent = '--°C';
-    if (descEl) descEl.textContent = 'API-Key fehlt';
-    if (locEl) locEl.textContent = 'Einstellungen → Wetter';
-    return;
-  }
-  
   try {
-    const weather = await fetchWeather(city, apiKey);
+    const weather = await fetchWeather(latitude, longitude);
     
     if (weather.error) {
       if (iconEl) iconEl.textContent = '⚠️';
@@ -1164,18 +1157,10 @@ async function loadWeather(widgetEl) {
   }
 }
 
-// Fix 11: Wetter-API abrufen
-async function fetchWeather(city, apiKey) {
-  if (!apiKey) {
-    return { 
-      temp: '--', 
-      condition: 'API-Key fehlt',
-      error: true 
-    };
-  }
-  
+// Fix 10: Open-Meteo API (no API key needed)
+async function fetchWeather(lat, lon) {
   try {
-    const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric&lang=de`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
     const response = await fetch(url);
     
     if (!response.ok) {
@@ -1183,13 +1168,12 @@ async function fetchWeather(city, apiKey) {
     }
     
     const data = await response.json();
+    const current = data.current_weather;
     
     return {
-      temp: Math.round(data.main.temp),
-      condition: data.weather[0].description,
-      humidity: data.main.humidity,
-      wind: data.wind.speed,
-      icon: getWeatherIcon(data.weather[0].icon),
+      temp: Math.round(current.temperature),
+      condition: getWeatherCondition(current.weathercode),
+      icon: getWeatherIconFromCode(current.weathercode, current.is_day),
       error: false
     };
   } catch (error) {
@@ -1202,23 +1186,69 @@ async function fetchWeather(city, apiKey) {
   }
 }
 
-// Fix 11: Wetter-Icons zuordnen
-function getWeatherIcon(code) {
+// Fix 10: Map WMO weather codes to conditions
+function getWeatherCondition(code) {
+  const conditions = {
+    0: 'Klar',
+    1: 'Überwiegend klar',
+    2: 'Teilweise bewölkt',
+    3: 'Bewölkt',
+    45: 'Neblig',
+    48: 'Neblig',
+    51: 'Leichter Nieselregen',
+    53: 'Nieselregen',
+    55: 'Starker Nieselregen',
+    61: 'Leichter Regen',
+    63: 'Regen',
+    65: 'Starker Regen',
+    71: 'Leichter Schneefall',
+    73: 'Schneefall',
+    75: 'Starker Schneefall',
+    77: 'Schneegriesel',
+    80: 'Leichte Regenschauer',
+    81: 'Regenschauer',
+    82: 'Starke Regenschauer',
+    85: 'Leichte Schneeschauer',
+    86: 'Schneeschauer',
+    95: 'Gewitter',
+    96: 'Gewitter mit Hagel',
+    99: 'Gewitter mit Hagel'
+  };
+  return conditions[code] || 'Unbekannt';
+}
+
+// Fix 10: Map WMO codes to emoji icons
+function getWeatherIconFromCode(code, isDay) {
   const icons = {
-    '01d': '☀️', '01n': '🌙',
-    '02d': '⛅', '02n': '☁️',
-    '03d': '☁️', '03n': '☁️',
-    '04d': '☁️', '04n': '☁️',
-    '09d': '🌧️', '09n': '🌧️',
-    '10d': '🌦️', '10n': '🌧️',
-    '11d': '⛈️', '11n': '⛈️',
-    '13d': '❄️', '13n': '❄️',
-    '50d': '🌫️', '50n': '🌫️'
+    0: isDay ? '☀️' : '🌙',
+    1: isDay ? '🌤️' : '🌙',
+    2: isDay ? '⛅' : '☁️',
+    3: '☁️',
+    45: '🌫️',
+    48: '🌫️',
+    51: '🌦️',
+    53: '🌧️',
+    55: '🌧️',
+    61: '🌧️',
+    63: '🌧️',
+    65: '🌧️',
+    71: '🌨️',
+    73: '❄️',
+    75: '❄️',
+    77: '🌨️',
+    80: '🌦️',
+    81: '🌧️',
+    82: '🌧️',
+    85: '🌨️',
+    86: '🌨️',
+    95: '⛈️',
+    96: '⛈️',
+    99: '⛈️'
   };
   return icons[code] || '🌤️';
 }
 
-// Fix 11: Alle Wetter-Widgets aktualisieren
+// Fix 10: Update all weather widgets
 function updateAllWeatherWidgets() {
   document.querySelectorAll('.weather-widget').forEach(widget => {
     loadWeather(widget);
@@ -1507,12 +1537,14 @@ function initBackgroundSettings() {
   if (gridColorInput) gridColorInput.value = settings.gridColor || '#ff00ff';
   if (gridVisibleCheckbox) gridVisibleCheckbox.checked = settings.gridVisible !== false;
   
-  // Fix 11: Wetter-Einstellungen initialisieren
-  const weatherApiKey = document.getElementById('weather-api-key');
+  // Fix 10: Wetter-Einstellungen initialisieren (Open-Meteo)
   const weatherCity = document.getElementById('weather-city');
+  const weatherLat = document.getElementById('weather-lat');
+  const weatherLon = document.getElementById('weather-lon');
   
-  if (weatherApiKey) weatherApiKey.value = settings.weatherApiKey || '';
   if (weatherCity) weatherCity.value = settings.weatherCity || 'Munich';
+  if (weatherLat) weatherLat.value = settings.weatherLat || 48.1351;
+  if (weatherLon) weatherLon.value = settings.weatherLon || 11.5820;
 }
 
 // ============ Widget Management ============
@@ -3178,12 +3210,15 @@ function initEventListeners() {
   });
   
   // Fix 11: Wetter-Einstellungen
+  // Fix 10: Save weather settings (Open-Meteo)
   document.getElementById('save-weather')?.addEventListener('click', async () => {
-    const apiKey = document.getElementById('weather-api-key')?.value;
     const city = document.getElementById('weather-city')?.value || 'Munich';
+    const lat = parseFloat(document.getElementById('weather-lat')?.value) || 48.1351;
+    const lon = parseFloat(document.getElementById('weather-lon')?.value) || 11.5820;
     
-    settings.weatherApiKey = apiKey;
     settings.weatherCity = city;
+    settings.weatherLat = lat;
+    settings.weatherLon = lon;
     await saveSettings();
     
     const status = document.getElementById('weather-status');
@@ -3192,7 +3227,7 @@ function initEventListeners() {
       status.style.color = 'inherit';
     }
     
-    const weather = await fetchWeather(city, apiKey);
+    const weather = await fetchWeather(lat, lon);
     
     if (weather.error) {
       if (status) {
