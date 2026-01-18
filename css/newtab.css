@@ -2230,3 +2230,331 @@ body.edit-mode .widget:hover .widget-menu-btn {
   background: var(--primary);
   transform: scale(1.1);
 }
+
+/* ============ Emoji Picker Styles ============ */
+.icon-selector {
+  position: relative;
+}
+
+.emoji-picker-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(102, 126, 234, 0.5);
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.emoji-picker-button:hover {
+  background: rgba(102, 126, 234, 0.2);
+  border-color: var(--primary);
+}
+
+#selected-emoji-display {
+  font-size: 28px;
+}
+
+.emoji-picker-popup {
+  position: absolute;
+  top: 60px;
+  left: 0;
+  width: 320px;
+  background: #1a1a2e;
+  border: 2px solid var(--primary);
+  border-radius: 12px;
+  padding: 15px;
+  z-index: 1000;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.emoji-categories {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.emoji-cat-btn {
+  flex: 1;
+  padding: 8px;
+  font-size: 24px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+  opacity: 0.5;
+  transition: all 0.2s;
+}
+
+.emoji-cat-btn:hover {
+  opacity: 0.8;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.emoji-cat-btn.active {
+  opacity: 1;
+  background: rgba(102, 126, 234, 0.3);
+}
+
+.emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.emoji-item {
+  width: 48px;
+  height: 48px;
+  font-size: 28px;
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.emoji-item:hover {
+  background: rgba(102, 126, 234, 0.3);
+  transform: scale(1.1);
+}
+
+/* ============ Countdown Section Styles ============ */
+.countdown-section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.countdown-section h4 {
+  color: white;
+  margin-bottom: 15px;
+  font-size: 16px;
+}
+
+.countdown-events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.countdown-event-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.countdown-event-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.countdown-event-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.countdown-event-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.countdown-event-title {
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.countdown-event-date {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.countdown-badge {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.countdown-badge.urgent {
+  background: #ff4757;
+  color: white;
+  animation: pulse 1.5s infinite;
+}
+
+.countdown-badge.soon {
+  background: #ffa502;
+  color: white;
+}
+
+.countdown-badge.week {
+  background: #1e90ff;
+  color: white;
+}
+
+.countdown-badge.later {
+  background: rgba(102, 126, 234, 0.5);
+  color: white;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.no-countdown-events {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+  text-align: center;
+  padding: 20px;
+}
+
+/* ============ Weather Location Style ============ */
+.weather-location {
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+/* ============ Shortcut Item Clickable Area Fix ============ */
+.shortcut-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 12px;
+  cursor: pointer !important;
+  transition: all 0.2s;
+  position: relative;
+  user-select: none;
+  text-decoration: none;
+  color: inherit;
+}
+
+.shortcut-item:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: scale(1.05);
+}
+
+.shortcut-icon {
+  width: 70px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  padding: 5px;
+  background: rgba(255, 255, 255, 0.05);
+  object-fit: contain;
+}
+
+.shortcut-name {
+  color: white;
+  font-size: 13px;
+  text-align: center;
+  max-width: 85px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ============ Distraction Counter Widget ============ */
+.distraction-counter-widget {
+  text-align: center;
+}
+
+.distraction-count {
+  font-size: 72px;
+  font-weight: bold;
+  color: var(--primary);
+  margin: 20px 0;
+}
+
+.distraction-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.distraction-increment-btn,
+.distraction-reset-btn {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.distraction-increment-btn {
+  background: var(--primary);
+  color: white;
+}
+
+.distraction-increment-btn:hover {
+  background: var(--secondary);
+  transform: scale(1.05);
+}
+
+.distraction-reset-btn {
+  background: rgba(255, 71, 87, 0.8);
+  color: white;
+}
+
+.distraction-reset-btn:hover {
+  background: #ff4757;
+  transform: scale(1.05);
+}
+
+/* ============ Decision Coin Widget ============ */
+.decision-coin-widget {
+  text-align: center;
+}
+
+.coin-result {
+  font-size: 48px;
+  font-weight: bold;
+  color: var(--primary);
+  margin: 30px 0;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.coin-flip-btn {
+  padding: 12px 30px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.coin-flip-btn:hover {
+  background: var(--secondary);
+  transform: scale(1.05);
+}
