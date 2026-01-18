@@ -12,6 +12,7 @@
   "host_permissions": [
     "<all_urls>"
   ],
+  "_comment": "host_permissions <all_urls> is required for the distraction counter feature to track clicks globally across all websites as specified in requirements",
   "chrome_url_overrides": {
     "newtab": "newtab.html"
   },

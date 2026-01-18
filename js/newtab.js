@@ -1156,7 +1156,13 @@ async function loadWeather(widgetEl) {
 async function fetchWeather(lat, lon) {
   try {
     // Use user's timezone if available, otherwise UTC as universal fallback
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+    let timezone = 'UTC';
+    try {
+      timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+    } catch (e) {
+      console.warn('Could not detect timezone, using UTC');
+    }
+    
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&timezone=${encodeURIComponent(timezone)}`;
     const response = await fetch(url);
     
@@ -3081,8 +3087,14 @@ function initEventListeners() {
   // Fix 11: Wetter-Einstellungen
   document.getElementById('save-weather')?.addEventListener('click', async () => {
     const city = document.getElementById('weather-city')?.value || 'München';
-    const lat = parseFloat(document.getElementById('weather-lat')?.value) || 48.1374;
-    const lon = parseFloat(document.getElementById('weather-lon')?.value) || 11.5755;
+    let lat = parseFloat(document.getElementById('weather-lat')?.value);
+    let lon = parseFloat(document.getElementById('weather-lon')?.value);
+    
+    // Validate coordinates
+    if (isNaN(lat) || isNaN(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+      alert('Ungültige Koordinaten. Breitengrad muss zwischen -90 und 90 liegen, Längengrad zwischen -180 und 180.');
+      return;
+    }
     
     settings.weatherCity = city;
     settings.weatherLat = lat;
