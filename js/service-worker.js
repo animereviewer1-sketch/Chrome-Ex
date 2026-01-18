@@ -164,30 +164,49 @@ async function checkCalendarEvents() {
       return false;
     });
     
-    // Create notifications for today's events
+    // Get all notification keys at once to check if we've already notified
+    const notificationKeys = todaysEvents.map(event => 
+      `notified-calendar-event-${event.id}-${today}`
+    );
+    const notifiedResults = await chrome.storage.local.get(notificationKeys);
+    
+    // Batch notifications and storage updates
+    const newNotifications = [];
+    const storageUpdates = {};
+    
     for (const event of todaysEvents) {
       const notificationId = `calendar-event-${event.id}`;
+      const notificationKey = `notified-${notificationId}-${today}`;
       
       // Check if we already notified about this event today
-      const notificationKey = `notified-${notificationId}-${today}`;
-      const notifiedResult = await chrome.storage.local.get(notificationKey);
-      
-      if (!notifiedResult[notificationKey]) {
-        // Create notification
-        await chrome.notifications.create(notificationId, {
-          type: 'basic',
-          iconUrl: 'icons/icon128.png',
+      if (!notifiedResults[notificationKey]) {
+        newNotifications.push({
+          id: notificationId,
           title: `📅 Event heute: ${event.title}`,
-          message: event.description || `Heute ist ${event.title}`,
-          priority: 2,
-          requireInteraction: true
+          message: event.description || `Heute ist ${event.title}`
         });
         
-        // Mark as notified for today
-        await chrome.storage.local.set({ [notificationKey]: true });
-        
-        console.log(`Chrome-Ex: Benachrichtigung erstellt für Event: ${event.title}`);
+        storageUpdates[notificationKey] = true;
       }
+    }
+    
+    // Create all notifications
+    for (const notification of newNotifications) {
+      await chrome.notifications.create(notification.id, {
+        type: 'basic',
+        iconUrl: 'icons/icon128.png',
+        title: notification.title,
+        message: notification.message,
+        priority: 2,
+        requireInteraction: true
+      });
+      
+      console.log(`Chrome-Ex: Benachrichtigung erstellt für: ${notification.title}`);
+    }
+    
+    // Batch update storage for all new notifications
+    if (Object.keys(storageUpdates).length > 0) {
+      await chrome.storage.local.set(storageUpdates);
     }
   } catch (error) {
     console.error('Chrome-Ex: Fehler beim Prüfen von Calendar Events:', error);

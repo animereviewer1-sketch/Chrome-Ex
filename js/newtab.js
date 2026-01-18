@@ -789,6 +789,16 @@ function renderWidgets() {
           initShortcutDragDrop(widget.id, shortcutsGrid);
         }
       }
+      
+      // Notes Search: Initialize search event listener for notes widgets
+      if (widget.type === 'notes') {
+        const searchInput = el.querySelector(`#notes-search-${widget.id}`);
+        if (searchInput) {
+          searchInput.addEventListener('input', (e) => {
+            filterNotes(widget.id, e.target.value);
+          });
+        }
+      }
     }
   });
 }
@@ -981,16 +991,6 @@ function createWidgetElement(widget) {
           `).join('')}
         </div>
       `;
-      
-      // Add search event listener after rendering
-      setTimeout(() => {
-        const searchInput = document.getElementById(`notes-search-${widget.id}`);
-        if (searchInput) {
-          searchInput.addEventListener('input', (e) => {
-            filterNotes(widget.id, e.target.value);
-          });
-        }
-      }, 0);
       break;
       
     case 'weather':
@@ -2135,26 +2135,23 @@ function filterNotes(widgetId, query) {
   
   if (!notesList) return;
   
-  // Filter notes by title and content
+  // Filter notes by title and content, preserving original indices
   const lowerQuery = query.toLowerCase();
-  const filteredNotes = query 
-    ? notes.filter(note => 
-        (note.title && note.title.toLowerCase().includes(lowerQuery)) ||
-        (note.content && note.content.toLowerCase().includes(lowerQuery))
-      )
-    : notes;
+  const filteredNotesWithIndex = notes
+    .map((note, index) => ({ note, index }))
+    .filter(({ note }) => 
+      !query ||
+      (note.title && note.title.toLowerCase().includes(lowerQuery)) ||
+      (note.content && note.content.toLowerCase().includes(lowerQuery))
+    );
   
   // Re-render the filtered notes list
-  notesList.innerHTML = filteredNotes.map((note, index) => {
-    // Find original index
-    const originalIndex = notes.indexOf(note);
-    return `
-      <div class="note-item" data-index="${originalIndex}" data-widget-id="${widgetId}">
-        <div class="note-item-title">${note.title || 'Ohne Titel'}</div>
-        <div class="note-item-preview">${note.content?.substring(0, 50) || '...'}</div>
-      </div>
-    `;
-  }).join('');
+  notesList.innerHTML = filteredNotesWithIndex.map(({ note, index }) => `
+    <div class="note-item" data-index="${index}" data-widget-id="${widgetId}">
+      <div class="note-item-title">${note.title || 'Ohne Titel'}</div>
+      <div class="note-item-preview">${note.content?.substring(0, 50) || '...'}</div>
+    </div>
+  `).join('');
 }
 
 // ============ Fix 7: Calendar Widget ============
