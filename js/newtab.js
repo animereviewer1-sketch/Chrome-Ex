@@ -1252,6 +1252,7 @@ function updateAllWeatherWidgets() {
 }
 
 // ============ Weather Auto-Sync ============
+const WEATHER_UPDATE_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 let weatherUpdateInterval = null;
 
 function initWeatherAutoSync() {
@@ -1265,7 +1266,7 @@ function initWeatherAutoSync() {
   weatherUpdateInterval = setInterval(() => {
     updateAllWeatherWidgets();
     localStorage.setItem('weatherLastUpdate', Date.now().toString());
-  }, 5 * 60 * 1000); // 5 minutes
+  }, WEATHER_UPDATE_INTERVAL_MS);
 }
 
 // Update weather on tab visibility change
@@ -1275,7 +1276,7 @@ document.addEventListener('visibilitychange', () => {
     const now = Date.now();
     
     // If more than 5 minutes since last update, refresh
-    if (!lastUpdate || (now - parseInt(lastUpdate)) > 5 * 60 * 1000) {
+    if (!lastUpdate || (now - parseInt(lastUpdate)) > WEATHER_UPDATE_INTERVAL_MS) {
       updateAllWeatherWidgets();
       localStorage.setItem('weatherLastUpdate', now.toString());
     }
