@@ -1021,6 +1021,35 @@ function createWidgetElement(widget) {
       `;
       break;
       
+    // Fix 5: Stats/Distraction Counter Widget
+    case 'stats':
+      div.classList.add('stats-widget');
+      content.innerHTML = `
+        <h3>📊 Heutige Aktivität</h3>
+        <p class="hint">Rein informativ 😊</p>
+        <div class="stats-display" id="stats-display-${widget.id}">
+          <div class="stat-box">
+            <div class="stat-icon">🔄</div>
+            <div class="stat-number" id="stat-switches-${widget.id}">0</div>
+            <div class="stat-label">Tab-Wechsel</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-icon">📑</div>
+            <div class="stat-number" id="stat-newtabs-${widget.id}">0</div>
+            <div class="stat-label">Neue Tabs</div>
+          </div>
+        </div>
+        <button class="btn-secondary btn-full" data-widget-id="${widget.id}" onclick="showHistoryModal()">
+          📊 History anzeigen
+        </button>
+        <button class="btn-secondary btn-small" data-widget-id="${widget.id}" onclick="resetStatsCounter()">
+          ↺ Zurücksetzen
+        </button>
+      `;
+      // Load stats
+      loadDailyStats(widget.id);
+      break;
+      
     // Fix 7: Calendar Widget
     case 'calendar':
       div.classList.add('calendar-widget');
@@ -1217,6 +1246,95 @@ function updateAllWeatherWidgets() {
 // Retry weather loading (called from retry button)
 window.retryWeather = function() {
   updateAllWeatherWidgets();
+};
+
+// ============ Fix 5 & 6: Stats & History Functions ============
+// Load daily stats from service worker
+function loadDailyStats(widgetId) {
+  if (typeof chrome !== 'undefined' && chrome.runtime) {
+    chrome.runtime.sendMessage({ type: 'getStats' }, (response) => {
+      if (response && response.stats) {
+        const stats = response.stats;
+        const switchesEl = document.getElementById(`stat-switches-${widgetId}`);
+        const newtabsEl = document.getElementById(`stat-newtabs-${widgetId}`);
+        
+        if (switchesEl) switchesEl.textContent = stats.tabSwitches || 0;
+        if (newtabsEl) newtabsEl.textContent = stats.newTabs || 0;
+      }
+    });
+  }
+}
+
+// Reset stats counter
+window.resetStatsCounter = function() {
+  if (confirm('Statistiken wirklich zurücksetzen?')) {
+    if (typeof chrome !== 'undefined' && chrome.runtime) {
+      chrome.runtime.sendMessage({ type: 'resetStats' }, () => {
+        // Refresh all stats widgets
+        document.querySelectorAll('.stats-widget').forEach(widget => {
+          const widgetId = widget.dataset.widgetId;
+          if (widgetId) {
+            loadDailyStats(widgetId);
+          }
+        });
+      });
+    }
+  }
+};
+
+// Show history modal
+window.showHistoryModal = function() {
+  if (typeof chrome !== 'undefined' && chrome.runtime) {
+    chrome.runtime.sendMessage({ type: 'getHistory' }, (response) => {
+      const history = response.history || [];
+      
+      // Create modal if it doesn't exist
+      let modal = document.getElementById('history-modal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'history-modal';
+        modal.className = 'modal';
+        document.body.appendChild(modal);
+      }
+      
+      modal.innerHTML = `
+        <div class="modal-content history-modal">
+          <button class="modal-close" onclick="closeModal('history-modal')">✕</button>
+          <h2>📊 Meistbesuchte Webseiten</h2>
+          
+          <div class="history-list">
+            ${history.length === 0 ? 
+              '<p class="no-history">Noch keine History vorhanden</p>' :
+              history.map(([domain, count], i) => `
+                <div class="history-item">
+                  <span class="history-rank">#${i + 1}</span>
+                  <span class="history-domain">${domain}</span>
+                  <span class="history-count">${count}x besucht</span>
+                </div>
+              `).join('')
+            }
+          </div>
+          
+          <button onclick="clearHistoryData()" class="btn-danger" style="margin-top: 20px;">
+            🗑️ History löschen
+          </button>
+        </div>
+      `;
+      
+      openModal('history-modal');
+    });
+  }
+};
+
+// Clear history
+window.clearHistoryData = function() {
+  if (confirm('History wirklich löschen?')) {
+    if (typeof chrome !== 'undefined' && chrome.runtime) {
+      chrome.runtime.sendMessage({ type: 'clearHistory' }, () => {
+        closeModal('history-modal');
+      });
+    }
+  }
 };
 
 // ============ Feature #18: Password Generator ============
