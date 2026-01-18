@@ -76,7 +76,41 @@
               <input type="file" id="shortcut-icon-upload" accept="image/*" class="hidden">
             </div>
           </div>
+          <!-- Fix 7: Icon URL loader -->
+          <div class="icon-url-input">
+            <input type="url" id="shortcut-icon-url" placeholder="Icon-URL (https://...)">
+            <button type="button" id="shortcut-load-icon-url-btn" class="btn-secondary">Laden</button>
+          </div>
+          <!-- Fix 8: Icon editor -->
+          <div id="icon-editor" class="icon-editor hidden">
+            <h4>Icon anpassen</h4>
+            <div class="preview-box">
+              <img id="icon-editor-preview" src="" alt="Preview">
+            </div>
+            <div class="control-group">
+              <label>
+                <span>Zoom:</span>
+                <span class="value-display" id="icon-zoom-val">100%</span>
+              </label>
+              <input type="range" id="icon-zoom" min="50" max="200" value="100">
+            </div>
+            <div class="control-group">
+              <label>
+                <span>Position X:</span>
+                <span class="value-display" id="icon-pos-x-val">0px</span>
+              </label>
+              <input type="range" id="icon-pos-x" min="-50" max="50" value="0">
+            </div>
+            <div class="control-group">
+              <label>
+                <span>Position Y:</span>
+                <span class="value-display" id="icon-pos-y-val">0px</span>
+              </label>
+              <input type="range" id="icon-pos-y" min="-50" max="50" value="0">
+            </div>
+          </div>
           <input type="hidden" id="shortcut-custom-icon" value="">
+          <input type="hidden" id="shortcut-icon-transform" value="">
         </div>
         <div class="form-group special-shortcuts">
           <label>Oder spezielle Shortcuts:</label>
@@ -516,6 +550,24 @@
         <!-- Events werden dynamisch eingefügt -->
       </div>
       <button type="button" id="calendar-add-new-event-btn" class="btn-secondary">+ Neues Event</button>
+    </div>
+  </div>
+
+  <!-- Fix 3: Countdown Settings Modal -->
+  <div id="countdown-settings-modal" class="modal hidden">
+    <div class="modal-content">
+      <button class="modal-close" id="countdown-settings-modal-close">✕</button>
+      <h2>Countdown-Einstellungen</h2>
+      <form id="countdown-settings-form">
+        <div class="form-group">
+          <label for="countdown-days-ahead">Vorlaufzeit (Tage):</label>
+          <input type="number" id="countdown-days-ahead" min="1" max="365" value="30">
+          <p class="hint">Zeige Events der nächsten X Tage im Countdown</p>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-primary">Speichern</button>
+        </div>
+      </form>
     </div>
   </div>
 
