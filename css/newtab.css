@@ -442,15 +442,17 @@ body.animated-gradient {
   gap: 8px;
   text-decoration: none;
   color: var(--text);
-  transition: transform 0.2s;
-  cursor: pointer;
+  transition: all 0.2s;
+  cursor: pointer !important;
   padding: 10px;
   border-radius: 12px;
+  position: relative;
+  user-select: none;
 }
 
 .shortcut-item:hover {
-  transform: translateY(-5px);
-  background: rgba(255, 255, 255, 0.05);
+  transform: scale(1.05);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 /* Fix 4: Shortcut item wrapper for settings button */
@@ -526,20 +528,26 @@ body.edit-mode .shortcut-settings-btn {
 }
 
 .shortcut-icon {
-  width: 48px;
-  height: 48px;
+  width: 70px;
+  height: 70px;
   border-radius: 12px;
-  object-fit: cover;
-  background: var(--bg-secondary);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  padding: 5px;
+  background: rgba(255, 255, 255, 0.05);
+  object-fit: contain;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .shortcut-name {
-  font-size: 12px;
+  font-size: 13px;
   text-align: center;
-  max-width: 80px;
+  max-width: 85px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: white;
 }
 
 .add-shortcut-btn {
@@ -2230,3 +2238,194 @@ body.edit-mode .widget:hover .widget-menu-btn {
   background: var(--primary);
   transform: scale(1.1);
 }
+
+/* ============ Emoji Picker Styles ============ */
+.icon-selector {
+  position: relative;
+}
+
+.emoji-picker-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(102, 126, 234, 0.5);
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.emoji-picker-button:hover {
+  background: rgba(102, 126, 234, 0.2);
+  border-color: var(--primary);
+}
+
+#selected-emoji-display {
+  font-size: 28px;
+}
+
+.emoji-picker-popup {
+  position: absolute;
+  top: 60px;
+  left: 0;
+  width: 320px;
+  background: #1a1a2e;
+  border: 2px solid var(--primary);
+  border-radius: 12px;
+  padding: 15px;
+  z-index: 1000;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.emoji-categories {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.emoji-cat-btn {
+  flex: 1;
+  padding: 8px;
+  font-size: 24px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+  opacity: 0.5;
+  transition: all 0.2s;
+}
+
+.emoji-cat-btn:hover {
+  opacity: 0.8;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.emoji-cat-btn.active {
+  opacity: 1;
+  background: rgba(102, 126, 234, 0.3);
+}
+
+.emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.emoji-item {
+  width: 48px;
+  height: 48px;
+  font-size: 28px;
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.emoji-item:hover {
+  background: rgba(102, 126, 234, 0.3);
+  transform: scale(1.1);
+}
+
+/* ============ Countdown Section Styles ============ */
+.countdown-section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.countdown-section h4 {
+  color: white;
+  margin-bottom: 15px;
+  font-size: 16px;
+}
+
+.countdown-events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.countdown-event-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.countdown-event-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.countdown-event-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.countdown-event-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.countdown-event-title {
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.countdown-event-date {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.countdown-badge {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.countdown-badge.urgent {
+  background: #ff4757;
+  color: white;
+  animation: pulse 1.5s infinite;
+}
+
+.countdown-badge.soon {
+  background: #ffa502;
+  color: white;
+}
+
+.countdown-badge.week {
+  background: #1e90ff;
+  color: white;
+}
+
+.countdown-badge.later {
+  background: rgba(102, 126, 234, 0.5);
+  color: white;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.no-countdown-events {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+  text-align: center;
+  padding: 20px;

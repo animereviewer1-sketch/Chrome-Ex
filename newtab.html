@@ -375,25 +375,55 @@
         </div>
       </div>
       
-      <!-- Fix 11: Wetter-Einstellungen -->
+      <!-- Fix 3: Wetter-Einstellungen - Open-Meteo -->
       <div class="settings-section">
-        <h3>Wetter-Einstellungen</h3>
+        <h3>🌤️ Wetter-Einstellungen</h3>
         <div class="weather-settings">
-          <div class="form-group">
-            <label>API-Key (OpenWeatherMap):</label>
-            <input type="password" id="weather-api-key" placeholder="Hier eingeben" style="width: 100%;">
-          </div>
-          <p class="hint" style="margin-bottom: 15px;">
-            <a href="https://openweathermap.org/api" target="_blank" style="color: var(--primary);">
-              Kostenlosen API-Key hier holen →
+          <p class="api-info" style="margin-bottom: 15px;">
+            Verwendet: <a href="https://open-meteo.com/" target="_blank" style="color: var(--primary);">
+              https://open-meteo.com/
             </a>
+            <br>
+            <small>Kostenlos & ohne API-Key</small>
           </p>
+          
           <div class="form-group">
-            <label>Stadt:</label>
-            <input type="text" id="weather-city" value="Munich" placeholder="z.B. Berlin" style="width: 100%;">
+            <label>Standort (Koordinaten):</label>
+            <div class="coordinate-inputs" style="display: flex; gap: 10px;">
+              <input type="number" 
+                     id="weather-latitude" 
+                     placeholder="Latitude" 
+                     value="48.1374" 
+                     step="0.0001"
+                     style="width: 48%;">
+              <input type="number" 
+                     id="weather-longitude" 
+                     placeholder="Longitude" 
+                     value="11.5755" 
+                     step="0.0001"
+                     style="width: 48%;">
+            </div>
+            <p class="hint" style="margin-top: 10px;">
+              Standard: München (48.1374, 11.5755)
+              <br>
+              <a href="https://www.latlong.net/" target="_blank" style="color: var(--primary);">🔍 Koordinaten finden</a>
+            </p>
           </div>
-          <button type="button" id="save-weather" class="btn-secondary" style="margin-top: 10px;">Speichern & Testen</button>
-          <div id="weather-status" style="margin-top: 10px;"></div>
+          
+          <div class="form-group">
+            <label>Stadtname (optional, nur zur Anzeige):</label>
+            <input type="text" 
+                   id="weather-city-name" 
+                   placeholder="z.B. München" 
+                   value="München"
+                   style="width: 100%;">
+          </div>
+          
+          <button type="button" id="save-weather-settings" class="btn-primary" style="margin-top: 10px;">
+            Speichern & Testen
+          </button>
+          
+          <div id="weather-test-result" class="weather-test-result" style="margin-top: 10px;"></div>
         </div>
       </div>
 
@@ -478,6 +508,38 @@
         <div class="form-group">
           <label for="calendar-event-color">Farbe</label>
           <input type="color" id="calendar-event-color" value="#667eea">
+        </div>
+        <div class="form-group">
+          <label>Icon (optional)</label>
+          <div class="icon-selector">
+            <button type="button" id="emoji-picker-btn" class="emoji-picker-button">
+              <span id="selected-emoji-display">📅</span>
+              <span>Emoji wählen</span>
+            </button>
+            
+            <div id="emoji-picker-popup" class="emoji-picker-popup hidden">
+              <div class="emoji-categories">
+                <button type="button" class="emoji-cat-btn active" data-cat="events">🎉</button>
+                <button type="button" class="emoji-cat-btn" data-cat="travel">✈️</button>
+                <button type="button" class="emoji-cat-btn" data-cat="work">💼</button>
+                <button type="button" class="emoji-cat-btn" data-cat="food">🍕</button>
+                <button type="button" class="emoji-cat-btn" data-cat="sports">⚽</button>
+                <button type="button" class="emoji-cat-btn" data-cat="other">📌</button>
+              </div>
+              <div id="emoji-grid-container" class="emoji-grid"></div>
+            </div>
+          </div>
+          <input type="hidden" id="calendar-event-icon" value="📅">
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="calendar-event-show-countdown" checked>
+            Im Countdown anzeigen
+          </label>
+        </div>
+        <div class="form-group">
+          <label for="calendar-event-countdown-days">Countdown-Tage (max)</label>
+          <input type="number" id="calendar-event-countdown-days" value="30" min="1" max="365">
         </div>
         <div class="form-actions">
           <button type="button" id="delete-calendar-event-btn" class="btn-danger hidden">Löschen</button>

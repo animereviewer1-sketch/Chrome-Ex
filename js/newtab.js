@@ -56,9 +56,12 @@ const DEFAULT_SETTINGS = {
   gridSize: 20,
   gridColor: '#ff00ff',
   gridVisible: true,
-  // Fix 11: Wetter-Einstellungen
-  weatherApiKey: '',
-  weatherCity: 'Munich',
+  // Weather Settings - Open-Meteo
+  weatherConfig: {
+    latitude: 48.1374,
+    longitude: 11.5755,
+    cityName: 'München'
+  },
   pages: {
     '1': {
       name: 'Start',
@@ -104,7 +107,9 @@ const WIDGET_TYPES = [
   { id: 'notes', name: 'Notizen', icon: '📝' },
   { id: 'weather', name: 'Wetter', icon: '☀️' },
   { id: 'password', name: 'Passwort Generator', icon: '🔐' },
-  { id: 'calendar', name: 'Kalender', icon: '📅' } // Fix 7: Calendar Widget
+  { id: 'calendar', name: 'Kalender', icon: '📅' },
+  { id: 'distraction-counter', name: 'Ablenkungszähler', icon: '🎯' },
+  { id: 'decision-coin', name: 'Entscheidungsmünze', icon: '🪙' }
 ];
 
 const QUICK_ACTIONS = [
@@ -1025,9 +1030,33 @@ function createWidgetElement(widget) {
         </div>
         <div class="calendar-grid" id="calendar-grid-${widget.id}"></div>
         <button class="calendar-add-event-btn" data-widget-id="${widget.id}">+ Event</button>
+        <div id="countdown-section-${widget.id}" class="countdown-section"></div>
       `;
       // Initialize calendar after element is appended
       setTimeout(() => initCalendarWidget(widget.id, widget.data), 0);
+      break;
+    
+    case 'distraction-counter':
+      div.classList.add('distraction-counter-widget');
+      const count = widget.data?.count || 0;
+      content.innerHTML = `
+        <h3>🎯 Ablenkungszähler</h3>
+        <div class="distraction-count">${count}</div>
+        <div class="distraction-buttons">
+          <button class="distraction-increment-btn" data-widget-id="${widget.id}">+1 Ablenkung</button>
+          <button class="distraction-reset-btn" data-widget-id="${widget.id}">Reset</button>
+        </div>
+      `;
+      break;
+    
+    case 'decision-coin':
+      div.classList.add('decision-coin-widget');
+      const result = widget.data?.lastResult || '';
+      content.innerHTML = `
+        <h3>🪙 Entscheidungsmünze</h3>
+        <div class="coin-result">${result || 'Werfe die Münze!'}</div>
+        <button class="coin-flip-btn" data-widget-id="${widget.id}">Münze werfen</button>
+      `;
       break;
   }
   
@@ -1060,60 +1089,45 @@ function startClock() {
   setInterval(updateClock, 1000);
 }
 
-// ============ Weather Widget (Fix 11: Mit API-Key Unterstützung) ============
+// ============ Weather Widget (Open-Meteo API) ============
 async function loadWeather(widgetEl) {
-  const apiKey = settings.weatherApiKey;
-  const city = settings.weatherCity || 'Munich';
+  const config = settings.weatherConfig || { latitude: 48.1374, longitude: 11.5755, cityName: 'München' };
   
   const iconEl = widgetEl.querySelector('.weather-icon');
   const tempEl = widgetEl.querySelector('.weather-temp');
   const descEl = widgetEl.querySelector('.weather-desc');
   const locEl = widgetEl.querySelector('.weather-location');
   
-  // Wenn kein API-Key vorhanden, Demo-Daten anzeigen
-  if (!apiKey) {
-    if (iconEl) iconEl.textContent = '⚙️';
-    if (tempEl) tempEl.textContent = '--°C';
-    if (descEl) descEl.textContent = 'API-Key fehlt';
-    if (locEl) locEl.textContent = 'Einstellungen → Wetter';
-    return;
-  }
-  
   try {
-    const weather = await fetchWeather(city, apiKey);
+    const weather = await fetchWeather(config);
     
     if (weather.error) {
       if (iconEl) iconEl.textContent = '⚠️';
       if (tempEl) tempEl.textContent = '--°C';
       if (descEl) descEl.textContent = weather.condition;
-      if (locEl) locEl.textContent = city;
+      if (locEl) locEl.textContent = config.cityName || 'Standort';
     } else {
       if (iconEl) iconEl.textContent = weather.icon;
       if (tempEl) tempEl.textContent = `${weather.temp}°C`;
       if (descEl) descEl.textContent = weather.condition;
-      if (locEl) locEl.textContent = city;
+      if (locEl) locEl.textContent = config.cityName || 'Standort';
     }
   } catch (error) {
     console.error('Fehler beim Laden des Wetters:', error);
     if (iconEl) iconEl.textContent = '⚠️';
     if (tempEl) tempEl.textContent = '--°C';
     if (descEl) descEl.textContent = 'Fehler';
-    if (locEl) locEl.textContent = city;
+    if (locEl) locEl.textContent = config.cityName || 'Standort';
   }
 }
 
-// Fix 11: Wetter-API abrufen
-async function fetchWeather(city, apiKey) {
-  if (!apiKey) {
-    return { 
-      temp: '--', 
-      condition: 'API-Key fehlt',
-      error: true 
-    };
-  }
+// Wetter-API abrufen (Open-Meteo)
+async function fetchWeather(config) {
+  const lat = config.latitude || 48.1374;
+  const lon = config.longitude || 11.5755;
   
   try {
-    const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric&lang=de`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&timezone=auto`;
     const response = await fetch(url);
     
     if (!response.ok) {
@@ -1121,13 +1135,14 @@ async function fetchWeather(city, apiKey) {
     }
     
     const data = await response.json();
+    const current = data.current_weather;
+    const weatherInfo = getWeatherInfo(current.weathercode);
     
     return {
-      temp: Math.round(data.main.temp),
-      condition: data.weather[0].description,
-      humidity: data.main.humidity,
-      wind: data.wind.speed,
-      icon: getWeatherIcon(data.weather[0].icon),
+      temp: Math.round(current.temperature),
+      condition: weatherInfo.text,
+      wind: Math.round(current.windspeed),
+      icon: weatherInfo.icon,
       error: false
     };
   } catch (error) {
@@ -1140,23 +1155,39 @@ async function fetchWeather(city, apiKey) {
   }
 }
 
-// Fix 11: Wetter-Icons zuordnen
-function getWeatherIcon(code) {
-  const icons = {
-    '01d': '☀️', '01n': '🌙',
-    '02d': '⛅', '02n': '☁️',
-    '03d': '☁️', '03n': '☁️',
-    '04d': '☁️', '04n': '☁️',
-    '09d': '🌧️', '09n': '🌧️',
-    '10d': '🌦️', '10n': '🌧️',
-    '11d': '⛈️', '11n': '⛈️',
-    '13d': '❄️', '13n': '❄️',
-    '50d': '🌫️', '50n': '🌫️'
+// Wetter-Icons und -Beschreibungen basierend auf WMO Code
+function getWeatherInfo(code) {
+  const weatherCodes = {
+    0: { icon: '☀️', text: 'Klar' },
+    1: { icon: '🌤️', text: 'Überwiegend klar' },
+    2: { icon: '⛅', text: 'Teilweise bewölkt' },
+    3: { icon: '☁️', text: 'Bewölkt' },
+    45: { icon: '🌫️', text: 'Nebelig' },
+    48: { icon: '🌫️', text: 'Nebel' },
+    51: { icon: '🌧️', text: 'Leichter Nieselregen' },
+    53: { icon: '🌧️', text: 'Nieselregen' },
+    55: { icon: '🌧️', text: 'Starker Nieselregen' },
+    61: { icon: '🌦️', text: 'Leichter Regen' },
+    63: { icon: '🌧️', text: 'Regen' },
+    65: { icon: '🌧️', text: 'Starker Regen' },
+    71: { icon: '🌨️', text: 'Leichter Schneefall' },
+    73: { icon: '🌨️', text: 'Schneefall' },
+    75: { icon: '❄️', text: 'Starker Schneefall' },
+    77: { icon: '❄️', text: 'Schneegriesel' },
+    80: { icon: '🌦️', text: 'Leichte Schauer' },
+    81: { icon: '🌧️', text: 'Schauer' },
+    82: { icon: '🌧️', text: 'Starke Schauer' },
+    85: { icon: '🌨️', text: 'Leichte Schneeschauer' },
+    86: { icon: '❄️', text: 'Schneeschauer' },
+    95: { icon: '⛈️', text: 'Gewitter' },
+    96: { icon: '⛈️', text: 'Gewitter mit Hagel' },
+    99: { icon: '⛈️', text: 'Starkes Gewitter' }
   };
-  return icons[code] || '🌤️';
+  
+  return weatherCodes[code] || { icon: '🌤️', text: 'Unbekannt' };
 }
 
-// Fix 11: Alle Wetter-Widgets aktualisieren
+// Alle Wetter-Widgets aktualisieren
 function updateAllWeatherWidgets() {
   document.querySelectorAll('.weather-widget').forEach(widget => {
     loadWeather(widget);
@@ -1445,12 +1476,15 @@ function initBackgroundSettings() {
   if (gridColorInput) gridColorInput.value = settings.gridColor || '#ff00ff';
   if (gridVisibleCheckbox) gridVisibleCheckbox.checked = settings.gridVisible !== false;
   
-  // Fix 11: Wetter-Einstellungen initialisieren
-  const weatherApiKey = document.getElementById('weather-api-key');
-  const weatherCity = document.getElementById('weather-city');
+  // Weather Settings - Open-Meteo
+  const weatherLat = document.getElementById('weather-latitude');
+  const weatherLon = document.getElementById('weather-longitude');
+  const weatherCityName = document.getElementById('weather-city-name');
   
-  if (weatherApiKey) weatherApiKey.value = settings.weatherApiKey || '';
-  if (weatherCity) weatherCity.value = settings.weatherCity || 'Munich';
+  const weatherConfig = settings.weatherConfig || { latitude: 48.1374, longitude: 11.5755, cityName: 'München' };
+  if (weatherLat) weatherLat.value = weatherConfig.latitude || 48.1374;
+  if (weatherLon) weatherLon.value = weatherConfig.longitude || 11.5755;
+  if (weatherCityName) weatherCityName.value = weatherConfig.cityName || 'München';
 }
 
 // ============ Widget Management ============
@@ -2137,6 +2171,9 @@ function renderCalendar(widgetId, data) {
     default:
       renderMonthView(widgetId, data);
   }
+  
+  // Render countdown section
+  renderCountdownSection(widgetId, data);
 }
 
 // Fix 4: Month view (original calendar)
@@ -2287,6 +2324,83 @@ function getEventsForDate(events, dateStr, day, month, year) {
   });
 }
 
+// Countdown Section Rendering
+function renderCountdownSection(widgetId, data) {
+  const container = document.getElementById(`countdown-section-${widgetId}`);
+  if (!container) return;
+  
+  const events = data?.events || [];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  // Filter events with countdown enabled
+  const upcomingEvents = events
+    .filter(e => e.showInCountdown !== false)
+    .map(event => {
+      const eventDate = new Date(event.date);
+      eventDate.setHours(0, 0, 0, 0);
+      
+      const diffMs = eventDate - today;
+      const daysUntil = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+      
+      return { ...event, daysUntil };
+    })
+    .filter(e => {
+      const maxDays = e.countdownDays || 30;
+      return e.daysUntil >= 0 && e.daysUntil <= maxDays;
+    })
+    .sort((a, b) => a.daysUntil - b.daysUntil);
+  
+  if (upcomingEvents.length === 0) {
+    container.innerHTML = `
+      <h4>📅 Kommende Events</h4>
+      <p class="no-countdown-events">Keine Events geplant</p>
+    `;
+    return;
+  }
+  
+  container.innerHTML = `
+    <h4>📅 Kommende Events</h4>
+    <div class="countdown-events-list">
+      ${upcomingEvents.map(event => `
+        <div class="countdown-event-item" style="border-left: 4px solid ${event.color || '#667eea'}">
+          <span class="countdown-event-icon">${event.icon || '📅'}</span>
+          <div class="countdown-event-info">
+            <div class="countdown-event-title">${event.title}</div>
+            <div class="countdown-event-date">${formatEventDate(event.date)}</div>
+          </div>
+          <div class="countdown-badge ${getCountdownBadgeClass(event.daysUntil)}">
+            ${formatCountdownText(event.daysUntil)}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function formatCountdownText(days) {
+  if (days === 0) return '🔴 HEUTE';
+  if (days === 1) return '🟡 Morgen';
+  if (days <= 7) return `🟢 in ${days} Tagen`;
+  return `in ${days} Tagen`;
+}
+
+function getCountdownBadgeClass(days) {
+  if (days === 0) return 'urgent';
+  if (days <= 3) return 'soon';
+  if (days <= 7) return 'week';
+  return 'later';
+}
+
+function formatEventDate(dateStr) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('de-DE', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short'
+  });
+}
+
 function navigateCalendar(widgetId, direction) {
   const state = calendarStates[widgetId];
   if (!state) return;
@@ -2365,6 +2479,82 @@ function selectCalendarYear(widgetId, year) {
   renderCalendar(widgetId, widget?.data);
 }
 
+// Emoji Library for Calendar Icons
+const emojiLibrary = {
+  events: ['🎉', '🎂', '🎁', '🎊', '🎈', '🎓', '💒', '🎭', '🎪', '🎨', '🎵', '🎬', '📅', '🏆', '🥇'],
+  travel: ['✈️', '🚗', '🚂', '🚢', '🏖️', '🗺️', '🧳', '🏔️', '🌍', '🗼', '🏰', '🎢', '🎡', '🚁', '⛵'],
+  work: ['💼', '📝', '💻', '📊', '📈', '📞', '✉️', '📧', '🏢', '🗂️', '📋', '✅', '📌', '🎯', '⏰'],
+  food: ['🍕', '🍔', '🍣', '🍰', '☕', '🍷', '🍺', '🥘', '🍜', '🍪', '🍩', '🥗', '🍎', '🥑', '🌮'],
+  sports: ['⚽', '🏀', '🎾', '🏊', '🚴', '🏋️', '⛷️', '🏆', '🥇', '🎮', '🎯', '🏓', '🏐', '⛳', '🥊'],
+  other: ['📌', '⭐', '❤️', '💚', '💙', '🔔', '⏰', '🌟', '💡', '🔥', '⚡', '🌈', '🎯', '✨', '💫']
+};
+
+// Initialize Emoji Picker
+function initEmojiPicker() {
+  const btn = document.getElementById('emoji-picker-btn');
+  const popup = document.getElementById('emoji-picker-popup');
+  const grid = document.getElementById('emoji-grid-container');
+  const display = document.getElementById('selected-emoji-display');
+  const hiddenInput = document.getElementById('calendar-event-icon');
+  
+  if (!btn || !popup || !grid || !display || !hiddenInput) return;
+  
+  // Toggle Popup
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    popup.classList.toggle('hidden');
+  });
+  
+  // Category Buttons
+  document.querySelectorAll('.emoji-cat-btn').forEach(catBtn => {
+    catBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      
+      // Update active
+      document.querySelectorAll('.emoji-cat-btn').forEach(b => b.classList.remove('active'));
+      catBtn.classList.add('active');
+      
+      // Render emojis
+      const category = catBtn.dataset.cat;
+      renderEmojiGrid(category);
+    });
+  });
+  
+  function renderEmojiGrid(category) {
+    const emojis = emojiLibrary[category] || [];
+    
+    grid.innerHTML = emojis.map(emoji => 
+      `<button type="button" class="emoji-item" data-emoji="${emoji}">${emoji}</button>`
+    ).join('');
+    
+    // Click handlers
+    grid.querySelectorAll('.emoji-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        const emoji = item.dataset.emoji;
+        
+        display.textContent = emoji;
+        hiddenInput.value = emoji;
+        popup.classList.add('hidden');
+      });
+    });
+  }
+  
+  // Initial render
+  renderEmojiGrid('events');
+  
+  // Close on outside click (using named function to prevent duplicates)
+  if (!btn.dataset.listenerAttached) {
+    const closeOnOutsideClick = (e) => {
+      if (!btn.contains(e.target) && !popup.contains(e.target)) {
+        popup.classList.add('hidden');
+      }
+    };
+    document.addEventListener('click', closeOnOutsideClick);
+    btn.dataset.listenerAttached = 'true';
+  }
+}
+
 // Calendar Event Modal
 let currentCalendarWidgetId = null;
 let currentCalendarDate = null;
@@ -2384,6 +2574,10 @@ function openCalendarEventModal(widgetId, date, eventId = null) {
   const descInput = document.getElementById('calendar-event-desc');
   const repeatSelect = document.getElementById('calendar-event-repeat');
   const colorInput = document.getElementById('calendar-event-color');
+  const iconInput = document.getElementById('calendar-event-icon');
+  const iconDisplay = document.getElementById('selected-emoji-display');
+  const showCountdownCheck = document.getElementById('calendar-event-show-countdown');
+  const countdownDaysInput = document.getElementById('calendar-event-countdown-days');
   const deleteBtn = document.getElementById('delete-calendar-event-btn');
   const modalTitle = document.getElementById('calendar-event-modal-title');
   
@@ -2394,6 +2588,10 @@ function openCalendarEventModal(widgetId, date, eventId = null) {
   if (descInput) descInput.value = '';
   if (repeatSelect) repeatSelect.value = 'none';
   if (colorInput) colorInput.value = '#667eea';
+  if (iconInput) iconInput.value = '📅';
+  if (iconDisplay) iconDisplay.textContent = '📅';
+  if (showCountdownCheck) showCountdownCheck.checked = true;
+  if (countdownDaysInput) countdownDaysInput.value = '30';
   
   if (eventId) {
     // Edit existing event
@@ -2411,12 +2609,19 @@ function openCalendarEventModal(widgetId, date, eventId = null) {
       if (descInput) descInput.value = event.description || '';
       if (repeatSelect) repeatSelect.value = event.repeat || 'none';
       if (colorInput) colorInput.value = event.color || '#667eea';
+      if (iconInput) iconInput.value = event.icon || '📅';
+      if (iconDisplay) iconDisplay.textContent = event.icon || '📅';
+      if (showCountdownCheck) showCountdownCheck.checked = event.showInCountdown !== false;
+      if (countdownDaysInput) countdownDaysInput.value = event.countdownDays || 30;
     }
   } else {
     // New event
     if (modalTitle) modalTitle.textContent = 'Event hinzufügen';
     deleteBtn?.classList.add('hidden');
   }
+  
+  // Initialize emoji picker
+  initEmojiPicker();
   
   openModal('calendar-event-modal');
 }
@@ -2429,6 +2634,9 @@ function saveCalendarEvent() {
   const repeatValue = document.getElementById('calendar-event-repeat')?.value;
   const repeat = repeatValue !== 'none' ? repeatValue : null;
   const color = document.getElementById('calendar-event-color')?.value || '#667eea';
+  const icon = document.getElementById('calendar-event-icon')?.value || '📅';
+  const showInCountdown = document.getElementById('calendar-event-show-countdown')?.checked !== false;
+  const countdownDays = parseInt(document.getElementById('calendar-event-countdown-days')?.value || '30');
   
   if (!title || !date) return;
   
@@ -2446,7 +2654,10 @@ function saveCalendarEvent() {
       time,
       description,
       repeat,
-      color
+      color,
+      icon,
+      showInCountdown,
+      countdownDays
     };
     
     if (currentCalendarEventId) {
@@ -2536,6 +2747,66 @@ function showDayEvents(widgetId, date) {
   `).join('');
   
   openModal('calendar-day-events-modal');
+}
+
+// ============ Distraction Counter Widget ============
+function incrementDistractionCount(widgetId) {
+  const currentPage = settings.pages[settings.currentPage];
+  const widget = currentPage?.widgets.find(w => w.id === widgetId);
+  
+  if (widget) {
+    widget.data = widget.data || {};
+    widget.data.count = (widget.data.count || 0) + 1;
+    saveSettings();
+    
+    // Update display
+    const widgetEl = document.querySelector(`[data-widget-id="${widgetId}"]`)?.closest('.distraction-counter-widget');
+    const countEl = widgetEl?.querySelector('.distraction-count');
+    if (countEl) {
+      countEl.textContent = widget.data.count;
+    }
+  }
+}
+
+function resetDistractionCount(widgetId) {
+  const currentPage = settings.pages[settings.currentPage];
+  const widget = currentPage?.widgets.find(w => w.id === widgetId);
+  
+  if (widget) {
+    widget.data = widget.data || {};
+    widget.data.count = 0;
+    saveSettings();
+    
+    // Update display
+    const widgetEl = document.querySelector(`[data-widget-id="${widgetId}"]`)?.closest('.distraction-counter-widget');
+    const countEl = widgetEl?.querySelector('.distraction-count');
+    if (countEl) {
+      countEl.textContent = '0';
+    }
+  }
+}
+
+// ============ Decision Coin Widget ============
+function flipCoin(widgetId) {
+  const currentPage = settings.pages[settings.currentPage];
+  const widget = currentPage?.widgets.find(w => w.id === widgetId);
+  
+  if (widget) {
+    const result = Math.random() < 0.5 ? '🪙 Kopf' : '🪙 Zahl';
+    widget.data = widget.data || {};
+    widget.data.lastResult = result;
+    saveSettings();
+    
+    // Animate and update display
+    const widgetEl = document.querySelector(`[data-widget-id="${widgetId}"]`)?.closest('.decision-coin-widget');
+    const resultEl = widgetEl?.querySelector('.coin-result');
+    if (resultEl) {
+      resultEl.textContent = '🪙 ...';
+      setTimeout(() => {
+        resultEl.textContent = result;
+      }, 500);
+    }
+  }
 }
 
 // ============ Event Listeners ============
@@ -2740,34 +3011,37 @@ function initEventListeners() {
     document.getElementById('clock-size-val').textContent = `${e.target.value}px`;
   });
   
-  // Fix 11: Wetter-Einstellungen
-  document.getElementById('save-weather')?.addEventListener('click', async () => {
-    const apiKey = document.getElementById('weather-api-key')?.value;
-    const city = document.getElementById('weather-city')?.value || 'Munich';
+  // Weather Settings - Open-Meteo
+  document.getElementById('save-weather-settings')?.addEventListener('click', async () => {
+    const lat = parseFloat(document.getElementById('weather-latitude')?.value || '48.1374');
+    const lon = parseFloat(document.getElementById('weather-longitude')?.value || '11.5755');
+    const cityName = document.getElementById('weather-city-name')?.value || 'München';
     
-    settings.weatherApiKey = apiKey;
-    settings.weatherCity = city;
+    settings.weatherConfig = { latitude: lat, longitude: lon, cityName: cityName };
     await saveSettings();
     
-    const status = document.getElementById('weather-status');
-    if (status) {
-      status.textContent = 'Teste...';
-      status.style.color = 'inherit';
+    const resultDiv = document.getElementById('weather-test-result');
+    if (resultDiv) {
+      resultDiv.innerHTML = '<p style="color: white;">⏳ Teste Verbindung...</p>';
     }
     
-    const weather = await fetchWeather(city, apiKey);
-    
-    if (weather.error) {
-      if (status) {
-        status.textContent = '❌ ' + weather.condition;
-        status.style.color = 'red';
+    try {
+      const weather = await fetchWeather(settings.weatherConfig);
+      
+      if (weather.error) {
+        if (resultDiv) {
+          resultDiv.innerHTML = `<p style="color: #ff4757;">❌ Fehler: ${weather.condition}</p>`;
+        }
+      } else {
+        if (resultDiv) {
+          resultDiv.innerHTML = `<p style="color: #4ade80;">✅ Erfolgreich! ${cityName}: ${weather.temp}°C, ${weather.condition}</p>`;
+        }
+        updateAllWeatherWidgets();
       }
-    } else {
-      if (status) {
-        status.textContent = `✅ ${weather.temp}°C, ${weather.condition}`;
-        status.style.color = 'green';
+    } catch (error) {
+      if (resultDiv) {
+        resultDiv.innerHTML = `<p style="color: #ff4757;">❌ Fehler: ${error.message}</p>`;
       }
-      updateAllWeatherWidgets();
     }
   });
   
@@ -2953,6 +3227,26 @@ function initEventListeners() {
       const today = new Date();
       const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
       openCalendarEventModal(calendarAddBtn.dataset.widgetId, dateStr);
+      return;
+    }
+    
+    // Distraction Counter Widget
+    const distractionIncBtn = e.target.closest('.distraction-increment-btn');
+    if (distractionIncBtn) {
+      incrementDistractionCount(distractionIncBtn.dataset.widgetId);
+      return;
+    }
+    
+    const distractionResetBtn = e.target.closest('.distraction-reset-btn');
+    if (distractionResetBtn) {
+      resetDistractionCount(distractionResetBtn.dataset.widgetId);
+      return;
+    }
+    
+    // Decision Coin Widget
+    const coinFlipBtn = e.target.closest('.coin-flip-btn');
+    if (coinFlipBtn) {
+      flipCoin(coinFlipBtn.dataset.widgetId);
       return;
     }
   });
