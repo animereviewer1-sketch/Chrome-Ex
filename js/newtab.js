@@ -34,6 +34,10 @@ const MIN_WIDGET_HEIGHT = 150;
 // Throttle-Konstante für Drag-Events (Fix 1)
 const DRAG_THROTTLE_MS = 16; // ~60fps
 
+// Fix 3: Weather constants
+const DEFAULT_CITY_COORDS = { lat: 48.1374, lon: 11.5755 }; // Munich
+const GEOCODING_USER_AGENT = 'Chrome-Ex/1.0';
+
 const DEFAULT_SETTINGS = {
   editMode: false,
   currentPage: '1',
@@ -134,6 +138,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   initQuickActions();
   updateEditModeUI();
   startClock();
+  
+  // Fix 3: Auto-refresh weather widgets
+  updateAllWeatherWidgets();
 });
 
 // ============ Storage Funktionen ============
@@ -964,7 +971,14 @@ function createWidgetElement(widget) {
             </div>
           `).join('')}
         </div>
-        <div class="notes-list">
+        <!-- Fix 4: Search field for notes -->
+        <div class="notes-search-container">
+          <input type="text" 
+                 class="notes-search-input" 
+                 data-widget-id="${widget.id}"
+                 placeholder="🔍 Notizen durchsuchen...">
+        </div>
+        <div class="notes-list" data-widget-id="${widget.id}" data-all-notes='${JSON.stringify(notes).replace(/'/g, "&apos;")}'>
           ${notes.map((note, index) => `
             <div class="note-item" data-index="${index}" data-widget-id="${widget.id}">
               <div class="note-item-title">${note.title || 'Ohne Titel'}</div>
@@ -1009,6 +1023,35 @@ function createWidgetElement(widget) {
         <div class="strength-text" id="strength-text-${widget.id}">--</div>
         <button class="generate-btn" data-widget-id="${widget.id}">🔄 Generieren</button>
       `;
+      break;
+      
+    // Fix 5: Stats/Distraction Counter Widget
+    case 'stats':
+      div.classList.add('stats-widget');
+      content.innerHTML = `
+        <h3>📊 Heutige Aktivität</h3>
+        <p class="hint">Rein informativ 😊</p>
+        <div class="stats-display" id="stats-display-${widget.id}">
+          <div class="stat-box">
+            <div class="stat-icon">🔄</div>
+            <div class="stat-number" id="stat-switches-${widget.id}">0</div>
+            <div class="stat-label">Tab-Wechsel</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-icon">📑</div>
+            <div class="stat-number" id="stat-newtabs-${widget.id}">0</div>
+            <div class="stat-label">Neue Tabs</div>
+          </div>
+        </div>
+        <button class="btn-secondary btn-full" data-widget-id="${widget.id}" onclick="showHistoryModal()">
+          📊 History anzeigen
+        </button>
+        <button class="btn-secondary btn-small" data-widget-id="${widget.id}" onclick="resetStatsCounter()">
+          ↺ Zurücksetzen
+        </button>
+      `;
+      // Load stats
+      loadDailyStats(widget.id);
       break;
       
     // Fix 7: Calendar Widget
@@ -1061,8 +1104,10 @@ function startClock() {
 }
 
 // ============ Weather Widget (Fix 11: Mit API-Key Unterstützung) ============
+// ============ Weather Widget (Fix 3: Open-Meteo API + Auto-Refresh) ============
+let weatherRefreshInterval = null;
+
 async function loadWeather(widgetEl) {
-  const apiKey = settings.weatherApiKey;
   const city = settings.weatherCity || 'Munich';
   
   const iconEl = widgetEl.querySelector('.weather-icon');
@@ -1070,50 +1115,59 @@ async function loadWeather(widgetEl) {
   const descEl = widgetEl.querySelector('.weather-desc');
   const locEl = widgetEl.querySelector('.weather-location');
   
-  // Wenn kein API-Key vorhanden, Demo-Daten anzeigen
-  if (!apiKey) {
-    if (iconEl) iconEl.textContent = '⚙️';
-    if (tempEl) tempEl.textContent = '--°C';
-    if (descEl) descEl.textContent = 'API-Key fehlt';
-    if (locEl) locEl.textContent = 'Einstellungen → Wetter';
-    return;
-  }
-  
   try {
-    const weather = await fetchWeather(city, apiKey);
-    
-    if (weather.error) {
-      if (iconEl) iconEl.textContent = '⚠️';
-      if (tempEl) tempEl.textContent = '--°C';
-      if (descEl) descEl.textContent = weather.condition;
-      if (locEl) locEl.textContent = city;
-    } else {
-      if (iconEl) iconEl.textContent = weather.icon;
-      if (tempEl) tempEl.textContent = `${weather.temp}°C`;
-      if (descEl) descEl.textContent = weather.condition;
-      if (locEl) locEl.textContent = city;
+    // Get coordinates for the city first
+    const coords = await getCityCoordinates(city);
+    if (!coords) {
+      throw new Error('Stadt nicht gefunden');
     }
+    
+    // Fetch weather from Open-Meteo (no API key needed!)
+    const weather = await fetchWeatherOpenMeteo(coords.lat, coords.lon);
+    
+    if (iconEl) iconEl.textContent = weather.icon;
+    if (tempEl) tempEl.textContent = `${weather.temp}°C`;
+    if (descEl) descEl.textContent = weather.condition;
+    if (locEl) locEl.textContent = `${city} - ${new Date().toLocaleTimeString('de-DE', {hour: '2-digit', minute: '2-digit'})}`;
   } catch (error) {
     console.error('Fehler beim Laden des Wetters:', error);
     if (iconEl) iconEl.textContent = '⚠️';
     if (tempEl) tempEl.textContent = '--°C';
     if (descEl) descEl.textContent = 'Fehler';
-    if (locEl) locEl.textContent = city;
+    if (locEl) locEl.innerHTML = `${city} <button onclick="retryWeather()" style="background: none; border: none; color: var(--primary); cursor: pointer; text-decoration: underline;">↻ Erneut</button>`;
   }
 }
 
-// Fix 11: Wetter-API abrufen
-async function fetchWeather(city, apiKey) {
-  if (!apiKey) {
-    return { 
-      temp: '--', 
-      condition: 'API-Key fehlt',
-      error: true 
-    };
-  }
-  
+// Get city coordinates from Nominatim (OpenStreetMap)
+async function getCityCoordinates(city) {
   try {
-    const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric&lang=de`;
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1`;
+    const response = await fetch(url, {
+      headers: { 'User-Agent': GEOCODING_USER_AGENT }
+    });
+    const data = await response.json();
+    
+    if (data && data.length > 0) {
+      return {
+        lat: parseFloat(data[0].lat),
+        lon: parseFloat(data[0].lon)
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error('Geocoding error:', error);
+    // Default to Munich
+    return DEFAULT_CITY_COORDS;
+  }
+}
+
+// Fix 3: Fetch weather from Open-Meteo API (no API key needed!)
+async function fetchWeatherOpenMeteo(lat, lon) {
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&timezone=auto`;
+    
+    console.log('Fetching weather:', url);
+    
     const response = await fetch(url);
     
     if (!response.ok) {
@@ -1121,13 +1175,14 @@ async function fetchWeather(city, apiKey) {
     }
     
     const data = await response.json();
+    const current = data.current_weather;
+    const weatherInfo = getWeatherInfo(current.weathercode);
     
     return {
-      temp: Math.round(data.main.temp),
-      condition: data.weather[0].description,
-      humidity: data.main.humidity,
-      wind: data.wind.speed,
-      icon: getWeatherIcon(data.weather[0].icon),
+      temp: Math.round(current.temperature),
+      condition: weatherInfo.text,
+      wind: Math.round(current.windspeed),
+      icon: weatherInfo.icon,
       error: false
     };
   } catch (error) {
@@ -1135,33 +1190,156 @@ async function fetchWeather(city, apiKey) {
     return { 
       temp: '--', 
       condition: 'Fehler beim Laden',
-      error: true 
+      error: true,
+      icon: '⚠️'
     };
   }
 }
 
-// Fix 11: Wetter-Icons zuordnen
-function getWeatherIcon(code) {
-  const icons = {
-    '01d': '☀️', '01n': '🌙',
-    '02d': '⛅', '02n': '☁️',
-    '03d': '☁️', '03n': '☁️',
-    '04d': '☁️', '04n': '☁️',
-    '09d': '🌧️', '09n': '🌧️',
-    '10d': '🌦️', '10n': '🌧️',
-    '11d': '⛈️', '11n': '⛈️',
-    '13d': '❄️', '13n': '❄️',
-    '50d': '🌫️', '50n': '🌫️'
+// Fix 3: Weather codes for Open-Meteo API
+function getWeatherInfo(code) {
+  const codes = {
+    0: { icon: '☀️', text: 'Sonnig' },
+    1: { icon: '🌤️', text: 'Leicht bewölkt' },
+    2: { icon: '⛅', text: 'Wolkig' },
+    3: { icon: '☁️', text: 'Bewölkt' },
+    45: { icon: '🌫️', text: 'Nebel' },
+    48: { icon: '🌫️', text: 'Nebel' },
+    51: { icon: '🌦️', text: 'Nieselregen' },
+    53: { icon: '🌦️', text: 'Nieselregen' },
+    55: { icon: '🌦️', text: 'Starker Nieselregen' },
+    61: { icon: '🌧️', text: 'Regen' },
+    63: { icon: '🌧️', text: 'Starker Regen' },
+    65: { icon: '🌧️', text: 'Sehr starker Regen' },
+    71: { icon: '🌨️', text: 'Schnee' },
+    73: { icon: '🌨️', text: 'Starker Schnee' },
+    75: { icon: '🌨️', text: 'Sehr starker Schnee' },
+    77: { icon: '🌨️', text: 'Schneegriesel' },
+    80: { icon: '🌧️', text: 'Regenschauer' },
+    81: { icon: '🌧️', text: 'Starke Regenschauer' },
+    82: { icon: '🌧️', text: 'Sehr starke Regenschauer' },
+    85: { icon: '🌨️', text: 'Schneeschauer' },
+    86: { icon: '🌨️', text: 'Starke Schneeschauer' },
+    95: { icon: '⛈️', text: 'Gewitter' },
+    96: { icon: '⛈️', text: 'Gewitter mit Hagel' },
+    99: { icon: '⛈️', text: 'Starkes Gewitter mit Hagel' }
   };
-  return icons[code] || '🌤️';
+  return codes[code] || { icon: '🌡️', text: 'Unbekannt' };
 }
 
-// Fix 11: Alle Wetter-Widgets aktualisieren
+// Fix 3: Update all weather widgets + setup auto-refresh
 function updateAllWeatherWidgets() {
+  // Clear existing interval
+  if (weatherRefreshInterval) {
+    clearInterval(weatherRefreshInterval);
+  }
+  
+  // Update all weather widgets immediately
   document.querySelectorAll('.weather-widget').forEach(widget => {
     loadWeather(widget);
   });
+  
+  // Setup auto-refresh every 5 minutes
+  weatherRefreshInterval = setInterval(() => {
+    document.querySelectorAll('.weather-widget').forEach(widget => {
+      loadWeather(widget);
+    });
+  }, 5 * 60 * 1000); // 5 minutes
 }
+
+// Retry weather loading (called from retry button)
+window.retryWeather = function() {
+  updateAllWeatherWidgets();
+};
+
+// ============ Fix 5 & 6: Stats & History Functions ============
+// Load daily stats from service worker
+function loadDailyStats(widgetId) {
+  if (typeof chrome !== 'undefined' && chrome.runtime) {
+    chrome.runtime.sendMessage({ type: 'getStats' }, (response) => {
+      if (response && response.stats) {
+        const stats = response.stats;
+        const switchesEl = document.getElementById(`stat-switches-${widgetId}`);
+        const newtabsEl = document.getElementById(`stat-newtabs-${widgetId}`);
+        
+        if (switchesEl) switchesEl.textContent = stats.tabSwitches || 0;
+        if (newtabsEl) newtabsEl.textContent = stats.newTabs || 0;
+      }
+    });
+  }
+}
+
+// Reset stats counter
+window.resetStatsCounter = function() {
+  if (confirm('Statistiken wirklich zurücksetzen?')) {
+    if (typeof chrome !== 'undefined' && chrome.runtime) {
+      chrome.runtime.sendMessage({ type: 'resetStats' }, () => {
+        // Refresh all stats widgets
+        document.querySelectorAll('.stats-widget').forEach(widget => {
+          const widgetId = widget.dataset.widgetId;
+          if (widgetId) {
+            loadDailyStats(widgetId);
+          }
+        });
+      });
+    }
+  }
+};
+
+// Show history modal
+window.showHistoryModal = function() {
+  if (typeof chrome !== 'undefined' && chrome.runtime) {
+    chrome.runtime.sendMessage({ type: 'getHistory' }, (response) => {
+      const history = response.history || [];
+      
+      // Create modal if it doesn't exist
+      let modal = document.getElementById('history-modal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'history-modal';
+        modal.className = 'modal';
+        document.body.appendChild(modal);
+      }
+      
+      modal.innerHTML = `
+        <div class="modal-content history-modal">
+          <button class="modal-close" onclick="closeModal('history-modal')">✕</button>
+          <h2>📊 Meistbesuchte Webseiten</h2>
+          
+          <div class="history-list">
+            ${history.length === 0 ? 
+              '<p class="no-history">Noch keine History vorhanden</p>' :
+              history.map(([domain, count], i) => `
+                <div class="history-item">
+                  <span class="history-rank">#${i + 1}</span>
+                  <span class="history-domain">${domain}</span>
+                  <span class="history-count">${count}x besucht</span>
+                </div>
+              `).join('')
+            }
+          </div>
+          
+          <button onclick="clearHistoryData()" class="btn-danger" style="margin-top: 20px;">
+            🗑️ History löschen
+          </button>
+        </div>
+      `;
+      
+      openModal('history-modal');
+    });
+  }
+};
+
+// Clear history
+window.clearHistoryData = function() {
+  if (confirm('History wirklich löschen?')) {
+    if (typeof chrome !== 'undefined' && chrome.runtime) {
+      chrome.runtime.sendMessage({ type: 'clearHistory' }, () => {
+        closeModal('history-modal');
+      });
+    }
+  }
+};
 
 // ============ Feature #18: Password Generator ============
 function generatePassword(widgetId) {
@@ -2384,8 +2562,13 @@ function openCalendarEventModal(widgetId, date, eventId = null) {
   const descInput = document.getElementById('calendar-event-desc');
   const repeatSelect = document.getElementById('calendar-event-repeat');
   const colorInput = document.getElementById('calendar-event-color');
+  const iconInput = document.getElementById('calendar-event-icon');
+  const showCountdownCheckbox = document.getElementById('event-show-countdown');
+  const countdownDaysInput = document.getElementById('event-countdown-days');
+  const countdownDaysSection = document.getElementById('countdown-days-section');
   const deleteBtn = document.getElementById('delete-calendar-event-btn');
   const modalTitle = document.getElementById('calendar-event-modal-title');
+  const eventIdInput = document.getElementById('event-id');
   
   // Reset form
   if (titleInput) titleInput.value = '';
@@ -2394,6 +2577,15 @@ function openCalendarEventModal(widgetId, date, eventId = null) {
   if (descInput) descInput.value = '';
   if (repeatSelect) repeatSelect.value = 'none';
   if (colorInput) colorInput.value = '#667eea';
+  if (iconInput) iconInput.value = '📅';
+  if (showCountdownCheckbox) showCountdownCheckbox.checked = true;
+  if (countdownDaysInput) countdownDaysInput.value = '30';
+  if (eventIdInput) eventIdInput.value = '';
+  
+  // Set up countdown section toggle
+  if (showCountdownCheckbox && countdownDaysSection) {
+    countdownDaysSection.style.display = showCountdownCheckbox.checked ? 'block' : 'none';
+  }
   
   if (eventId) {
     // Edit existing event
@@ -2411,6 +2603,15 @@ function openCalendarEventModal(widgetId, date, eventId = null) {
       if (descInput) descInput.value = event.description || '';
       if (repeatSelect) repeatSelect.value = event.repeat || 'none';
       if (colorInput) colorInput.value = event.color || '#667eea';
+      if (iconInput) iconInput.value = event.icon || '📅';
+      if (showCountdownCheckbox) showCountdownCheckbox.checked = event.showInCountdown !== false;
+      if (countdownDaysInput) countdownDaysInput.value = event.countdownDays || 30;
+      if (eventIdInput) eventIdInput.value = event.id || '';
+      
+      // Toggle visibility
+      if (countdownDaysSection) {
+        countdownDaysSection.style.display = event.showInCountdown !== false ? 'block' : 'none';
+      }
     }
   } else {
     // New event
@@ -2429,6 +2630,10 @@ function saveCalendarEvent() {
   const repeatValue = document.getElementById('calendar-event-repeat')?.value;
   const repeat = repeatValue !== 'none' ? repeatValue : null;
   const color = document.getElementById('calendar-event-color')?.value || '#667eea';
+  const icon = document.getElementById('calendar-event-icon')?.value || '📅';
+  const showInCountdown = document.getElementById('event-show-countdown')?.checked !== false;
+  const countdownDays = parseInt(document.getElementById('event-countdown-days')?.value) || 30;
+  const eventIdInput = document.getElementById('event-id')?.value;
   
   if (!title || !date) return;
   
@@ -2440,18 +2645,21 @@ function saveCalendarEvent() {
     widget.data.events = widget.data.events || [];
     
     const eventData = {
-      id: currentCalendarEventId || `event-${Date.now()}`,
+      id: eventIdInput || currentCalendarEventId || `event-${Date.now()}`,
       title,
       date,
       time,
       description,
       repeat,
-      color
+      color,
+      icon,
+      showInCountdown,
+      countdownDays
     };
     
-    if (currentCalendarEventId) {
+    if (currentCalendarEventId || eventIdInput) {
       // Update existing event
-      const index = widget.data.events.findIndex(e => e.id === currentCalendarEventId);
+      const index = widget.data.events.findIndex(e => e.id === (eventIdInput || currentCalendarEventId));
       if (index >= 0) {
         widget.data.events[index] = eventData;
       }
@@ -2567,6 +2775,14 @@ function initEventListeners() {
   document.getElementById('calendar-add-new-event-btn')?.addEventListener('click', () => {
     closeModal('calendar-day-events-modal');
     openCalendarEventModal(currentCalendarWidgetId, currentCalendarDate);
+  });
+  
+  // Countdown checkbox toggle
+  document.getElementById('event-show-countdown')?.addEventListener('change', (e) => {
+    const countdownDaysSection = document.getElementById('countdown-days-section');
+    if (countdownDaysSection) {
+      countdownDaysSection.style.display = e.target.checked ? 'block' : 'none';
+    }
   });
   
   // Shortcut Form
@@ -2962,6 +3178,33 @@ function initEventListeners() {
     if (e.target.id?.startsWith('pw-length-')) {
       const widgetId = e.target.id.replace('pw-length-', '');
       document.getElementById(`pw-length-val-${widgetId}`).textContent = e.target.value;
+    }
+    
+    // Fix 4: Notes search
+    if (e.target.classList.contains('notes-search-input')) {
+      const widgetId = e.target.dataset.widgetId;
+      const query = e.target.value.toLowerCase();
+      const notesList = document.querySelector(`.notes-list[data-widget-id="${widgetId}"]`);
+      
+      if (notesList) {
+        const allNotesData = JSON.parse(notesList.dataset.allNotes || '[]');
+        
+        // Filter notes by title and content
+        const filtered = allNotesData.filter(note => 
+          (note.title || '').toLowerCase().includes(query) ||
+          (note.content || '').toLowerCase().includes(query)
+        );
+        
+        // Re-render notes list
+        notesList.innerHTML = filtered.length === 0 && query ? 
+          '<p class="no-notes">Keine passenden Notizen gefunden</p>' :
+          filtered.map((note, index) => `
+            <div class="note-item" data-index="${allNotesData.indexOf(note)}" data-widget-id="${widgetId}">
+              <div class="note-item-title">${note.title || 'Ohne Titel'}</div>
+              <div class="note-item-preview">${(note.content || '').substring(0, 50)}...</div>
+            </div>
+          `).join('');
+      }
     }
   });
   

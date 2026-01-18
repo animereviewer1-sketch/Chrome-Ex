@@ -449,6 +449,7 @@
       <button class="modal-close" id="calendar-event-modal-close">✕</button>
       <h2 id="calendar-event-modal-title">Event hinzufügen</h2>
       <form id="calendar-event-form">
+        <input type="hidden" id="event-id" value="">
         <div class="form-group">
           <label for="calendar-event-title">Titel</label>
           <input type="text" id="calendar-event-title" placeholder="z.B. Geburtstag" required>
@@ -478,6 +479,27 @@
         <div class="form-group">
           <label for="calendar-event-color">Farbe</label>
           <input type="color" id="calendar-event-color" value="#667eea">
+        </div>
+        <div class="form-group">
+          <label for="calendar-event-icon">Icon (optional)</label>
+          <input type="text" id="calendar-event-icon" placeholder="📅" maxlength="2">
+        </div>
+        <!-- Countdown Options -->
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="event-show-countdown" checked> 
+            Im Countdown anzeigen
+          </label>
+        </div>
+        <div class="form-group" id="countdown-days-section">
+          <label>Erinnerung wie viele Tage vorher?</label>
+          <input type="number" 
+                 id="event-countdown-days" 
+                 min="1" 
+                 max="365" 
+                 value="30" 
+                 style="width: 100px;">
+          <p class="hint">Das Event erscheint X Tage vor dem Termin im Countdown</p>
         </div>
         <div class="form-actions">
           <button type="button" id="delete-calendar-event-btn" class="btn-danger hidden">Löschen</button>
