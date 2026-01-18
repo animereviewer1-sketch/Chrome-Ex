@@ -982,7 +982,7 @@ function createWidgetElement(widget) {
         <div class="quick-notes-list" data-widget-id="${widget.id}">
           ${quickNotes.map((note, index) => `
             <div class="quick-note-item" data-index="${index}" data-widget-id="${widget.id}">
-              <span class="quick-note-text">${note}</span>
+              <span class="quick-note-text">${escapeHtml(note)}</span>
               <button class="delete-quick-note-btn" data-index="${index}" data-widget-id="${widget.id}">✕</button>
             </div>
           `).join('')}
