@@ -466,6 +466,25 @@
           <textarea id="calendar-event-desc" placeholder="Details zum Event..." rows="3"></textarea>
         </div>
         <div class="form-group">
+          <label for="calendar-event-icon">Event-Icon (Emoji)</label>
+          <div class="emoji-picker-container">
+            <input type="text" id="calendar-event-icon" placeholder="🎉" maxlength="2" readonly>
+            <button type="button" id="show-emoji-picker-btn" class="btn-secondary">Emoji wählen</button>
+          </div>
+          <div id="emoji-picker" class="emoji-picker hidden">
+            <div class="emoji-tabs">
+              <button type="button" class="emoji-tab active" data-category="events">🎉 Events</button>
+              <button type="button" class="emoji-tab" data-category="travel">✈️ Travel</button>
+              <button type="button" class="emoji-tab" data-category="work">💼 Work</button>
+              <button type="button" class="emoji-tab" data-category="food">🍕 Food</button>
+              <button type="button" class="emoji-tab" data-category="sports">⚽ Sports</button>
+            </div>
+            <div class="emoji-grid" id="emoji-grid">
+              <!-- Emojis werden dynamisch geladen -->
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
           <label for="calendar-event-repeat">Wiederholung</label>
           <select id="calendar-event-repeat">
             <option value="none">Keine</option>
