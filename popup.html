@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chrome Extension</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Schnellzugriff Icons Section -->
+    <div class="quick-access-section">
+      <h2>Schnellzugriff</h2>
+      <div id="quickAccessGrid" class="quick-access-grid"></div>
+      <button id="addQuickAccessBtn" class="btn btn-primary">+ Neues Icon hinzufügen</button>
+    </div>
+
+    <!-- Notizen Section -->
+    <div class="notes-section">
+      <h2>Schnelle Notizen</h2>
+      <div class="notes-input-area">
+        <input type="text" id="noteTitle" placeholder="Notiz-Titel" class="input-field">
+        <textarea id="noteContent" placeholder="Notiz-Inhalt..." class="textarea-field"></textarea>
+        <button id="addNoteBtn" class="btn btn-primary">+ Neue Notiz</button>
+      </div>
+      <div class="notes-search">
+        <input type="text" id="searchNotes" placeholder="🔍 Notizen durchsuchen..." class="input-field">
+      </div>
+      <div id="notesList" class="notes-list"></div>
+      <button id="detailedNoteBtn" class="btn btn-secondary">+ Ausführliche Notiz</button>
+    </div>
+
+    <!-- Kalender Section -->
+    <div class="calendar-section">
+      <h2>Kalender</h2>
+      <div class="calendar-controls">
+        <button id="prevMonth" class="btn btn-small">‹</button>
+        <span id="currentMonth" class="month-display"></span>
+        <button id="nextMonth" class="btn btn-small">›</button>
+        <button id="toggleView" class="btn btn-small">Ansicht wechseln</button>
+      </div>
+      <div id="calendarView" class="calendar-view"></div>
+      <div class="event-form">
+        <h3>Neues Event</h3>
+        <input type="text" id="eventTitle" placeholder="Event-Titel" class="input-field">
+        <input type="date" id="eventDate" class="input-field">
+        <textarea id="eventDescription" placeholder="Beschreibung..." class="textarea-field"></textarea>
+        <div class="event-options">
+          <label>Farbe: <input type="color" id="eventColor" value="#4A90E2"></label>
+          <label>Icon: <input type="text" id="eventIcon" placeholder="✈️" maxlength="2"></label>
+        </div>
+        <button id="addEventBtn" class="btn btn-primary">+ Event hinzufügen</button>
+      </div>
+      <div id="eventsList" class="events-list"></div>
+    </div>
+  </div>
+
+  <!-- Modal für Icon-Bearbeitung -->
+  <div id="iconModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h3>Icon bearbeiten</h3>
+      <input type="text" id="iconName" placeholder="Name" class="input-field">
+      <input type="text" id="iconUrl" placeholder="URL (https://...)" class="input-field">
+      <input type="file" id="iconUpload" accept="image/*" class="input-field">
+      <div class="icon-preview" id="iconPreview"></div>
+      <button id="saveIconBtn" class="btn btn-primary">Speichern</button>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
