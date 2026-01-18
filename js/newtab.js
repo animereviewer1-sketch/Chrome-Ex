@@ -104,7 +104,9 @@ const WIDGET_TYPES = [
   { id: 'notes', name: 'Notizen', icon: '📝' },
   { id: 'weather', name: 'Wetter', icon: '☀️' },
   { id: 'password', name: 'Passwort Generator', icon: '🔐' },
-  { id: 'calendar', name: 'Kalender', icon: '📅' } // Fix 7: Calendar Widget
+  { id: 'calendar', name: 'Kalender', icon: '📅' },
+  { id: 'distraction-counter', name: 'Ablenkungszähler', icon: '📊' },
+  { id: 'decision-coin', name: 'Entscheidungsmünze', icon: '🪙' }
 ];
 
 const QUICK_ACTIONS = [
@@ -929,15 +931,24 @@ function createWidgetElement(widget) {
       const shortcuts = widget.data?.shortcuts || [];
       content.innerHTML = `
         <div class="shortcuts-grid">
-          ${shortcuts.map((shortcut, index) => `
-            <div class="shortcut-item-wrapper" data-index="${index}" data-widget-id="${widget.id}">
-              <a href="${shortcut.url}" class="shortcut-item" data-index="${index}" data-widget-id="${widget.id}">
-                <img src="${shortcut.customIcon || getIconFromUrl(shortcut.url)}" class="shortcut-icon" alt="${shortcut.name}">
-                <span class="shortcut-name">${shortcut.name}</span>
-              </a>
-              <button class="shortcut-settings-btn" data-index="${index}" data-widget-id="${widget.id}" title="Einstellungen">⚙️</button>
-            </div>
-          `).join('')}
+          ${shortcuts.map((shortcut, index) => {
+            let iconStyle = '';
+            if (shortcut.iconTransform) {
+              try {
+                const transform = JSON.parse(shortcut.iconTransform);
+                iconStyle = `style="transform: scale(${transform.zoom / 100}) translate(${transform.posX}px, ${transform.posY}px);"`;
+              } catch (e) {}
+            }
+            return `
+              <div class="shortcut-item-wrapper" data-index="${index}" data-widget-id="${widget.id}">
+                <a href="${shortcut.url}" class="shortcut-item" data-index="${index}" data-widget-id="${widget.id}">
+                  <img src="${shortcut.customIcon || getIconFromUrl(shortcut.url)}" class="shortcut-icon" alt="${shortcut.name}" ${iconStyle}>
+                  <span class="shortcut-name">${shortcut.name}</span>
+                </a>
+                <button class="shortcut-settings-btn" data-index="${index}" data-widget-id="${widget.id}" title="Einstellungen">⚙️</button>
+              </div>
+            `;
+          }).join('')}
           <button class="add-shortcut-btn" data-widget-id="${widget.id}">
             <span class="add-shortcut-icon">+</span>
             <span class="shortcut-name">Hinzufügen</span>
@@ -964,7 +975,8 @@ function createWidgetElement(widget) {
             </div>
           `).join('')}
         </div>
-        <div class="notes-list">
+        <input type="text" class="notes-search-input" data-widget-id="${widget.id}" placeholder="🔍 Suche in Notizen...">
+        <div class="notes-list" data-widget-id="${widget.id}">
           ${notes.map((note, index) => `
             <div class="note-item" data-index="${index}" data-widget-id="${widget.id}">
               <div class="note-item-title">${note.title || 'Ohne Titel'}</div>
@@ -1028,6 +1040,56 @@ function createWidgetElement(widget) {
       `;
       // Initialize calendar after element is appended
       setTimeout(() => initCalendarWidget(widget.id, widget.data), 0);
+      break;
+      
+    // New Widget: Distraction Counter
+    case 'distraction-counter':
+      div.classList.add('distraction-counter-widget');
+      const stats = widget.data?.stats || { tabSwitches: 0, clicks: 0, newTabs: 0, activeTime: 0 };
+      content.innerHTML = `
+        <h3>📊 Ablenkungszähler</h3>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-value" id="stat-tab-switches-${widget.id}">${stats.tabSwitches || 0}</span>
+            <span class="stat-label">Tab-Wechsel</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value" id="stat-clicks-${widget.id}">${stats.clicks || 0}</span>
+            <span class="stat-label">Klicks</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value" id="stat-new-tabs-${widget.id}">${stats.newTabs || 0}</span>
+            <span class="stat-label">Neue Tabs</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value" id="stat-active-time-${widget.id}">${Math.floor((stats.activeTime || 0) / 60)}</span>
+            <span class="stat-label">Aktive Zeit (Min)</span>
+          </div>
+        </div>
+        <button class="distraction-reset-btn" data-widget-id="${widget.id}">🔄 Zurücksetzen</button>
+      `;
+      setTimeout(() => initDistractionCounter(widget.id), 0);
+      break;
+      
+    // New Widget: Decision Coin
+    case 'decision-coin':
+      div.classList.add('decision-coin-widget');
+      content.innerHTML = `
+        <h3>🪙 Entscheidungsmünze</h3>
+        <div class="decision-options">
+          <input type="text" class="decision-option-input" id="option-1-${widget.id}" placeholder="Option 1" value="${widget.data?.option1 || ''}">
+          <input type="text" class="decision-option-input" id="option-2-${widget.id}" placeholder="Option 2" value="${widget.data?.option2 || ''}">
+        </div>
+        <div class="coin-container">
+          <div class="coin" id="coin-${widget.id}">
+            <div class="coin-face coin-heads">😊</div>
+            <div class="coin-face coin-tails">😎</div>
+          </div>
+        </div>
+        <button class="decision-flip-btn" data-widget-id="${widget.id}">🪙 Münze werfen</button>
+        <div class="decision-result" id="decision-result-${widget.id}"></div>
+      `;
+      setTimeout(() => initDecisionCoin(widget.id), 0);
       break;
   }
   
@@ -1821,6 +1883,7 @@ function saveShortcut(e) {
   const name = document.getElementById('shortcut-name').value.trim();
   let url = document.getElementById('shortcut-url').value.trim();
   const customIcon = document.getElementById('shortcut-custom-icon')?.value || '';
+  const iconTransform = document.getElementById('shortcut-icon-transform')?.value || '';
   
   if (!name || !url) return;
   
@@ -1836,10 +1899,13 @@ function saveShortcut(e) {
     widget.data = widget.data || {};
     widget.data.shortcuts = widget.data.shortcuts || [];
     
-    // Fix 4: Include custom icon in shortcut data
+    // Fix 4 & 8: Include custom icon and transform in shortcut data
     const shortcutData = { name, url };
     if (customIcon) {
       shortcutData.customIcon = customIcon;
+    }
+    if (iconTransform) {
+      shortcutData.iconTransform = iconTransform;
     }
     
     if (currentShortcutIndex >= 0) {
@@ -2118,6 +2184,7 @@ function initCalendarWidget(widgetId, data) {
   };
   
   renderCalendar(widgetId, data);
+  renderCountdown(widgetId, data);
 }
 
 function renderCalendar(widgetId, data) {
@@ -2382,6 +2449,7 @@ function openCalendarEventModal(widgetId, date, eventId = null) {
   const dateInput = document.getElementById('calendar-event-date');
   const timeInput = document.getElementById('calendar-event-time');
   const descInput = document.getElementById('calendar-event-desc');
+  const iconInput = document.getElementById('calendar-event-icon');
   const repeatSelect = document.getElementById('calendar-event-repeat');
   const colorInput = document.getElementById('calendar-event-color');
   const deleteBtn = document.getElementById('delete-calendar-event-btn');
@@ -2392,6 +2460,7 @@ function openCalendarEventModal(widgetId, date, eventId = null) {
   if (dateInput) dateInput.value = date || '';
   if (timeInput) timeInput.value = '';
   if (descInput) descInput.value = '';
+  if (iconInput) iconInput.value = '🎉';
   if (repeatSelect) repeatSelect.value = 'none';
   if (colorInput) colorInput.value = '#667eea';
   
@@ -2409,6 +2478,7 @@ function openCalendarEventModal(widgetId, date, eventId = null) {
       if (dateInput) dateInput.value = event.date || '';
       if (timeInput) timeInput.value = event.time || '';
       if (descInput) descInput.value = event.description || '';
+      if (iconInput) iconInput.value = event.icon || '🎉';
       if (repeatSelect) repeatSelect.value = event.repeat || 'none';
       if (colorInput) colorInput.value = event.color || '#667eea';
     }
@@ -2426,6 +2496,7 @@ function saveCalendarEvent() {
   const date = document.getElementById('calendar-event-date')?.value;
   const time = document.getElementById('calendar-event-time')?.value || '';
   const description = document.getElementById('calendar-event-desc')?.value || '';
+  const icon = document.getElementById('calendar-event-icon')?.value || '';
   const repeatValue = document.getElementById('calendar-event-repeat')?.value;
   const repeat = repeatValue !== 'none' ? repeatValue : null;
   const color = document.getElementById('calendar-event-color')?.value || '#667eea';
@@ -2445,6 +2516,7 @@ function saveCalendarEvent() {
       date,
       time,
       description,
+      icon,
       repeat,
       color
     };
@@ -2462,6 +2534,7 @@ function saveCalendarEvent() {
     
     saveSettings();
     renderCalendar(currentCalendarWidgetId, widget.data);
+    renderCountdown(currentCalendarWidgetId, widget.data);
   }
   
   closeModal('calendar-event-modal');
@@ -2480,6 +2553,296 @@ function deleteCalendarEvent() {
   }
   
   closeModal('calendar-event-modal');
+}
+
+// ============ Emoji Picker Functions ============
+const emojiCategories = {
+  events: ['🎉', '🎂', '🎁', '🎊', '🎈', '🎀', '🎆', '🎇', '✨', '🌟', '⭐', '💫'],
+  travel: ['✈️', '🚗', '🚕', '🚙', '🚌', '🚎', '🏖️', '🗺️', '🧳', '🎒', '🏝️', '🗼'],
+  work: ['💼', '📝', '💻', '📊', '📈', '📉', '🖊️', '✏️', '📎', '📌', '🔨', '⚙️'],
+  food: ['🍕', '🍔', '🍟', '🌭', '🥪', '🌮', '🌯', '🥗', '☕', '🍵', '🧃', '🍰'],
+  sports: ['⚽', '🏀', '🏈', '⚾', '🎾', '🏐', '🏉', '🥎', '🏓', '🏸', '🏒', '🏑']
+};
+
+function loadEmojiCategory(category) {
+  const grid = document.getElementById('emoji-grid');
+  if (!grid) return;
+  
+  const emojis = emojiCategories[category] || [];
+  grid.innerHTML = emojis.map(emoji => 
+    `<div class="emoji-option" data-emoji="${emoji}">${emoji}</div>`
+  ).join('');
+  
+  // Add click handlers
+  grid.querySelectorAll('.emoji-option').forEach(option => {
+    option.addEventListener('click', () => {
+      document.getElementById('calendar-event-icon').value = option.dataset.emoji;
+      document.getElementById('emoji-picker').classList.add('hidden');
+    });
+  });
+}
+
+// ============ Icon Editor Functions ============
+function resetIconTransform() {
+  document.getElementById('icon-zoom').value = 100;
+  document.getElementById('icon-pos-x').value = 0;
+  document.getElementById('icon-pos-y').value = 0;
+  document.getElementById('icon-zoom-val').textContent = '100%';
+  document.getElementById('icon-pos-x-val').textContent = '0px';
+  document.getElementById('icon-pos-y-val').textContent = '0px';
+  updateIconPreview();
+}
+
+function updateIconPreview() {
+  const zoom = document.getElementById('icon-zoom').value;
+  const posX = document.getElementById('icon-pos-x').value;
+  const posY = document.getElementById('icon-pos-y').value;
+  
+  const preview = document.getElementById('icon-editor-preview');
+  if (preview) {
+    const transform = `scale(${zoom / 100}) translate(${posX}px, ${posY}px)`;
+    preview.style.transform = transform;
+    document.getElementById('shortcut-icon-transform').value = JSON.stringify({ zoom, posX, posY });
+  }
+}
+
+// ============ Countdown Functions ============
+function renderCountdown(widgetId, data) {
+  const widget = document.getElementById(widgetId);
+  if (!widget) return;
+  
+  const events = data?.events || [];
+  const daysAhead = data?.countdownDays || 30;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const upcomingEvents = [];
+  
+  events.forEach(event => {
+    const eventDate = new Date(event.date);
+    eventDate.setHours(0, 0, 0, 0);
+    
+    // Handle yearly repeating events
+    if (event.repeat === 'yearly') {
+      const thisYear = new Date(today.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+      if (thisYear >= today && thisYear <= new Date(today.getTime() + daysAhead * 24 * 60 * 60 * 1000)) {
+        upcomingEvents.push({ ...event, actualDate: thisYear });
+      }
+    } else if (eventDate >= today && eventDate <= new Date(today.getTime() + daysAhead * 24 * 60 * 60 * 1000)) {
+      upcomingEvents.push({ ...event, actualDate: eventDate });
+    }
+  });
+  
+  // Sort by date
+  upcomingEvents.sort((a, b) => a.actualDate - b.actualDate);
+  
+  let countdownHtml = `
+    <div class="countdown-section">
+      <div class="countdown-header">
+        <span class="countdown-title">📅 Kommende Events</span>
+        <button class="countdown-settings-btn" data-widget-id="${widgetId}">⚙️</button>
+      </div>
+      <div class="countdown-list">
+  `;
+  
+  if (upcomingEvents.length === 0) {
+    countdownHtml += '<div class="countdown-empty">Keine Events in den nächsten ' + daysAhead + ' Tagen</div>';
+  } else {
+    upcomingEvents.forEach(event => {
+      const daysUntil = Math.ceil((event.actualDate - today) / (1000 * 60 * 60 * 24));
+      let badge = '';
+      let className = 'countdown-item';
+      
+      if (daysUntil === 0) {
+        badge = 'Heute';
+        className += ' today';
+      } else if (daysUntil === 1) {
+        badge = 'Morgen';
+        className += ' this-week';
+      } else if (daysUntil <= 7) {
+        badge = `in ${daysUntil} Tagen`;
+        className += ' this-week';
+      } else {
+        badge = `in ${daysUntil} Tagen`;
+        className += ' later';
+      }
+      
+      const badgeClass = daysUntil === 0 ? 'today' : (daysUntil <= 7 ? 'this-week' : 'later');
+      
+      countdownHtml += `
+        <div class="${className}">
+          <span class="countdown-event-name">${event.icon || '📅'} ${event.title}</span>
+          <span class="countdown-badge ${badgeClass}">${badge}</span>
+        </div>
+      `;
+    });
+  }
+  
+  countdownHtml += `
+      </div>
+    </div>
+  `;
+  
+  // Insert after calendar-add-event-btn
+  const addBtn = widget.querySelector('.calendar-add-event-btn');
+  if (addBtn) {
+    const existingCountdown = widget.querySelector('.countdown-section');
+    if (existingCountdown) {
+      existingCountdown.remove();
+    }
+    addBtn.insertAdjacentHTML('afterend', countdownHtml);
+  }
+}
+
+// ============ Distraction Counter Functions ============
+function initDistractionCounter(widgetId) {
+  const currentPage = settings.pages[settings.currentPage];
+  const widget = currentPage?.widgets.find(w => w.id === widgetId);
+  
+  if (!widget) return;
+  
+  // Initialize stats if not exists
+  if (!widget.data) widget.data = {};
+  if (!widget.data.stats) {
+    widget.data.stats = {
+      tabSwitches: 0,
+      clicks: 0,
+      newTabs: 0,
+      activeTime: 0,
+      lastReset: new Date().toDateString()
+    };
+  }
+  
+  // Reset if it's a new day
+  const today = new Date().toDateString();
+  if (widget.data.stats.lastReset !== today) {
+    widget.data.stats = {
+      tabSwitches: 0,
+      clicks: 0,
+      newTabs: 0,
+      activeTime: 0,
+      lastReset: today
+    };
+    saveSettings();
+  }
+  
+  // Track clicks
+  document.addEventListener('click', () => {
+    if (widget.data?.stats) {
+      widget.data.stats.clicks++;
+      updateDistractionStats(widgetId);
+      saveSettings();
+    }
+  });
+  
+  // Track active time (every 10 seconds)
+  setInterval(() => {
+    if (!document.hidden && widget.data?.stats) {
+      widget.data.stats.activeTime += 10;
+      updateDistractionStats(widgetId);
+      saveSettings();
+    }
+  }, 10000);
+  
+  // Track tab switches and new tabs via Chrome API
+  if (typeof chrome !== 'undefined' && chrome.tabs) {
+    chrome.tabs.onActivated.addListener(() => {
+      if (widget.data?.stats) {
+        widget.data.stats.tabSwitches++;
+        updateDistractionStats(widgetId);
+        saveSettings();
+      }
+    });
+    
+    chrome.tabs.onCreated.addListener(() => {
+      if (widget.data?.stats) {
+        widget.data.stats.newTabs++;
+        updateDistractionStats(widgetId);
+        saveSettings();
+      }
+    });
+  }
+}
+
+function updateDistractionStats(widgetId) {
+  const currentPage = settings.pages[settings.currentPage];
+  const widget = currentPage?.widgets.find(w => w.id === widgetId);
+  
+  if (!widget?.data?.stats) return;
+  
+  const stats = widget.data.stats;
+  document.getElementById(`stat-tab-switches-${widgetId}`).textContent = stats.tabSwitches || 0;
+  document.getElementById(`stat-clicks-${widgetId}`).textContent = stats.clicks || 0;
+  document.getElementById(`stat-new-tabs-${widgetId}`).textContent = stats.newTabs || 0;
+  document.getElementById(`stat-active-time-${widgetId}`).textContent = Math.floor((stats.activeTime || 0) / 60);
+}
+
+// ============ Decision Coin Functions ============
+function initDecisionCoin(widgetId) {
+  // Save options on change
+  const option1 = document.getElementById(`option-1-${widgetId}`);
+  const option2 = document.getElementById(`option-2-${widgetId}`);
+  
+  if (option1) {
+    option1.addEventListener('change', () => {
+      const currentPage = settings.pages[settings.currentPage];
+      const widget = currentPage?.widgets.find(w => w.id === widgetId);
+      if (widget) {
+        if (!widget.data) widget.data = {};
+        widget.data.option1 = option1.value;
+        saveSettings();
+      }
+    });
+  }
+  
+  if (option2) {
+    option2.addEventListener('change', () => {
+      const currentPage = settings.pages[settings.currentPage];
+      const widget = currentPage?.widgets.find(w => w.id === widgetId);
+      if (widget) {
+        if (!widget.data) widget.data = {};
+        widget.data.option2 = option2.value;
+        saveSettings();
+      }
+    });
+  }
+}
+
+function flipCoin(widgetId) {
+  const coin = document.getElementById(`coin-${widgetId}`);
+  const resultDiv = document.getElementById(`decision-result-${widgetId}`);
+  const option1 = document.getElementById(`option-1-${widgetId}`).value || 'Option 1';
+  const option2 = document.getElementById(`option-2-${widgetId}`).value || 'Option 2';
+  const btn = document.querySelector(`[data-widget-id="${widgetId}"].decision-flip-btn`);
+  
+  if (!coin || !resultDiv) return;
+  
+  // Disable button during animation
+  btn.disabled = true;
+  resultDiv.classList.remove('show');
+  
+  // Add flipping animation
+  coin.classList.add('flipping');
+  
+  // Random result
+  const isHeads = Math.random() < 0.5;
+  
+  setTimeout(() => {
+    coin.classList.remove('flipping');
+    
+    // Show result
+    const winner = isHeads ? option1 : option2;
+    const emoji = isHeads ? '😊' : '😎';
+    resultDiv.innerHTML = `${emoji} <strong>${winner}</strong>`;
+    resultDiv.classList.add('show');
+    
+    btn.disabled = false;
+    
+    // Auto-reset after 5 seconds
+    setTimeout(() => {
+      resultDiv.classList.remove('show');
+    }, 5000);
+  }, 1500);
 }
 
 function showDayEvents(widgetId, date) {
@@ -2613,6 +2976,80 @@ function initEventListeners() {
     btn.addEventListener('click', () => {
       document.getElementById('shortcut-name').value = btn.dataset.name;
       document.getElementById('shortcut-url').value = btn.dataset.url;
+    });
+  });
+  
+  // Fix 7: Icon URL loader
+  document.getElementById('shortcut-load-icon-url-btn')?.addEventListener('click', async () => {
+    const urlInput = document.getElementById('shortcut-icon-url');
+    const url = urlInput?.value;
+    if (!url) return;
+    
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const dataUrl = event.target.result;
+        document.getElementById('shortcut-icon-preview').src = dataUrl;
+        document.getElementById('shortcut-custom-icon').value = dataUrl;
+        document.getElementById('icon-editor').classList.remove('hidden');
+        document.getElementById('icon-editor-preview').src = dataUrl;
+        resetIconTransform();
+      };
+      reader.readAsDataURL(blob);
+    } catch (error) {
+      alert('Fehler beim Laden des Icons: ' + error.message);
+    }
+  });
+  
+  // Fix 8: Icon editor controls
+  document.getElementById('icon-zoom')?.addEventListener('input', (e) => {
+    document.getElementById('icon-zoom-val').textContent = `${e.target.value}%`;
+    updateIconPreview();
+  });
+  
+  document.getElementById('icon-pos-x')?.addEventListener('input', (e) => {
+    document.getElementById('icon-pos-x-val').textContent = `${e.target.value}px`;
+    updateIconPreview();
+  });
+  
+  document.getElementById('icon-pos-y')?.addEventListener('input', (e) => {
+    document.getElementById('icon-pos-y-val').textContent = `${e.target.value}px`;
+    updateIconPreview();
+  });
+  
+  // Show icon editor when custom icon is uploaded
+  document.getElementById('shortcut-icon-upload')?.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const dataUrl = event.target.result;
+        document.getElementById('shortcut-icon-preview').src = dataUrl;
+        document.getElementById('shortcut-custom-icon').value = dataUrl;
+        document.getElementById('icon-editor').classList.remove('hidden');
+        document.getElementById('icon-editor-preview').src = dataUrl;
+        resetIconTransform();
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+  
+  // Fix 2: Emoji picker for calendar events
+  document.getElementById('show-emoji-picker-btn')?.addEventListener('click', () => {
+    const picker = document.getElementById('emoji-picker');
+    picker.classList.toggle('hidden');
+    if (!picker.classList.contains('hidden')) {
+      loadEmojiCategory('events');
+    }
+  });
+  
+  document.querySelectorAll('.emoji-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.emoji-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      loadEmojiCategory(tab.dataset.category);
     });
   });
   
@@ -2955,6 +3392,41 @@ function initEventListeners() {
       openCalendarEventModal(calendarAddBtn.dataset.widgetId, dateStr);
       return;
     }
+    
+    // Fix 3: Countdown settings button
+    const countdownSettingsBtn = e.target.closest('.countdown-settings-btn');
+    if (countdownSettingsBtn) {
+      // TODO: Open countdown settings modal
+      alert('Countdown-Einstellungen noch nicht implementiert');
+      return;
+    }
+    
+    // Distraction counter reset button
+    const distractionResetBtn = e.target.closest('.distraction-reset-btn');
+    if (distractionResetBtn) {
+      const widgetId = distractionResetBtn.dataset.widgetId;
+      const currentPage = settings.pages[settings.currentPage];
+      const widget = currentPage?.widgets.find(w => w.id === widgetId);
+      if (widget && widget.data?.stats) {
+        widget.data.stats = {
+          tabSwitches: 0,
+          clicks: 0,
+          newTabs: 0,
+          activeTime: 0,
+          lastReset: new Date().toDateString()
+        };
+        saveSettings();
+        updateDistractionStats(widgetId);
+      }
+      return;
+    }
+    
+    // Decision coin flip button
+    const decisionFlipBtn = e.target.closest('.decision-flip-btn');
+    if (decisionFlipBtn) {
+      flipCoin(decisionFlipBtn.dataset.widgetId);
+      return;
+    }
   });
   
   // Password length slider
@@ -2962,6 +3434,45 @@ function initEventListeners() {
     if (e.target.id?.startsWith('pw-length-')) {
       const widgetId = e.target.id.replace('pw-length-', '');
       document.getElementById(`pw-length-val-${widgetId}`).textContent = e.target.value;
+    }
+    
+    // Fix 9: Notes search
+    if (e.target.classList.contains('notes-search-input')) {
+      const widgetId = e.target.dataset.widgetId;
+      const searchTerm = e.target.value.toLowerCase();
+      const notesList = document.querySelector(`.notes-list[data-widget-id="${widgetId}"]`);
+      
+      if (notesList) {
+        const currentPage = settings.pages[settings.currentPage];
+        const widget = currentPage?.widgets.find(w => w.id === widgetId);
+        const notes = widget?.data?.notes || [];
+        
+        const filteredNotes = notes.filter((note, index) => {
+          const titleMatch = (note.title || '').toLowerCase().includes(searchTerm);
+          const contentMatch = (note.content || '').toLowerCase().includes(searchTerm);
+          return titleMatch || contentMatch;
+        });
+        
+        notesList.innerHTML = filteredNotes.map((note, index) => {
+          const originalIndex = notes.findIndex(n => n === note);
+          let title = note.title || 'Ohne Titel';
+          let preview = note.content?.substring(0, 50) || '...';
+          
+          // Highlight search term
+          if (searchTerm) {
+            const regex = new RegExp(`(${searchTerm})`, 'gi');
+            title = title.replace(regex, '<mark>$1</mark>');
+            preview = preview.replace(regex, '<mark>$1</mark>');
+          }
+          
+          return `
+            <div class="note-item" data-index="${originalIndex}" data-widget-id="${widgetId}">
+              <div class="note-item-title">${title}</div>
+              <div class="note-item-preview">${preview}</div>
+            </div>
+          `;
+        }).join('');
+      }
     }
   });
   
