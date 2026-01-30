@@ -2402,7 +2402,7 @@ body.edit-mode .widget:hover .widget-menu-btn {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-height: 200px;
+  max-height: 150px;
   overflow-y: auto;
   scroll-behavior: smooth;
 }
