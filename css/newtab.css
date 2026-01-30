@@ -521,20 +521,20 @@ body.animated-gradient {
   pointer-events: auto;
 }
 
-/* Hover-Zone für Page Tabs */
+/* Hover-Zone für Page Tabs - nur über den Tabs, nicht die gesamte Breite */
 .page-tabs-hover-zone {
   position: fixed;
   top: 0;
-  left: 0;
-  right: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 400px;
   height: 80px;
   z-index: 999;
+  pointer-events: auto;
 }
 
-.page-tabs-hover-zone:hover ~ .page-tabs {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-  pointer-events: auto;
+.page-tabs-hover-zone:hover {
+  /* This will be handled by JavaScript to show .page-tabs */
 }
 
 .page-tab {
@@ -1106,27 +1106,36 @@ body.edit-mode .shortcut-settings-btn {
 }
 
 /* Schöne Scrollbar Styling für Kalender und Notizen */
-.countdown-events-list::-webkit-scrollbar,
+/* Firefox scrollbar styling */
+.countdown-section,
+.quick-notes-list,
+.notes-list {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
+}
+
+/* Webkit scrollbar styling (Chrome, Safari, Edge) */
+.countdown-section::-webkit-scrollbar,
 .quick-notes-list::-webkit-scrollbar,
 .notes-list::-webkit-scrollbar {
   width: 6px;
 }
 
-.countdown-events-list::-webkit-scrollbar-track,
+.countdown-section::-webkit-scrollbar-track,
 .quick-notes-list::-webkit-scrollbar-track,
 .notes-list::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 3px;
 }
 
-.countdown-events-list::-webkit-scrollbar-thumb,
+.countdown-section::-webkit-scrollbar-thumb,
 .quick-notes-list::-webkit-scrollbar-thumb,
 .notes-list::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.3);
   border-radius: 3px;
 }
 
-.countdown-events-list::-webkit-scrollbar-thumb:hover,
+.countdown-section::-webkit-scrollbar-thumb:hover,
 .quick-notes-list::-webkit-scrollbar-thumb:hover,
 .notes-list::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.5);
@@ -1609,13 +1618,11 @@ body.edit-mode .shortcut-settings-btn {
   width: 100px;
   height: 150px;
   z-index: 999;
+  pointer-events: auto;
 }
 
-.settings-hover-zone:hover ~ .settings-btn,
-.settings-hover-zone:hover ~ .edit-mode-btn {
-  opacity: 1;
-  transform: translateX(0);
-  pointer-events: auto;
+.settings-hover-zone:hover {
+  /* This will be handled by JavaScript to show settings and edit buttons */
 }
 
 /* Edit-Modus Only Elements (#2) */
@@ -2848,8 +2855,6 @@ body.edit-mode .widget:hover .widget-menu-btn {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  overflow-y: auto;
-  max-height: 100%;
 }
 
 .countdown-event-item {

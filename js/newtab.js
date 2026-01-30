@@ -3427,6 +3427,67 @@ function initEventListeners() {
       openCalendarEventModal(eventEditBtn.dataset.widgetId, currentCalendarDate, eventEditBtn.dataset.eventId);
     }
   });
+  
+  // Hover zones for Settings and Page Tabs
+  const settingsHoverZone = document.querySelector('.settings-hover-zone');
+  const pageTabsHoverZone = document.querySelector('.page-tabs-hover-zone');
+  const settingsBtn = document.getElementById('settings-btn');
+  const editModeBtn = document.getElementById('edit-mode-btn');
+  const pageTabs = document.getElementById('page-tabs');
+  
+  // Settings hover zone
+  if (settingsHoverZone && settingsBtn && editModeBtn) {
+    settingsHoverZone.addEventListener('mouseenter', () => {
+      settingsBtn.classList.add('visible');
+      if (!settings.editMode) {
+        editModeBtn.classList.add('visible');
+      }
+    });
+    
+    settingsHoverZone.addEventListener('mouseleave', () => {
+      settingsBtn.classList.remove('visible');
+      if (!settings.editMode) {
+        editModeBtn.classList.remove('visible');
+      }
+    });
+    
+    // Keep visible when hovering the buttons themselves
+    [settingsBtn, editModeBtn].forEach(btn => {
+      btn.addEventListener('mouseenter', () => {
+        settingsBtn.classList.add('visible');
+        if (!settings.editMode) {
+          editModeBtn.classList.add('visible');
+        }
+      });
+      
+      btn.addEventListener('mouseleave', () => {
+        settingsBtn.classList.remove('visible');
+        if (!settings.editMode) {
+          editModeBtn.classList.remove('visible');
+        }
+      });
+    });
+  }
+  
+  // Page tabs hover zone
+  if (pageTabsHoverZone && pageTabs) {
+    pageTabsHoverZone.addEventListener('mouseenter', () => {
+      pageTabs.classList.add('visible');
+    });
+    
+    pageTabsHoverZone.addEventListener('mouseleave', () => {
+      pageTabs.classList.remove('visible');
+    });
+    
+    // Keep visible when hovering the tabs themselves
+    pageTabs.addEventListener('mouseenter', () => {
+      pageTabs.classList.add('visible');
+    });
+    
+    pageTabs.addEventListener('mouseleave', () => {
+      pageTabs.classList.remove('visible');
+    });
+  }
 }
 
 // Keyboard Shortcuts Handler
