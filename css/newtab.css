@@ -2293,7 +2293,8 @@ body.edit-mode .shortcut-settings-btn {
   padding-left: 20px;
 }
 
-.bookmark-folder.open .bookmark-folder-content {
+/* Nur direkte Kinder aufklappen - damit Unterordner geschlossen bleiben */
+.bookmark-folder.open > .bookmark-folder-content {
   max-height: 2000px;
 }
 
@@ -3092,11 +3093,12 @@ body.edit-mode .widget:hover .widget-menu-btn {
 }
 
 .decision-coin-widget .coin-result {
-  font-size: 4rem;
-  min-height: 120px;
+  font-size: 1.5rem;
+  min-height: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 15px;
   background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 165, 0, 0.1));
   border-radius: 50%;
   width: 150px;
