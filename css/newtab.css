@@ -972,7 +972,7 @@ body.edit-mode .shortcut-settings-btn {
 .calendar-days-header {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 2px;
+  gap: 3px;
   margin-bottom: 5px;
   text-align: center;
 }
