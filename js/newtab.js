@@ -1881,6 +1881,8 @@ function initShortcutDragDrop(widgetId, container) {
       const addBtn = container.querySelector('.add-shortcut-btn');
       if (addBtn) {
         container.insertBefore(dragging, addBtn);
+      } else {
+        container.appendChild(dragging);
       }
     }
   });
@@ -2924,7 +2926,6 @@ function initEventListeners() {
   // Edit Mode Button
   document.getElementById('edit-mode-btn')?.addEventListener('click', () => {
     toggleEditMode();
-    updateEditModeButtonState();
   });
   
   // Add Widget Button
