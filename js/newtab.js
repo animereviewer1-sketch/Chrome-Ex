@@ -1160,10 +1160,10 @@ function createWidgetElement(widget) {
     
     case 'decision-coin':
       div.classList.add('decision-coin-widget');
-      const result = widget.data?.lastResult || '';
+      const result = widget.data?.lastResult || '🪙';
       content.innerHTML = `
         <h3>🪙 Entscheidungsmünze</h3>
-        <div class="coin-result">${result || 'Werfe die Münze!'}</div>
+        <div class="coin-result">${result}</div>
         <button class="coin-flip-btn" data-widget-id="${widget.id}">Münze werfen</button>
       `;
       break;
