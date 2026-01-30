@@ -1146,34 +1146,66 @@ body.edit-mode .shortcut-settings-btn {
 
 /* ============ Add Widget & Settings Buttons (#2 Edit-Modus) ============ */
 .add-widget-btn,
-.settings-btn {
+.settings-btn,
+.edit-mode-btn {
   position: fixed;
   bottom: 30px;
   width: 56px;
   height: 56px;
   border: none;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  background: transparent;
+  backdrop-filter: blur(0px);
   color: white;
   font-size: 24px;
   cursor: pointer;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  transition: transform 0.3s, box-shadow 0.3s;
+  box-shadow: none;
+  transition: transform 0.3s, box-shadow 0.3s, opacity 0.3s ease, background 0.3s;
   z-index: 1000;
 }
 
 .add-widget-btn {
   right: 110px;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .settings-btn {
   right: 30px;
 }
 
+.edit-mode-btn {
+  bottom: 100px;
+  right: 30px;
+  opacity: 0;
+  transform: translateX(20px);
+}
+
 .add-widget-btn:hover,
-.settings-btn:hover {
+.settings-btn:hover,
+.edit-mode-btn:hover {
   transform: scale(1.1);
   box-shadow: 0 6px 30px rgba(0, 0, 0, 0.4);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.add-widget-btn:hover {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+}
+
+/* Edit button hover effect when hovering over settings */
+.edit-mode-btn:hover,
+.settings-btn:hover ~ .edit-mode-btn {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Aktiver Edit-Mode Indikator */
+.edit-mode-btn.active {
+  opacity: 1;
+  transform: translateX(0);
+  background: var(--primary);
+  color: white;
 }
 
 /* Edit-Modus Only Elements (#2) */
@@ -1191,8 +1223,9 @@ body.edit-mode .shortcut-settings-btn {
   justify-content: center;
 }
 
-/* Settings Button immer sichtbar */
-.settings-btn {
+/* Settings and Edit Mode Button always visible */
+.settings-btn,
+.edit-mode-btn {
   display: flex !important;
   align-items: center;
   justify-content: center;
@@ -2078,7 +2111,34 @@ body.edit-mode.grid-hidden::before {
 
 /* ============ Fix 3: Text-Farbe anpassbar ============ */
 .widget.custom-text-color {
-  color: var(--text-color, #ffffff);
+  color: var(--text-color-main, #ffffff);
+}
+
+/* Haupt-Textfarbe für alle Widgets */
+.widget.custom-text-color .clock-time,
+.widget.custom-text-color .calendar-month-year,
+.widget.custom-text-color h3,
+.widget.custom-text-color .shortcut-name,
+.widget.custom-text-color .weather-temp,
+.widget.custom-text-color .countdown-event-title {
+  color: var(--text-color-main, inherit);
+}
+
+/* Sekundäre Textfarbe */
+.widget.custom-text-color .clock-date,
+.widget.custom-text-color .countdown-event-date,
+.widget.custom-text-color .weather-desc,
+.widget.custom-text-color .note-item-preview {
+  color: var(--text-color-secondary, inherit);
+}
+
+/* Gradient Text */
+.widget.gradient-text-main .clock-time,
+.widget.gradient-text-main .calendar-month-year {
+  background: linear-gradient(var(--gradient-direction, to right), var(--gradient-color1), var(--gradient-color2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .widget.custom-text-color * {
@@ -2362,6 +2422,8 @@ body.edit-mode .widget:hover .widget-menu-btn {
   margin-top: 20px;
   padding-top: 20px;
   border-top: 1px solid rgba(255, 255, 255, 0.15);
+  max-height: 300px;
+  overflow-y: auto;
 }
 
 .countdown-section h4 {
