@@ -1,0 +1,2453 @@
+/* ===========================================
+   Chrome-Ex - New Tab Styles
+   Vollständig überarbeitet mit allen Features
+   =========================================== */
+
+/* ============ CSS Variables für Themes ============ */
+:root {
+  /* Dark Mode (Standard) */
+  --primary: #667eea;
+  --secondary: #764ba2;
+  --bg: #0a0a1a;
+  --bg-secondary: rgba(20, 20, 40, 0.95);
+  --text: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --border: rgba(255, 255, 255, 0.1);
+  --accent-glow: 0 0 20px rgba(102, 126, 234, 0.5);
+  --widget-bg: rgba(20, 20, 40, 0.8);
+  --modal-bg: rgba(20, 20, 40, 0.95);
+  --theme-gradient: linear-gradient(135deg, #0a0a1a 0%, #1a1a3a 50%, #0a0a1a 100%);
+  --font-family: 'Inter', sans-serif;
+}
+
+/* Cyberpunk Theme */
+:root.cyberpunk {
+  --primary: #ff00ff;
+  --secondary: #00ffff;
+  --bg: #1a0033;
+  --bg-secondary: rgba(26, 0, 51, 0.95);
+  --text: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.8);
+  --border: rgba(255, 0, 255, 0.3);
+  --accent-glow: 0 0 20px #ff00ff;
+  --widget-bg: rgba(26, 0, 51, 0.8);
+  --modal-bg: rgba(26, 0, 51, 0.95);
+  --theme-gradient: linear-gradient(135deg, #1a0033 0%, #330066 50%, #1a0033 100%);
+}
+
+/* Pastel Theme */
+:root.pastel {
+  --primary: #ffb3d9;
+  --secondary: #b3d9ff;
+  --bg: #fff5f8;
+  --bg-secondary: rgba(255, 245, 248, 0.95);
+  --text: #333333;
+  --text-secondary: rgba(51, 51, 51, 0.7);
+  --border: rgba(255, 179, 217, 0.3);
+  --accent-glow: 0 0 20px rgba(255, 179, 217, 0.5);
+  --widget-bg: rgba(255, 255, 255, 0.8);
+  --modal-bg: rgba(255, 255, 255, 0.95);
+  --theme-gradient: linear-gradient(135deg, #fff5f8 0%, #f0e6ff 50%, #e6f5ff 100%);
+}
+
+/* Minimal Theme */
+:root.minimal {
+  --primary: #000000;
+  --secondary: #333333;
+  --bg: #ffffff;
+  --bg-secondary: rgba(255, 255, 255, 0.95);
+  --text: #000000;
+  --text-secondary: rgba(0, 0, 0, 0.6);
+  --border: rgba(0, 0, 0, 0.1);
+  --accent-glow: 0 0 10px rgba(0, 0, 0, 0.2);
+  --widget-bg: rgba(245, 245, 245, 0.9);
+  --modal-bg: rgba(255, 255, 255, 0.98);
+  --theme-gradient: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
+}
+
+/* Ocean Theme */
+:root.ocean {
+  --primary: #0077be;
+  --secondary: #00a8cc;
+  --bg: #001f3f;
+  --bg-secondary: rgba(0, 31, 63, 0.95);
+  --text: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --border: rgba(0, 168, 204, 0.3);
+  --accent-glow: 0 0 20px rgba(0, 168, 204, 0.5);
+  --widget-bg: rgba(0, 31, 63, 0.8);
+  --modal-bg: rgba(0, 31, 63, 0.95);
+  --theme-gradient: linear-gradient(135deg, #001f3f 0%, #003366 50%, #004080 100%);
+}
+
+/* Forest Theme */
+:root.forest {
+  --primary: #228b22;
+  --secondary: #8b4513;
+  --bg: #0d1f0d;
+  --bg-secondary: rgba(13, 31, 13, 0.95);
+  --text: #e8f5e8;
+  --text-secondary: rgba(232, 245, 232, 0.7);
+  --border: rgba(34, 139, 34, 0.3);
+  --accent-glow: 0 0 20px rgba(34, 139, 34, 0.5);
+  --widget-bg: rgba(13, 31, 13, 0.8);
+  --modal-bg: rgba(13, 31, 13, 0.95);
+  --theme-gradient: linear-gradient(135deg, #0d1f0d 0%, #1a3a1a 50%, #2d4a2d 100%);
+}
+
+/* Sunset Theme */
+:root.sunset {
+  --primary: #ff6b35;
+  --secondary: #f7931e;
+  --bg: #2d1b2d;
+  --bg-secondary: rgba(45, 27, 45, 0.95);
+  --text: #fff5e6;
+  --text-secondary: rgba(255, 245, 230, 0.7);
+  --border: rgba(255, 107, 53, 0.3);
+  --accent-glow: 0 0 20px rgba(255, 107, 53, 0.5);
+  --widget-bg: rgba(45, 27, 45, 0.8);
+  --modal-bg: rgba(45, 27, 45, 0.95);
+  --theme-gradient: linear-gradient(135deg, #2d1b2d 0%, #4a2c4a 30%, #6b3a5a 60%, #8c4a6a 100%);
+}
+
+/* Neon Theme */
+:root.neon {
+  --primary: #39ff14;
+  --secondary: #ff073a;
+  --bg: #0a0a0a;
+  --bg-secondary: rgba(10, 10, 10, 0.95);
+  --text: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.8);
+  --border: rgba(57, 255, 20, 0.4);
+  --accent-glow: 0 0 30px #39ff14;
+  --widget-bg: rgba(10, 10, 10, 0.9);
+  --modal-bg: rgba(10, 10, 10, 0.98);
+  --theme-gradient: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+}
+
+/* Dark Mode Theme (bereits Standard) */
+:root.dark-mode {
+  --primary: #667eea;
+  --secondary: #764ba2;
+  --bg: #0a0a1a;
+  --bg-secondary: rgba(20, 20, 40, 0.95);
+  --text: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --border: rgba(255, 255, 255, 0.1);
+  --accent-glow: 0 0 20px rgba(102, 126, 234, 0.5);
+  --widget-bg: rgba(20, 20, 40, 0.8);
+  --modal-bg: rgba(20, 20, 40, 0.95);
+  --theme-gradient: linear-gradient(135deg, #0a0a1a 0%, #1a1a3a 50%, #0a0a1a 100%);
+}
+
+/* ============ Base Styles ============ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  font-family: var(--font-family);
+  background: var(--theme-gradient);
+  color: var(--text);
+  min-height: 100vh;
+  position: relative;
+  transition: background 0.5s ease, color 0.3s ease;
+}
+
+/* Custom Background Support (#6) */
+body.custom-background {
+  background: var(--custom-bg-url) !important;
+  background-size: var(--bg-size, cover) !important;
+  background-position: var(--bg-position, center) !important;
+  background-attachment: var(--bg-attachment, fixed) !important;
+  background-repeat: var(--bg-repeat, no-repeat) !important;
+}
+
+/* ============ Particles.js Container (#9) ============ */
+#particles-js {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* ============ Animated Gradient Background (#9) ============ */
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+body.animated-gradient {
+  background: linear-gradient(270deg, var(--primary), var(--secondary), var(--primary));
+  background-size: 400% 400%;
+  animation: gradient-shift 15s ease infinite;
+}
+
+/* ============ Page Tabs (#16 Multi-Page Support) ============ */
+.page-tabs {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 100;
+  background: var(--widget-bg);
+  padding: 8px 15px;
+  border-radius: 25px;
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+}
+
+.page-tab {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  padding: 8px 16px;
+  border-radius: 15px;
+  cursor: pointer;
+  font-size: 14px;
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+.page-tab:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.page-tab.active {
+  background: var(--primary);
+  color: white;
+}
+
+.page-tab-edit {
+  display: none;
+}
+
+.edit-mode .page-tab-edit {
+  display: inline-block;
+}
+
+.add-page {
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--text-secondary);
+  padding: 8px 12px;
+  border-radius: 15px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.add-page:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* ============ Widget Container ============ */
+.widget-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 30px;
+  padding: 100px 40px 40px;
+  min-height: calc(100vh - 140px);
+  position: relative;
+}
+
+/* ============ Widgets (ohne Titel #5) ============ */
+.widget {
+  background: var(--widget-bg);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  min-width: 200px;
+  position: relative;
+  transition: all 0.3s ease, opacity 0.3s ease;
+}
+
+/* Widget Effekte (#11 kombinierbar) */
+.widget.effect-glow {
+  box-shadow: var(--accent-glow);
+}
+
+.widget.effect-neon {
+  border: 2px solid var(--primary);
+  box-shadow: 0 0 10px var(--primary), inset 0 0 10px rgba(var(--primary), 0.2);
+}
+
+.widget.effect-3d {
+  transform: perspective(1000px) rotateX(5deg);
+  transform-style: preserve-3d;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Fix 4: Erweiterte Effekte */
+.widget.effect-emboss {
+  text-shadow: 
+    -1px -1px 1px rgba(255,255,255,0.1),
+    1px 1px 1px rgba(0,0,0,0.5);
+}
+
+.widget.effect-glass {
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Auto-Hide Widget (#14) */
+.widget.auto-hide {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.widget.auto-hide:hover,
+.widget.auto-hide:focus-within {
+  opacity: 1;
+}
+
+/* Widget Positionen (#15) */
+.widget.position-top {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+}
+
+.widget.position-middle {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 50;
+}
+
+.widget.position-bottom {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+}
+
+/* Widget Controls (nur im Edit-Modus) */
+.widget-controls {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  display: none;
+  gap: 5px;
+}
+
+.edit-mode .widget-controls {
+  display: flex;
+}
+
+.widget-control-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: var(--primary);
+  color: white;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.widget-control-btn:hover {
+  transform: scale(1.1);
+  background: var(--secondary);
+}
+
+/* Drag Handle (nur im Edit-Modus) */
+.drag-handle {
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 5px;
+  background: var(--border);
+  border-radius: 3px;
+  cursor: grab;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.edit-mode .drag-handle {
+  opacity: 0.5;
+}
+
+.edit-mode .drag-handle:hover {
+  opacity: 1;
+}
+
+/* ============ Clock Widget ============ */
+.clock-widget {
+  text-align: center;
+  min-width: 250px;
+}
+
+.clock-time {
+  font-size: 64px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.clock-date {
+  font-size: 18px;
+  color: var(--text-secondary);
+  margin-top: 5px;
+}
+
+/* ============ Schnellzugriff Widget (#3 Grid-Layout) ============ */
+.shortcuts-widget {
+  min-width: 350px;
+}
+
+.shortcuts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 20px;
+  padding: 10px;
+}
+
+.shortcut-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--text);
+  transition: all 0.2s;
+  cursor: pointer !important;
+  padding: 10px;
+  border-radius: 12px;
+  position: relative;
+  user-select: none;
+}
+
+.shortcut-item:hover {
+  transform: scale(1.05);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Fix 4: Shortcut item wrapper for settings button */
+.shortcut-item-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Fix 4: Shortcut settings button (gear icon) */
+.shortcut-settings-btn {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 24px;
+  height: 24px;
+  background: var(--primary);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 12px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 15;
+  transition: transform 0.2s, background 0.2s;
+}
+
+body.edit-mode .shortcut-settings-btn {
+  display: flex;
+}
+
+.shortcut-settings-btn:hover {
+  transform: scale(1.1);
+  background: var(--secondary);
+}
+
+/* Fix 4: Icon options in modal */
+.icon-options {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.current-icon-preview {
+  width: 64px;
+  height: 64px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+}
+
+.current-icon-preview img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.icon-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.icon-buttons .btn-secondary {
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
+.shortcut-icon {
+  width: 70px;
+  height: 70px;
+  border-radius: 12px;
+  border: none;
+  padding: 5px;
+  background: rgba(255, 255, 255, 0.05);
+  object-fit: contain;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Only show borders when enabled via settings */
+.shortcuts-borders-enabled .shortcut-icon {
+  border: 2px solid rgba(102, 126, 234, 0.5);
+}
+
+.shortcut-name {
+  font-size: 13px;
+  text-align: center;
+  max-width: 85px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: white;
+}
+
+.add-shortcut-btn {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.edit-mode .add-shortcut-btn {
+  display: flex;
+}
+
+.add-shortcut-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.add-shortcut-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+/* ============ Notes Widget (#12 schöneres Design) ============ */
+.notes-widget {
+  min-width: 300px;
+}
+
+.notes-widget h3 {
+  margin-bottom: 12px;
+  font-size: 16px;
+}
+
+/* Fix 1: Quick notes (always editable) */
+.quick-note-container {
+  margin-bottom: 15px;
+}
+
+.quick-note-input {
+  width: 100%;
+  min-height: 60px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: vertical;
+  font-family: inherit;
+  transition: border-color 0.3s ease;
+  margin-bottom: 8px;
+}
+
+.quick-note-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.quick-note-input::placeholder {
+  color: var(--text-secondary);
+}
+
+.add-quick-note-btn {
+  width: 100%;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.add-quick-note-btn:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.quick-notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 15px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.quick-note-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  gap: 10px;
+}
+
+.quick-note-text {
+  flex: 1;
+  font-size: 13px;
+  word-break: break-word;
+}
+
+.delete-quick-note-btn {
+  width: 24px;
+  height: 24px;
+  background: rgba(255, 68, 68, 0.2);
+  border: none;
+  border-radius: 50%;
+  color: #ff4444;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+
+.delete-quick-note-btn:hover {
+  background: rgba(255, 68, 68, 0.4);
+}
+
+.notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.note-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.note-item:hover {
+  border-color: var(--primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.note-item-title {
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: var(--text);
+}
+
+.note-item-preview {
+  font-size: 12px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.add-note-btn {
+  width: 100%;
+  padding: 10px;
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  margin-top: 10px;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.add-note-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* Notes Search Input */
+.notes-search-input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  border-radius: 6px;
+  color: white;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.notes-search-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* ============ Weather Widget ============ */
+.weather-widget {
+  text-align: center;
+  min-width: 200px;
+}
+
+.weather-icon {
+  font-size: 48px;
+  margin-bottom: 10px;
+}
+
+.weather-temp {
+  font-size: 36px;
+  font-weight: 700;
+}
+
+.weather-desc {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.weather-location {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 5px;
+}
+
+/* ============ Password Generator Widget (#18) ============ */
+.password-widget {
+  min-width: 300px;
+}
+
+.password-display {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.password-display input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  color: var(--text);
+  font-family: 'Fira Code', monospace;
+  font-size: 14px;
+}
+
+.copy-btn {
+  background: var(--primary);
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: transform 0.2s;
+}
+
+.copy-btn:hover {
+  transform: scale(1.1);
+}
+
+.password-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.password-options label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.password-options input[type="range"] {
+  flex: 1;
+  accent-color: var(--primary);
+}
+
+.password-options input[type="checkbox"] {
+  accent-color: var(--primary);
+}
+
+.strength-bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.strength-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff4444, #ffaa00, #00cc00);
+  transition: width 0.3s ease;
+}
+
+.strength-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.generate-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s;
+  font-family: inherit;
+}
+
+.generate-btn:hover {
+  transform: translateY(-2px);
+}
+
+/* Fix 2: Improved Password copy feedback with better design */
+.copy-feedback {
+  background: rgba(0, 255, 0, 0.15);
+  border: 1px solid rgba(0, 255, 0, 0.5);
+  color: #00ff00;
+  padding: 12px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  font-size: 14px;
+  margin-bottom: 10px;
+  animation: feedbackFadeIn 0.3s ease;
+  transition: opacity 0.5s ease;
+}
+
+.copy-feedback-success {
+  background: rgba(0, 255, 0, 0.15);
+  border: 1px solid rgba(0, 255, 0, 0.5);
+  color: #00ff00;
+}
+
+.copy-feedback-error {
+  background: rgba(255, 68, 68, 0.15);
+  border: 1px solid rgba(255, 68, 68, 0.5);
+  color: #ff4444;
+}
+
+.copy-feedback.fade-out {
+  opacity: 0;
+}
+
+@keyframes feedbackFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============ Fix 7: Calendar Widget ============ */
+.calendar-widget {
+  min-width: 320px;
+  max-width: 400px;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.calendar-nav-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border);
+  color: var(--text);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.calendar-nav-btn:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.calendar-month-year {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.calendar-days-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 5px;
+  text-align: center;
+}
+
+.calendar-days-header span {
+  font-size: 11px;
+  color: var(--text-secondary);
+  padding: 5px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.02);
+  transition: all 0.2s ease;
+  position: relative;
+  padding: 4px;
+}
+
+.calendar-day:not(.empty):hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.calendar-day.empty {
+  cursor: default;
+}
+
+.calendar-day.today {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+}
+
+.calendar-day.today .day-number {
+  color: white;
+  font-weight: 700;
+}
+
+.calendar-day.has-events {
+  border: 1px solid var(--primary);
+}
+
+.day-number {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.event-indicators {
+  display: flex;
+  gap: 2px;
+  margin-top: 2px;
+}
+
+.event-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+.calendar-add-event-btn {
+  width: 100%;
+  margin-top: 15px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.calendar-add-event-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* Calendar Events List Modal */
+.calendar-day-date {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-bottom: 15px;
+}
+
+.calendar-events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 15px;
+}
+
+.calendar-event-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.event-color-indicator {
+  width: 4px;
+  height: 100%;
+  min-height: 40px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.event-details {
+  flex: 1;
+}
+
+.event-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.event-time {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.event-description {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.event-edit-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: var(--text);
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.event-edit-btn:hover {
+  background: var(--primary);
+}
+
+/* Calendar Event Form */
+#calendar-event-form textarea {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 12px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+#calendar-event-form textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* ============ Add Widget & Settings Buttons (#2 Edit-Modus) ============ */
+.add-widget-btn,
+.settings-btn {
+  position: fixed;
+  bottom: 30px;
+  width: 56px;
+  height: 56px;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s, box-shadow 0.3s;
+  z-index: 1000;
+}
+
+.add-widget-btn {
+  right: 110px;
+}
+
+.settings-btn {
+  right: 30px;
+}
+
+.add-widget-btn:hover,
+.settings-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.4);
+}
+
+/* Edit-Modus Only Elements (#2) */
+.edit-mode-only {
+  display: none !important;
+}
+
+.edit-mode .edit-mode-only {
+  display: flex !important;
+}
+
+.edit-mode .add-widget-btn {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Settings Button immer sichtbar */
+.settings-btn {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============ Modals (#4 nur X oder Speichern schließt) ============ */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  background: var(--modal-bg);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 30px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s;
+}
+
+.modal-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.modal-content h2 {
+  margin-bottom: 20px;
+  font-size: 24px;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ============ Note Editor Modal (#12) ============ */
+.note-editor-modal {
+  background: var(--modal-bg);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(var(--primary), 0.3);
+}
+
+.note-title-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 12px 16px;
+  font-size: 18px;
+  font-weight: 600;
+  width: 100%;
+  margin-bottom: 15px;
+  font-family: inherit;
+}
+
+.note-title-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.note-editor-content {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 15px;
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 200px;
+  width: 100%;
+  resize: vertical;
+  backdrop-filter: blur(5px);
+  font-family: inherit;
+  margin-bottom: 20px;
+}
+
+.note-editor-content:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.note-editor-content::placeholder {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.note-save-btn {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  border: none;
+  border-radius: 8px;
+  color: white;
+  padding: 12px 30px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s;
+  font-family: inherit;
+}
+
+.note-save-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+}
+
+/* ============ Quick Actions Modal (#17) ============ */
+.quick-actions-content {
+  max-width: 500px;
+}
+
+#quick-search {
+  width: 100%;
+  padding: 15px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid var(--primary);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 16px;
+  font-family: inherit;
+  margin-bottom: 15px;
+}
+
+#quick-search:focus {
+  outline: none;
+  box-shadow: var(--accent-glow);
+}
+
+.actions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.action-item {
+  padding: 12px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.action-item:hover,
+.action-item.selected {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.action-item.selected {
+  border-left: 3px solid var(--primary);
+}
+
+/* ============ Settings Modal (#2, #8, #10) ============ */
+.settings-content {
+  max-width: 700px;
+}
+
+.settings-section {
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.settings-section:last-child {
+  border-bottom: none;
+}
+
+.settings-section h3 {
+  font-size: 18px;
+  margin-bottom: 15px;
+  color: var(--text);
+}
+
+/* Edit Mode Setting (#2) */
+.edit-mode-setting {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.edit-mode-setting label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.edit-mode-setting input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--primary);
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-left: 30px;
+}
+
+/* Theme Grid (#8) */
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 15px;
+}
+
+.theme-card {
+  padding: 15px;
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.theme-card:hover {
+  transform: translateY(-3px);
+}
+
+.theme-card.active {
+  border-color: var(--primary);
+}
+
+.theme-preview {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  margin: 0 auto 10px;
+}
+
+.theme-name {
+  font-size: 12px;
+}
+
+/* Font Grid (#10) */
+.font-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 15px;
+}
+
+.font-card {
+  padding: 15px;
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: 2px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.font-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+}
+
+.font-card.active {
+  border-color: var(--primary);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.font-preview {
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.font-name {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* Background Options */
+.background-options {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.background-option {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 15px;
+}
+
+.background-option label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  min-width: 150px;
+}
+
+.background-option input[type="radio"] {
+  accent-color: var(--primary);
+}
+
+/* Pages Manager (#16) */
+#pages-manager {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.page-manager-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+}
+
+.page-manager-item input {
+  flex: 1;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px;
+  color: var(--text);
+  font-family: inherit;
+}
+
+.page-manager-item button {
+  background: rgba(255, 0, 0, 0.2);
+  border: none;
+  color: #ff4444;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.page-manager-item button:hover {
+  background: rgba(255, 0, 0, 0.4);
+}
+
+/* Settings Actions */
+.settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* ============ Widget Types Grid ============ */
+.widget-types {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 15px;
+}
+
+.widget-type-card {
+  padding: 20px;
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: 2px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.widget-type-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-3px);
+}
+
+.widget-type-icon {
+  font-size: 32px;
+  margin-bottom: 10px;
+}
+
+.widget-type-name {
+  font-size: 14px;
+}
+
+/* ============ Form Elements ============ */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.form-group input[type="text"],
+.form-group input[type="url"],
+.form-group select {
+  width: 100%;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.form-group input[type="range"] {
+  width: 100%;
+  accent-color: var(--primary);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* Widget Effects Checkboxes (#11) */
+.widget-effects .effects-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.widget-effects .effects-checkboxes label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.widget-effects .effects-checkboxes input[type="checkbox"] {
+  accent-color: var(--primary);
+}
+
+/* Special Shortcuts (#7) */
+.special-shortcuts-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.special-shortcut-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.special-shortcut-btn:hover {
+  border-color: var(--primary);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* ============ Buttons ============ */
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  border: none;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-family: inherit;
+  transition: transform 0.2s;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.btn-danger {
+  background: rgba(255, 68, 68, 0.2);
+  border: 1px solid #ff4444;
+  color: #ff4444;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+.btn-danger:hover {
+  background: rgba(255, 68, 68, 0.4);
+}
+
+/* ============ Tabs/Bookmarks Lists ============ */
+.tabs-content,
+.bookmarks-content {
+  max-width: 700px;
+}
+
+.tabs-list,
+.bookmarks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.tab-item,
+.bookmark-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tab-item:hover,
+.bookmark-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--primary);
+}
+
+.tab-icon,
+.bookmark-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+}
+
+.tab-title,
+.bookmark-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bookmark-folder {
+  padding: 15px;
+  margin-bottom: 15px;
+}
+
+.bookmark-folder-title {
+  font-weight: 600;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ============ Scrollbar ============ */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary);
+}
+
+/* ============ Utility Classes ============ */
+.hidden {
+  display: none !important;
+}
+
+/* ============ Feature: Resize Handle (1. Widgets resizable) ============ */
+.resize-handle {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  cursor: nwse-resize;
+  opacity: 0;
+  transition: opacity 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--text-secondary);
+  z-index: 10;
+}
+
+.widget:hover .resize-handle {
+  opacity: 1;
+}
+
+.edit-mode .resize-handle {
+  opacity: 0.5;
+}
+
+.edit-mode .widget:hover .resize-handle {
+  opacity: 1;
+}
+
+/* ============ Feature: Draggable Shortcuts (2. Shortcuts verschiebbar) ============ */
+.shortcut-item.dragging {
+  opacity: 0.5;
+  transform: scale(1.05);
+}
+
+.shortcut-item[draggable="true"] {
+  cursor: grab;
+}
+
+.shortcut-item[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+.shortcuts-grid.drag-over .shortcut-item:not(.dragging) {
+  transition: transform 0.2s ease;
+}
+
+/* ============ Feature: Widget Blur Settings (3. Blur pro Widget einstellbar) ============ */
+/* Dynamischer Blur über CSS Custom Property für stufenlosen Slider */
+.widget.custom-blur {
+  backdrop-filter: var(--widget-blur);
+}
+
+/* ============ Feature: Extended Widget Settings (4. Individuelle Widget-Anpassung) ============ */
+.widget-config-section {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--border);
+}
+
+.widget-config-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.widget-config-section h4 {
+  font-size: 14px;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.setting-row label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.setting-row input[type="checkbox"] {
+  accent-color: var(--primary);
+  width: 16px;
+  height: 16px;
+}
+
+.setting-row input[type="range"] {
+  flex: 1;
+  accent-color: var(--primary);
+}
+
+.setting-row input[type="color"] {
+  width: 40px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.setting-row .value-display {
+  min-width: 45px;
+  text-align: right;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* Widget custom styling */
+.widget.custom-bg {
+  background-color: var(--widget-custom-bg);
+}
+
+.widget.custom-border {
+  border: var(--widget-border-width) solid var(--widget-border-color);
+}
+
+.widget.custom-shadow {
+  box-shadow: 0 0 var(--widget-shadow-size) rgba(0, 0, 0, 0.5);
+}
+
+/* ============ Feature: Page Background Transparency (5. Seiten-Hintergrund-Transparenz) ============ */
+body[data-page-opacity="0"] { 
+  background-color: transparent !important; 
+  background-image: none !important;
+}
+body[data-page-opacity="25"] { 
+  background-color: rgba(0, 0, 0, 0.25) !important; 
+}
+body[data-page-opacity="50"] { 
+  background-color: rgba(0, 0, 0, 0.5) !important; 
+}
+body[data-page-opacity="75"] { 
+  background-color: rgba(0, 0, 0, 0.75) !important; 
+}
+body[data-page-opacity="100"] { 
+  /* Standard - keine Änderung */ 
+}
+
+body.custom-page-opacity {
+  background-color: var(--page-bg-opacity) !important;
+}
+
+/* ============ Feature: Borderless Mode (6. Randlos-Modus) ============ */
+.widget.borderless {
+  border: none !important;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+  padding: 20px 0 !important;
+}
+
+.widget.borderless .drag-handle {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ============ Feature: Hide Titles/Labels (7. Text/Überschriften ausblendbar) ============ */
+.widget.hide-title .widget-title,
+.widget.hide-title h2,
+.widget.hide-title h3 {
+  display: none !important;
+}
+
+.widget.hide-labels .shortcut-name {
+  display: none !important;
+}
+
+.widget.hide-labels .note-item-title {
+  display: none !important;
+}
+
+/* ============ Responsive Design ============ */
+@media (max-width: 768px) {
+  .widget-container {
+    padding: 80px 20px 120px;
+  }
+  
+  .shortcuts-grid {
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 15px;
+  }
+  
+  .shortcut-icon {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .clock-time {
+    font-size: 48px;
+  }
+  
+  .page-tabs {
+    padding: 6px 10px;
+  }
+  
+  .page-tab {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  
+  .settings-content {
+    padding: 20px;
+  }
+  
+  .theme-grid,
+  .font-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ============ Fix 1: Z-Index Hierarchy ============ */
+/* Background: z-index: -1 (default)
+   Grid: z-index: 1 (over background, under widgets)
+   Widgets: z-index: 10
+   Modals/Settings: z-index: 1000 */
+
+.widget, .shortcut-item {
+  z-index: 10;
+}
+
+.settings-panel, .modal {
+  z-index: 1000;
+}
+
+/* ============ Fix 2: Grid im Edit-Modus ============ */
+:root {
+  --grid-size: 20px;
+  --grid-color: rgba(255, 0, 255, 0.2);
+}
+
+body.edit-mode::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: 
+    linear-gradient(var(--grid-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+  background-size: var(--grid-size) var(--grid-size);
+  pointer-events: none;
+  z-index: 1; /* Fix 1: Over background, under widgets */
+}
+
+body.edit-mode.grid-hidden::before {
+  display: none;
+}
+
+/* ============ Fix 3: Text-Farbe anpassbar ============ */
+.widget.custom-text-color {
+  color: var(--text-color, #ffffff);
+}
+
+.widget.custom-text-color * {
+  color: inherit;
+}
+
+/* Fix 3: Ausnahme für Buttons und Links */
+.widget.custom-text-color .widget-control-btn,
+.widget.custom-text-color .btn-primary,
+.widget.custom-text-color .btn-secondary,
+.widget.custom-text-color .btn-danger {
+  color: white;
+}
+
+/* ============ Fix 5-7: Größen anpassbar ============ */
+.widget {
+  font-size: var(--widget-font-size, 16px);
+}
+
+.widget .shortcut-icon {
+  width: var(--icon-size, 48px);
+  height: var(--icon-size, 48px);
+}
+
+.clock-widget .clock-time {
+  font-size: var(--clock-size, 72px);
+}
+
+/* ============ Fix 1: Widget Dragging ============ */
+.widget.dragging {
+  cursor: grabbing;
+  z-index: 10000;
+  opacity: 0.9;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.edit-mode .widget {
+  cursor: default;
+}
+
+.edit-mode .widget .drag-handle {
+  cursor: grab;
+}
+
+.edit-mode .widget .drag-handle:active {
+  cursor: grabbing;
+}
+
+/* Grid Settings Panel */
+.grid-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Weather Settings Panel (Fix 11) */
+.weather-settings {
+  display: flex;
+  flex-direction: column;
+}
+
+.weather-settings .form-group {
+  margin-bottom: 10px;
+}
+
+.weather-settings input[type="password"],
+.weather-settings input[type="text"] {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  color: var(--text);
+  font-family: inherit;
+}
+
+/* ============ Fix 6: Background Position Controls ============ */
+.bg-position-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.bg-pos-row {
+  display: flex;
+  gap: 4px;
+}
+
+.bg-pos-btn {
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.bg-pos-btn:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+/* ============ Fix 5: Icon Transparent Background ============ */
+.shortcut-icon {
+  background: transparent !important;
+}
+
+/* ============ Fix 4: Calendar Year & Decade Views ============ */
+.calendar-grid.year-view {
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.calendar-grid.decade-view {
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.calendar-month-cell,
+.calendar-year-cell {
+  padding: 15px 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+.calendar-month-cell:hover,
+.calendar-year-cell:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--primary);
+}
+
+.calendar-month-cell.current,
+.calendar-year-cell.current {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: white;
+  border-color: transparent;
+}
+
+.calendar-title-clickable {
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.calendar-title-clickable:hover {
+  color: var(--primary);
+}
+
+/* ============ Fix 10: Widget Menu Only in Edit Mode ============ */
+.widget-menu-btn {
+  display: none;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(255, 0, 255, 0.8);
+  border: none;
+  border-radius: 4px;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  font-size: 18px;
+  z-index: 11;
+  color: white;
+  transition: all 0.2s ease;
+}
+
+body.edit-mode .widget:hover .widget-menu-btn {
+  display: block;
+}
+
+.widget-menu-btn:hover {
+  background: var(--primary);
+  transform: scale(1.1);
+}
+
+/* ============ Emoji Picker Styles ============ */
+.icon-selector {
+  position: relative;
+}
+
+.emoji-picker-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(102, 126, 234, 0.5);
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.emoji-picker-button:hover {
+  background: rgba(102, 126, 234, 0.2);
+  border-color: var(--primary);
+}
+
+#selected-emoji-display {
+  font-size: 28px;
+}
+
+.emoji-picker-popup {
+  position: absolute;
+  top: 60px;
+  left: 0;
+  width: 320px;
+  background: #1a1a2e;
+  border: 2px solid var(--primary);
+  border-radius: 12px;
+  padding: 15px;
+  z-index: 1000;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.emoji-categories {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.emoji-cat-btn {
+  flex: 1;
+  padding: 8px;
+  font-size: 24px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+  opacity: 0.5;
+  transition: all 0.2s;
+}
+
+.emoji-cat-btn:hover {
+  opacity: 0.8;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.emoji-cat-btn.active {
+  opacity: 1;
+  background: rgba(102, 126, 234, 0.3);
+}
+
+.emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.emoji-item {
+  width: 48px;
+  height: 48px;
+  font-size: 28px;
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.emoji-item:hover {
+  background: rgba(102, 126, 234, 0.3);
+  transform: scale(1.1);
+}
+
+/* ============ Countdown Section Styles ============ */
+.countdown-section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.countdown-section h4 {
+  color: white;
+  margin-bottom: 15px;
+  font-size: 16px;
+}
+
+.countdown-events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.countdown-event-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.countdown-event-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.countdown-event-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.countdown-event-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.countdown-event-title {
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.countdown-event-date {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.countdown-badge {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.countdown-badge.urgent {
+  background: #ff4757;
+  color: white;
+  animation: pulse 1.5s infinite;
+}
+
+.countdown-badge.soon {
+  background: #ffa502;
+  color: white;
+}
+
+.countdown-badge.week {
+  background: #1e90ff;
+  color: white;
+}
+
+.countdown-badge.later {
+  background: rgba(102, 126, 234, 0.5);
+  color: white;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.no-countdown-events {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+  text-align: center;
+  padding: 20px;

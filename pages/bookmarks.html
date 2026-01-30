@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesezeichen</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/newtab.css">
+  <style>
+    body {
+      padding: 40px;
+      min-height: 100vh;
+    }
+    .page-title {
+      font-size: 32px;
+      margin-bottom: 30px;
+      text-align: center;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .bookmarks-container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .back-link {
+      display: inline-block;
+      margin-bottom: 20px;
+      color: var(--primary);
+      text-decoration: none;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+    .bookmark-folder {
+      margin-bottom: 20px;
+      padding: 15px;
+      background: var(--widget-bg);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    .bookmark-folder-title {
+      font-weight: 600;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .bookmark-folder-content {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+    }
+  </style>
+</head>
+<body class="dark-mode">
+  <div class="bookmarks-container">
+    <a href="newtab.html" class="back-link">← Zurück zur Startseite</a>
+    <h1 class="page-title">🔖 Lesezeichen</h1>
+    <div id="bookmarks-list" class="bookmarks-list">
+      <!-- Lesezeichen werden dynamisch eingefügt -->
+    </div>
+  </div>
+  
+  <script>
+    // Icon von URL generieren
+    function getIconFromUrl(url) {
+      try {
+        const domain = new URL(url).hostname;
+        return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+      } catch {
+        return 'icons/default.png';
+      }
+    }
+    
+    // Lesezeichen-Baum rendern
+    function renderBookmarkTree(nodes) {
+      let html = '';
+      
+      for (const node of nodes) {
+        if (node.children) {
+          if (node.title) {
+            html += `
+              <div class="bookmark-folder">
+                <div class="bookmark-folder-title">📁 ${node.title}</div>
+                <div class="bookmark-folder-content">
+                  ${renderBookmarkItems(node.children)}
+                </div>
+              </div>
+            `;
+          } else {
+            html += renderBookmarkTree(node.children);
+          }
+        }
+      }
+      
+      return html;
+    }
+    
+    function renderBookmarkItems(nodes) {
+      let html = '';
+      
+      for (const node of nodes) {
+        if (node.url) {
+          html += `
+            <div class="bookmark-item" data-url="${node.url}">
+              <img src="${getIconFromUrl(node.url)}" class="bookmark-icon" alt="" onerror="this.src='icons/default.png'">
+              <span class="bookmark-title">${node.title || node.url}</span>
+            </div>
+          `;
+        } else if (node.children) {
+          html += renderBookmarkTree([node]);
+        }
+      }
+      
+      return html;
+    }
+    
+    // Lesezeichen laden
+    async function loadBookmarks() {
+      const list = document.getElementById('bookmarks-list');
+      
+      try {
+        if (typeof chrome !== 'undefined' && chrome.bookmarks) {
+          const tree = await chrome.bookmarks.getTree();
+          list.innerHTML = renderBookmarkTree(tree);
+          
+          // Click Handler
+          list.querySelectorAll('.bookmark-item').forEach(item => {
+            item.addEventListener('click', () => {
+              window.open(item.dataset.url, '_blank');
+            });
+          });
+        } else {
+          list.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">Lesezeichen-Zugriff nur in der Chrome Extension verfügbar.</p>';
+        }
+      } catch (error) {
+        list.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">Fehler beim Laden der Lesezeichen.</p>';
+        console.error(error);
+      }
+    }
+    
+    // Theme aus Storage laden
+    async function loadTheme() {
+      try {
+        if (typeof chrome !== 'undefined' && chrome.storage) {
+          const result = await chrome.storage.local.get('chromeExSettings');
+          if (result.chromeExSettings && result.chromeExSettings.theme) {
+            document.documentElement.className = result.chromeExSettings.theme;
+            document.body.className = result.chromeExSettings.theme;
+          }
+        }
+      } catch (e) {}
+    }
+    
+    loadTheme();
+    loadBookmarks();
+  </script>
+</body>
+</html>

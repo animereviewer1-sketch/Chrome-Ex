@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Neuer Tab</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=Inter:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=Open+Sans:wght@400;700&family=Playfair+Display:wght@400;700&family=Poppins:wght@400;700&family=Raleway:wght@400;700&family=Roboto:wght@400;700&family=Ubuntu:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/newtab.css">
+</head>
+<body class="dark-mode">
+  <!-- Partikel Hintergrund -->
+  <div id="particles-js"></div>
+  
+  <!-- Quick Actions Modal (Strg+K) -->
+  <div id="quick-actions-modal" class="modal hidden">
+    <div class="modal-content quick-actions-content">
+      <input type="text" id="quick-search" placeholder="Aktion suchen..." autocomplete="off">
+      <div class="actions-list" id="actions-list"></div>
+    </div>
+  </div>
+
+  <!-- Page Tabs für Multi-Page Support -->
+  <div class="page-tabs" id="page-tabs">
+    <!-- Dynamisch gefüllt -->
+  </div>
+
+  <!-- Widget Container -->
+  <div class="widget-container" id="widget-container">
+    <!-- Widgets werden dynamisch eingefügt -->
+  </div>
+
+  <!-- Add Widget Button (nur im Edit-Modus sichtbar) -->
+  <button id="add-widget-btn" class="add-widget-btn edit-mode-only" title="Widget hinzufügen">+</button>
+
+  <!-- Settings Button (immer sichtbar) -->
+  <button id="settings-btn" class="settings-btn" title="Einstellungen">⚙️</button>
+
+  <!-- Widget Modal -->
+  <div id="widget-modal" class="modal hidden">
+    <div class="modal-content">
+      <button class="modal-close" id="widget-modal-close">✕</button>
+      <h2>Widget hinzufügen</h2>
+      <div class="widget-types" id="widget-types">
+        <!-- Widget-Typen werden dynamisch eingefügt -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Shortcut Editor Modal -->
+  <div id="shortcut-modal" class="modal hidden">
+    <div class="modal-content">
+      <button class="modal-close" id="shortcut-modal-close">✕</button>
+      <h2 id="shortcut-modal-title">Shortcut hinzufügen</h2>
+      <form id="shortcut-form">
+        <div class="form-group">
+          <label for="shortcut-name">Name</label>
+          <input type="text" id="shortcut-name" placeholder="z.B. Google" required>
+        </div>
+        <div class="form-group">
+          <label for="shortcut-url">URL</label>
+          <input type="url" id="shortcut-url" placeholder="https://google.com" required>
+        </div>
+        <!-- Fix 4: Icon customization options -->
+        <div class="form-group">
+          <label>Icon</label>
+          <div class="icon-options">
+            <div class="current-icon-preview">
+              <img id="shortcut-icon-preview" src="" alt="Icon">
+            </div>
+            <div class="icon-buttons">
+              <button type="button" id="shortcut-use-favicon-btn" class="btn-secondary">🌐 Favicon verwenden</button>
+              <button type="button" id="shortcut-upload-icon-btn" class="btn-secondary">📁 Eigenes Icon</button>
+              <input type="file" id="shortcut-icon-upload" accept="image/*" class="hidden">
+            </div>
+          </div>
+          <input type="hidden" id="shortcut-custom-icon" value="">
+        </div>
+        <div class="form-group special-shortcuts">
+          <label>Oder spezielle Shortcuts:</label>
+          <div class="special-shortcuts-list">
+            <button type="button" class="special-shortcut-btn" data-url="chrome://newtab/tabs.html" data-name="Offene Tabs">📑 Offene Tabs</button>
+            <button type="button" class="special-shortcut-btn" data-url="chrome://newtab/bookmarks.html" data-name="Lesezeichen">🔖 Lesezeichen</button>
+          </div>
+        </div>
+        <input type="hidden" id="shortcut-index" value="-1">
+        <div class="form-actions">
+          <button type="button" id="delete-shortcut-btn" class="btn-danger hidden">Löschen</button>
+          <button type="submit" class="btn-primary">Speichern</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Note Editor Modal -->
+  <div id="note-modal" class="modal hidden">
+    <div class="modal-content note-editor-modal">
+      <button class="modal-close" id="note-modal-close">✕</button>
+      <input type="text" id="note-title" class="note-title-input" placeholder="Notiz Titel...">
+      <textarea id="note-content" class="note-editor-content" placeholder="Schreibe deine Notiz hier..."></textarea>
+      <input type="hidden" id="note-index" value="-1">
+      <div class="form-actions">
+        <button type="button" id="delete-note-btn" class="btn-danger hidden">Löschen</button>
+        <button type="button" id="save-note-btn" class="note-save-btn">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Widget Settings Modal -->
+  <div id="widget-settings-modal" class="modal hidden">
+    <div class="modal-content">
+      <button class="modal-close" id="widget-settings-modal-close">✕</button>
+      <h2>Widget Einstellungen</h2>
+      <form id="widget-settings-form">
+        <input type="hidden" id="widget-settings-id">
+        
+        <div class="form-group">
+          <label>Opazität: <span id="widget-opacity-value">100%</span></label>
+          <input type="range" id="widget-opacity" min="0" max="100" value="100">
+        </div>
+        
+        <div class="form-group">
+          <label>Position</label>
+          <select id="widget-position">
+            <option value="free">Frei verschiebbar</option>
+            <option value="top">Oben fixiert</option>
+            <option value="middle">Mitte</option>
+            <option value="bottom">Unten fixiert</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label><input type="checkbox" id="widget-auto-hide"> Auto-Hide (erscheint bei Hover)</label>
+        </div>
+        
+        <!-- Neue Feature 3: Blur-Einstellung -->
+        <div class="widget-config-section">
+          <h4>Blur-Effekt</h4>
+          <div class="setting-row">
+            <label><input type="checkbox" id="widget-blur-enabled"> Blur aktiviert</label>
+          </div>
+          <div class="setting-row">
+            <label>Stärke:</label>
+            <input type="range" id="widget-blur-strength" min="0" max="20" value="10">
+            <span class="value-display" id="widget-blur-value">10px</span>
+          </div>
+        </div>
+        
+        <!-- Neue Feature 4: Erweiterte Anpassung -->
+        <div class="widget-config-section">
+          <h4>Hintergrund</h4>
+          <div class="setting-row">
+            <label>Transparenz:</label>
+            <input type="range" id="widget-bg-opacity" min="0" max="100" value="100">
+            <span class="value-display" id="widget-bg-opacity-value">100%</span>
+          </div>
+          <div class="setting-row">
+            <label>Farbe:</label>
+            <input type="color" id="widget-bg-color" value="#1a1a2e">
+          </div>
+        </div>
+        
+        <div class="widget-config-section">
+          <h4>Rahmen</h4>
+          <div class="setting-row">
+            <label><input type="checkbox" id="widget-border-enabled"> Rahmen anzeigen</label>
+          </div>
+          <div class="setting-row">
+            <label>Farbe:</label>
+            <input type="color" id="widget-border-color" value="#ff00ff">
+            <label>Breite:</label>
+            <input type="range" id="widget-border-width" min="1" max="5" value="1">
+            <span class="value-display" id="widget-border-width-value">1px</span>
+          </div>
+        </div>
+        
+        <div class="widget-config-section">
+          <h4>Schatten</h4>
+          <div class="setting-row">
+            <label><input type="checkbox" id="widget-shadow-enabled"> Schatten anzeigen</label>
+          </div>
+          <div class="setting-row">
+            <label>Größe:</label>
+            <input type="range" id="widget-shadow-size" min="0" max="50" value="20">
+            <span class="value-display" id="widget-shadow-size-value">20px</span>
+          </div>
+        </div>
+        
+        <div class="form-group widget-effects">
+          <label>Effekte (kombinierbar):</label>
+          <div class="effects-checkboxes">
+            <label><input type="checkbox" data-effect="glow"> Glow</label>
+            <label><input type="checkbox" data-effect="neon"> Neon</label>
+            <label><input type="checkbox" data-effect="3d"> 3D</label>
+            <label><input type="checkbox" data-effect="emboss"> Emboss</label>
+            <label><input type="checkbox" data-effect="glass"> Glass</label>
+          </div>
+        </div>
+        
+        <!-- Fix 3: Text-Farbe -->
+        <div class="widget-config-section">
+          <h4>Text-Farbe</h4>
+          <div class="setting-row">
+            <label>Farbe:</label>
+            <input type="color" id="widget-text-color" value="#ffffff">
+          </div>
+        </div>
+        
+        <!-- Fix 5-7: Größen-Einstellungen -->
+        <div class="widget-config-section">
+          <h4>Größen</h4>
+          <div class="setting-row">
+            <label>Icon-Größe: <span id="icon-size-val">48px</span></label>
+            <input type="range" id="widget-icon-size" min="24" max="128" value="48">
+          </div>
+          <div class="setting-row">
+            <label>Text-Größe: <span id="font-size-val">16px</span></label>
+            <input type="range" id="widget-font-size" min="10" max="48" value="16">
+          </div>
+          <div class="setting-row">
+            <label>Uhrzeit-Größe: <span id="clock-size-val">72px</span></label>
+            <input type="range" id="widget-clock-size" min="24" max="200" value="72">
+          </div>
+        </div>
+        
+        <!-- Neue Feature 6: Randlos-Modus -->
+        <div class="form-group">
+          <label><input type="checkbox" id="widget-borderless"> Randlos (entfernt alle Rahmen/Hintergründe)</label>
+        </div>
+        
+        <!-- Neue Feature 7: Titel/Labels ausblenden -->
+        <div class="form-group">
+          <label><input type="checkbox" id="widget-hide-title"> Titel ausblenden</label>
+        </div>
+        <div class="form-group">
+          <label><input type="checkbox" id="widget-hide-labels"> Labels ausblenden (z.B. Shortcut-Namen)</label>
+        </div>
+        
+        <div class="form-actions">
+          <button type="button" id="delete-widget-btn" class="btn-danger">Widget löschen</button>
+          <button type="submit" class="btn-primary">Speichern</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="modal hidden">
+    <div class="modal-content settings-content">
+      <button class="modal-close" id="settings-modal-close">✕</button>
+      <h2>Einstellungen</h2>
+      
+      <div class="settings-section">
+        <h3>Edit-Modus</h3>
+        <div class="edit-mode-setting">
+          <label>
+            <input type="checkbox" id="edit-mode-toggle">
+            Edit-Modus aktivieren
+          </label>
+          <p class="hint">Ermöglicht Verschieben, Konfigurieren und Hinzufügen von Widgets auf der Startseite</p>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>Schnellzugriff-Einstellungen</h3>
+        <div class="setting-group">
+          <label>
+            <input type="checkbox" id="setting-shortcut-borders">
+            Icon-Umrandungen anzeigen
+          </label>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>Farbschema</h3>
+        <div class="theme-grid" id="theme-grid">
+          <!-- Themes werden dynamisch eingefügt -->
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>Hintergrund</h3>
+        <div class="background-options">
+          <div class="background-option">
+            <label>
+              <input type="radio" name="bg-type" value="theme" checked>
+              Theme-Hintergrund
+            </label>
+          </div>
+          <div class="background-option">
+            <label>
+              <input type="radio" name="bg-type" value="custom">
+              Eigenes Bild/Video
+            </label>
+            <!-- Fix 8-9: Video-Unterstützung -->
+            <input type="file" id="custom-bg-upload" accept="image/*,video/mp4,video/webm,image/gif" class="hidden">
+            <button type="button" id="upload-bg-btn" class="btn-secondary">Datei hochladen</button>
+          </div>
+          <!-- Fix 8-9: URL-basierter Hintergrund -->
+          <div class="background-option">
+            <label>Oder URL:</label>
+            <input type="url" id="bg-url" placeholder="https://..." style="flex: 1; margin-left: 10px;">
+          </div>
+          <div class="background-option">
+            <label>
+              <input type="radio" name="bg-type" value="animated">
+              Animiert
+            </label>
+            <select id="animated-bg-type" class="hidden">
+              <option value="particles">Partikel</option>
+              <option value="gradient">Gradient Animation</option>
+              <option value="geometric">Geometrische Formen</option>
+            </select>
+          </div>
+        </div>
+        
+        <!-- Fix 6: Background customization settings -->
+        <div class="form-group bg-advanced-settings" style="margin-top: 20px;">
+          <h4>Hintergrund-Anpassung</h4>
+          <div class="setting-row">
+            <label>Zoom: <span id="bg-zoom-val">100%</span></label>
+            <input type="range" id="bg-zoom" min="50" max="200" value="100">
+          </div>
+          <div class="setting-row">
+            <label>Position:</label>
+            <div class="bg-position-controls">
+              <button type="button" class="bg-pos-btn" id="bg-up">▲</button>
+              <div class="bg-pos-row">
+                <button type="button" class="bg-pos-btn" id="bg-left">◀</button>
+                <button type="button" class="bg-pos-btn" id="bg-center">●</button>
+                <button type="button" class="bg-pos-btn" id="bg-right">▶</button>
+              </div>
+              <button type="button" class="bg-pos-btn" id="bg-down">▼</button>
+            </div>
+            <span class="value-display" id="bg-pos-val">50% 50%</span>
+          </div>
+          <div class="setting-row">
+            <label>Größe:</label>
+            <select id="bg-size">
+              <option value="cover">Cover (Ausfüllen)</option>
+              <option value="contain">Contain (Einpassen)</option>
+              <option value="auto">Original</option>
+              <option value="100% 100%">Strecken</option>
+            </select>
+          </div>
+          <div class="setting-row">
+            <label><input type="checkbox" id="bg-repeat"> Wiederholen</label>
+          </div>
+          <div class="setting-row">
+            <label><input type="checkbox" id="bg-fixed" checked> Fixiert (scrollt nicht mit)</label>
+          </div>
+          <!-- Fix 8: Page-specific background -->
+          <div class="setting-row">
+            <label><input type="checkbox" id="bg-page-specific"> Hintergrund nur für diese Seite</label>
+          </div>
+        </div>
+        
+        <!-- Neue Feature 5: Seiten-Hintergrund-Transparenz -->
+        <div class="form-group" style="margin-top: 20px;">
+          <label>Seiten-Transparenz: <span id="page-opacity-value">100%</span></label>
+          <input type="range" id="page-opacity" min="0" max="100" value="100">
+          <p class="hint">Reduziert die Sichtbarkeit des Hintergrunds (0% = transparent)</p>
+        </div>
+      </div>
+      
+      <!-- Fix 2: Grid-Einstellungen -->
+      <div class="settings-section">
+        <h3>Raster (Edit-Modus)</h3>
+        <div class="grid-settings">
+          <div class="setting-row">
+            <label>Raster-Größe: <span id="grid-size-val">20px</span></label>
+            <input type="range" id="grid-size" min="5" max="100" value="20">
+          </div>
+          <div class="setting-row">
+            <label>Raster-Farbe:</label>
+            <input type="color" id="grid-color" value="#ff00ff">
+          </div>
+          <div class="setting-row">
+            <label>
+              <input type="checkbox" id="grid-visible" checked> Raster anzeigen
+            </label>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Fix 3: Wetter-Einstellungen - Open-Meteo -->
+      <div class="settings-section">
+        <h3>🌤️ Wetter-Einstellungen</h3>
+        <div class="weather-settings">
+          <p class="api-info" style="margin-bottom: 15px;">
+            Verwendet: <a href="https://open-meteo.com/" target="_blank" style="color: var(--primary);">
+              https://open-meteo.com/
+            </a>
+            <br>
+            <small>Kostenlos & ohne API-Key</small>
+          </p>
+          
+          <div class="form-group">
+            <label>Standort (Koordinaten):</label>
+            <div class="coordinate-inputs" style="display: flex; gap: 10px;">
+              <input type="number" 
+                     id="weather-latitude" 
+                     placeholder="Latitude" 
+                     value="48.1374" 
+                     step="0.0001"
+                     style="width: 48%;">
+              <input type="number" 
+                     id="weather-longitude" 
+                     placeholder="Longitude" 
+                     value="11.5755" 
+                     step="0.0001"
+                     style="width: 48%;">
+            </div>
+            <p class="hint" style="margin-top: 10px;">
+              Standard: München (48.1374, 11.5755)
+              <br>
+              <a href="https://www.latlong.net/" target="_blank" style="color: var(--primary);">🔍 Koordinaten finden</a>
+            </p>
+          </div>
+          
+          <div class="form-group">
+            <label>Stadtname (optional, nur zur Anzeige):</label>
+            <input type="text" 
+                   id="weather-city-name" 
+                   placeholder="z.B. München" 
+                   value="München"
+                   style="width: 100%;">
+          </div>
+          
+          <button type="button" id="save-weather-settings" class="btn-primary" style="margin-top: 10px;">
+            Speichern & Testen
+          </button>
+          
+          <div id="weather-test-result" class="weather-test-result" style="margin-top: 10px;"></div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>Schriftart</h3>
+        <div class="font-grid" id="font-grid">
+          <!-- Fonts werden dynamisch eingefügt -->
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>Seiten verwalten</h3>
+        <div id="pages-manager">
+          <!-- Seiten werden dynamisch eingefügt -->
+        </div>
+        <button type="button" id="add-page-btn" class="btn-secondary">+ Neue Seite</button>
+      </div>
+
+      <div class="settings-actions">
+        <button type="button" id="export-all-btn" class="btn-secondary">📦 Alles exportieren</button>
+        <button type="button" id="import-all-btn" class="btn-secondary">📥 Alles importieren</button>
+        <input type="file" id="import-all-file" accept=".json" class="hidden">
+        <button type="button" id="reset-settings-btn" class="btn-danger">Zurücksetzen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs Page Modal (special shortcut) -->
+  <div id="tabs-modal" class="modal hidden">
+    <div class="modal-content tabs-content">
+      <button class="modal-close" id="tabs-modal-close">✕</button>
+      <h2>📑 Offene Tabs</h2>
+      <div id="tabs-list" class="tabs-list">
+        <!-- Tabs werden dynamisch eingefügt -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Bookmarks Page Modal (special shortcut) -->
+  <div id="bookmarks-modal" class="modal hidden">
+    <div class="modal-content bookmarks-content">
+      <button class="modal-close" id="bookmarks-modal-close">✕</button>
+      <h2>🔖 Lesezeichen</h2>
+      <div id="bookmarks-list" class="bookmarks-list">
+        <!-- Lesezeichen werden dynamisch eingefügt -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Fix 7: Calendar Event Modal -->
+  <div id="calendar-event-modal" class="modal hidden">
+    <div class="modal-content">
+      <button class="modal-close" id="calendar-event-modal-close">✕</button>
+      <h2 id="calendar-event-modal-title">Event hinzufügen</h2>
+      <form id="calendar-event-form">
+        <div class="form-group">
+          <label for="calendar-event-title">Titel</label>
+          <input type="text" id="calendar-event-title" placeholder="z.B. Geburtstag" required>
+        </div>
+        <div class="form-group">
+          <label for="calendar-event-date">Datum</label>
+          <input type="date" id="calendar-event-date" required>
+        </div>
+        <div class="form-group">
+          <label for="calendar-event-time">Uhrzeit (optional)</label>
+          <input type="time" id="calendar-event-time">
+        </div>
+        <div class="form-group">
+          <label for="calendar-event-desc">Beschreibung (optional)</label>
+          <textarea id="calendar-event-desc" placeholder="Details zum Event..." rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="calendar-event-repeat">Wiederholung</label>
+          <select id="calendar-event-repeat">
+            <option value="none">Keine</option>
+            <option value="daily">Täglich</option>
+            <option value="weekly">Wöchentlich</option>
+            <option value="monthly">Monatlich</option>
+            <option value="yearly">Jährlich</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="calendar-event-color">Farbe</label>
+          <input type="color" id="calendar-event-color" value="#667eea">
+        </div>
+        <div class="form-group">
+          <label>Icon (optional)</label>
+          <div class="icon-selector">
+            <button type="button" id="emoji-picker-btn" class="emoji-picker-button">
+              <span id="selected-emoji-display">📅</span>
+              <span>Emoji wählen</span>
+            </button>
+            
+            <div id="emoji-picker-popup" class="emoji-picker-popup hidden">
+              <div class="emoji-categories">
+                <button type="button" class="emoji-cat-btn active" data-cat="events">🎉</button>
+                <button type="button" class="emoji-cat-btn" data-cat="travel">✈️</button>
+                <button type="button" class="emoji-cat-btn" data-cat="work">💼</button>
+                <button type="button" class="emoji-cat-btn" data-cat="food">🍕</button>
+                <button type="button" class="emoji-cat-btn" data-cat="sports">⚽</button>
+                <button type="button" class="emoji-cat-btn" data-cat="other">📌</button>
+              </div>
+              <div id="emoji-grid-container" class="emoji-grid"></div>
+            </div>
+          </div>
+          <input type="hidden" id="calendar-event-icon" value="📅">
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="calendar-event-show-countdown" checked>
+            Im Countdown anzeigen
+          </label>
+        </div>
+        <div class="form-group">
+          <label for="calendar-event-countdown-days">Countdown-Tage (max)</label>
+          <input type="number" id="calendar-event-countdown-days" value="30" min="1" max="365">
+        </div>
+        <div class="form-actions">
+          <button type="button" id="delete-calendar-event-btn" class="btn-danger hidden">Löschen</button>
+          <button type="submit" class="btn-primary">Speichern</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Fix 7: Calendar Day Events Modal -->
+  <div id="calendar-day-events-modal" class="modal hidden">
+    <div class="modal-content">
+      <button class="modal-close" id="calendar-day-events-modal-close">✕</button>
+      <h2>📅 Events</h2>
+      <div id="calendar-day-events-date" class="calendar-day-date"></div>
+      <div id="calendar-day-events-list" class="calendar-events-list">
+        <!-- Events werden dynamisch eingefügt -->
+      </div>
+      <button type="button" id="calendar-add-new-event-btn" class="btn-secondary">+ Neues Event</button>
+    </div>
+  </div>
+
+  <script src="lib/particles.min.js"></script>
+  <script src="js/newtab.js"></script>
+</body>
+</html>
