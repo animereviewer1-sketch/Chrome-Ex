@@ -791,6 +791,11 @@ function switchToPage(pageId) {
   saveSettings();
   initPageTabs();
   renderWidgets();
+  
+  // FIX: Wetter nach Page-Wechsel laden
+  setTimeout(() => {
+    updateAllWeatherWidgets();
+  }, 100);
 }
 
 function addNewPage() {
@@ -885,6 +890,13 @@ function renderWidgets() {
       }
     }
   });
+  
+  // FIX: Wetter-Widgets nach dem Rendern aktualisieren
+  setTimeout(() => {
+    document.querySelectorAll('.weather-widget').forEach(widget => {
+      loadWeather(widget);
+    });
+  }, 100);
   
   // Apply shortcut borders setting after rendering widgets
   applyShortcutBordersSetting();
@@ -2892,11 +2904,26 @@ function incrementDistractionCount(widgetId) {
     widget.data.count = (widget.data.count || 0) + 1;
     saveSettings();
     
-    // Update display
-    const widgetEl = document.querySelector(`[data-widget-id="${widgetId}"]`)?.closest('.distraction-counter-widget');
+    // Update display mit Animation
+    const widgetEl = document.getElementById(widgetId);
     const countEl = widgetEl?.querySelector('.distraction-count');
     if (countEl) {
       countEl.textContent = widget.data.count;
+      
+      // Pulse Animation
+      countEl.classList.remove('pulse', 'bounce');
+      void countEl.offsetWidth; // Trigger reflow
+      countEl.classList.add('pulse');
+      
+      // Bounce bei Milestones (10, 25, 50, 100)
+      if ([10, 25, 50, 100].includes(widget.data.count)) {
+        countEl.classList.add('bounce');
+      }
+      
+      // Animation entfernen nach Abschluss
+      setTimeout(() => {
+        countEl.classList.remove('pulse', 'bounce');
+      }, 600);
     }
   }
 }
@@ -2910,11 +2937,15 @@ function resetDistractionCount(widgetId) {
     widget.data.count = 0;
     saveSettings();
     
-    // Update display
-    const widgetEl = document.querySelector(`[data-widget-id="${widgetId}"]`)?.closest('.distraction-counter-widget');
+    // Update display mit Shake Animation
+    const widgetEl = document.getElementById(widgetId);
     const countEl = widgetEl?.querySelector('.distraction-count');
     if (countEl) {
-      countEl.textContent = '0';
+      countEl.classList.add('shake');
+      setTimeout(() => {
+        countEl.textContent = '0';
+        countEl.classList.remove('shake');
+      }, 500);
     }
   }
 }
@@ -2925,19 +2956,38 @@ function flipCoin(widgetId) {
   const widget = currentPage?.widgets.find(w => w.id === widgetId);
   
   if (widget) {
-    const result = Math.random() < 0.5 ? '🪙 Kopf' : '🪙 Zahl';
-    widget.data = widget.data || {};
-    widget.data.lastResult = result;
-    saveSettings();
-    
-    // Animate and update display
-    const widgetEl = document.querySelector(`[data-widget-id="${widgetId}"]`)?.closest('.decision-coin-widget');
+    const widgetEl = document.getElementById(widgetId);
     const resultEl = widgetEl?.querySelector('.coin-result');
-    if (resultEl) {
-      resultEl.textContent = '🪙 ...';
+    const flipBtn = widgetEl?.querySelector('.coin-flip-btn');
+    
+    if (resultEl && flipBtn) {
+      // Button deaktivieren während Animation
+      flipBtn.disabled = true;
+      
+      // Flip Animation starten
+      resultEl.classList.remove('result-reveal');
+      resultEl.classList.add('flipping');
+      resultEl.textContent = '🪙';
+      
+      // Nach Animation Ergebnis zeigen
       setTimeout(() => {
+        const result = Math.random() < 0.5 ? '🪙 Kopf' : '🪙 Zahl';
+        widget.data = widget.data || {};
+        widget.data.lastResult = result;
+        saveSettings();
+        
+        resultEl.classList.remove('flipping');
         resultEl.textContent = result;
-      }, 500);
+        resultEl.classList.add('result-reveal');
+        
+        // Button wieder aktivieren
+        flipBtn.disabled = false;
+        
+        // Glow entfernen nach Animation
+        setTimeout(() => {
+          resultEl.classList.remove('result-reveal');
+        }, 800);
+      }, 1500);
     }
   }
 }
