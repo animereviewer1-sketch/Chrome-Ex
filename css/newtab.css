@@ -680,25 +680,23 @@ body.animated-gradient {
 }
 
 /* Widget Controls (nur im Edit-Modus) */
+/* Widget Controls - VERSTECKT wenn nicht im Edit-Mode */
 .widget-controls {
   position: absolute;
   top: -10px;
   right: -10px;
-  display: none;
+  display: flex;
   gap: 5px;
   z-index: 100;
   opacity: 0;
+  pointer-events: none;
   transition: opacity 0.2s ease;
 }
 
-.widget:hover .widget-controls,
-.edit-mode .widget-controls {
-  display: flex;
+/* NUR im Edit-Mode sichtbar bei Hover */
+.edit-mode .widget:hover .widget-controls {
   opacity: 1;
-}
-
-.edit-mode .widget-controls {
-  opacity: 1;
+  pointer-events: auto;
 }
 
 .widget-control-btn {
@@ -2252,17 +2250,51 @@ body.edit-mode .shortcut-settings-btn {
   white-space: nowrap;
 }
 
+/* Lesezeichen Ordner */
 .bookmark-folder {
-  padding: 15px;
-  margin-bottom: 15px;
+  margin: 5px 0;
 }
 
 .bookmark-folder-title {
-  font-weight: 600;
-  margin-bottom: 10px;
   display: flex;
   align-items: center;
   gap: 8px;
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+  user-select: none;
+}
+
+.bookmark-folder-title:hover,
+.bookmark-folder-title:focus {
+  background: rgba(255, 255, 255, 0.1);
+  outline: none;
+}
+
+.bookmark-folder-title:focus {
+  box-shadow: 0 0 0 2px var(--primary);
+}
+
+.bookmark-folder-title .folder-arrow {
+  transition: transform 0.3s ease;
+  font-size: 0.8rem;
+}
+
+.bookmark-folder.open .bookmark-folder-title .folder-arrow {
+  transform: rotate(90deg);
+}
+
+/* Ordner-Inhalt standardmäßig versteckt */
+.bookmark-folder-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  padding-left: 20px;
+}
+
+.bookmark-folder.open .bookmark-folder-content {
+  max-height: 2000px;
 }
 
 /* ============ Scrollbar ============ */
@@ -2298,6 +2330,7 @@ body.edit-mode .shortcut-settings-btn {
   height: 20px;
   cursor: nwse-resize;
   opacity: 0;
+  pointer-events: none;
   transition: opacity 0.3s;
   display: flex;
   align-items: center;
@@ -2307,16 +2340,9 @@ body.edit-mode .shortcut-settings-btn {
   z-index: 100;
 }
 
-.widget:hover .resize-handle {
-  opacity: 1;
-}
-
-.edit-mode .resize-handle {
-  opacity: 0.5;
-}
-
 .edit-mode .widget:hover .resize-handle {
   opacity: 1;
+  pointer-events: auto;
 }
 
 /* ============ Feature: Draggable Shortcuts (2. Shortcuts verschiebbar) ============ */
@@ -2880,11 +2906,19 @@ body.edit-mode .widget:hover .widget-menu-btn {
   padding: 8px;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
-  transition: background 0.2s;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
 }
 
-.countdown-event-item:hover {
+.countdown-event-item:hover,
+.countdown-event-item:focus {
+  transform: translateX(5px);
   background: rgba(255, 255, 255, 0.1);
+  outline: none;
+}
+
+.countdown-event-item:focus {
+  box-shadow: 0 0 0 2px var(--primary);
 }
 
 .countdown-event-icon {
@@ -2950,9 +2984,65 @@ body.edit-mode .widget:hover .widget-menu-btn {
   padding: 20px;
 }
 
-/* ============ Ablenkungszähler Animationen ============ */
+/* ============ Ablenkungszähler Design & Animationen ============ */
+.distraction-counter-widget {
+  text-align: center;
+}
+
+.distraction-counter-widget h3 {
+  margin-bottom: 15px;
+  font-size: 1.2rem;
+}
+
 .distraction-counter-widget .distraction-count {
+  font-size: 4rem;
+  font-weight: bold;
+  background: linear-gradient(135deg, var(--primary), var(--secondary, #764ba2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 20px 0;
   transition: transform 0.3s ease, color 0.3s ease;
+  filter: drop-shadow(0 0 30px rgba(102, 126, 234, 0.3));
+}
+
+.distraction-counter-widget .distraction-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.distraction-counter-widget .distraction-increment-btn {
+  padding: 12px 24px;
+  font-size: 1rem;
+  background: linear-gradient(135deg, var(--primary), #764ba2);
+  border: none;
+  border-radius: 25px;
+  color: white;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.distraction-counter-widget .distraction-increment-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+}
+
+.distraction-counter-widget .distraction-reset-btn {
+  padding: 12px 24px;
+  font-size: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 25px;
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.distraction-counter-widget .distraction-reset-btn:hover {
+  background: rgba(255, 75, 75, 0.3);
+  border-color: #ff4b4b;
 }
 
 /* Pulse Animation beim Incrementieren */
@@ -2991,23 +3081,54 @@ body.edit-mode .widget:hover .widget-menu-btn {
   animation: shake 0.5s ease;
 }
 
-/* Button Hover Effekte */
-.distraction-increment-btn {
-  transition: transform 0.2s ease, background 0.2s ease;
+/* ============ Münzwurf Design & Animationen ============ */
+.decision-coin-widget {
+  text-align: center;
 }
 
-.distraction-increment-btn:hover {
-  transform: scale(1.05);
+.decision-coin-widget h3 {
+  margin-bottom: 15px;
+  font-size: 1.2rem;
 }
 
-.distraction-increment-btn:active {
-  transform: scale(0.95);
-}
-
-/* ============ Münzwurf Animationen ============ */
 .decision-coin-widget .coin-result {
+  font-size: 4rem;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 165, 0, 0.1));
+  border-radius: 50%;
+  width: 150px;
+  height: 150px;
+  margin: 20px auto;
+  border: 3px solid rgba(255, 215, 0, 0.3);
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
   transition: transform 0.3s ease;
   perspective: 1000px;
+}
+
+.decision-coin-widget .coin-flip-btn {
+  padding: 15px 40px;
+  font-size: 1.1rem;
+  background: linear-gradient(135deg, #ffd700, #ff8c00);
+  border: none;
+  border-radius: 30px;
+  color: #1a1a2e;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.decision-coin-widget .coin-flip-btn:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 10px 25px rgba(255, 215, 0, 0.5);
+}
+
+.decision-coin-widget .coin-flip-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 /* 3D Flip Animation */
@@ -3032,27 +3153,4 @@ body.edit-mode .widget:hover .widget-menu-btn {
 
 .coin-result.result-reveal {
   animation: result-glow 0.8s ease-out;
-}
-
-/* Größere Münze Darstellung */
-.decision-coin-widget .coin-result {
-  font-size: 3rem;
-  min-height: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Button Animation */
-.coin-flip-btn {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.coin-flip-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-}
-
-.coin-flip-btn:active {
-  transform: translateY(0);
 }
