@@ -2124,6 +2124,16 @@ async function openBookmarksModal() {
       const tree = await chrome.bookmarks.getTree();
       list.innerHTML = renderBookmarkTree(tree);
       
+      // Event Listener für Ordner Toggle
+      list.querySelectorAll('.bookmark-folder-title').forEach(folderTitle => {
+        folderTitle.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const folder = folderTitle.closest('.bookmark-folder');
+          folder.classList.toggle('open');
+        });
+      });
+      
+      // Event Listener für Bookmark Items
       list.querySelectorAll('.bookmark-item').forEach(item => {
         item.addEventListener('click', () => {
           window.open(item.dataset.url, '_blank');
@@ -2146,18 +2156,26 @@ function renderBookmarkTree(nodes, level = 0) {
   for (const node of nodes) {
     if (node.children) {
       if (node.title) {
-        html += `<div class="bookmark-folder">
-          <div class="bookmark-folder-title">📁 ${node.title}</div>
-          ${renderBookmarkTree(node.children, level + 1)}
-        </div>`;
+        const folderId = `folder-${node.id || Math.random().toString(36).substr(2, 9)}`;
+        html += `
+          <div class="bookmark-folder" data-folder-id="${folderId}">
+            <div class="bookmark-folder-title">
+              <span class="folder-arrow">▶</span>
+              <span>📁 ${node.title}</span>
+            </div>
+            <div class="bookmark-folder-content">
+              ${renderBookmarkTree(node.children, level + 1)}
+            </div>
+          </div>`;
       } else {
         html += renderBookmarkTree(node.children, level);
       }
     } else if (node.url) {
-      html += `<div class="bookmark-item" data-url="${node.url}">
-        <img src="${getIconFromUrl(node.url)}" class="bookmark-icon" alt="">
-        <span class="bookmark-title">${node.title || node.url}</span>
-      </div>`;
+      html += `
+        <div class="bookmark-item" data-url="${node.url}">
+          <img src="${getIconFromUrl(node.url)}" class="bookmark-icon" alt="">
+          <span class="bookmark-title">${node.title || node.url}</span>
+        </div>`;
     }
   }
   
@@ -2504,7 +2522,7 @@ function renderCountdownSection(widgetId, data) {
     <h4>📅 Kommende Events</h4>
     <div class="countdown-events-list">
       ${upcomingEvents.map(event => `
-        <div class="countdown-event-item" style="border-left: 4px solid ${event.color || '#667eea'}">
+        <div class="countdown-event-item" data-event-id="${event.id}" data-widget-id="${widgetId}" style="border-left: 4px solid ${event.color || '#667eea'}">
           <span class="countdown-event-icon">${event.icon || '📅'}</span>
           <div class="countdown-event-info">
             <div class="countdown-event-title">${event.title}</div>
@@ -3422,6 +3440,24 @@ function initEventListeners() {
       const today = new Date();
       const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
       openCalendarEventModal(calendarAddBtn.dataset.widgetId, dateStr);
+      return;
+    }
+    
+    // Countdown Event Item Click
+    const countdownEventItem = e.target.closest('.countdown-event-item');
+    if (countdownEventItem) {
+      const widgetId = countdownEventItem.dataset.widgetId;
+      const eventId = countdownEventItem.dataset.eventId;
+      
+      if (widgetId && eventId) {
+        const currentPage = settings.pages[settings.currentPage];
+        const widget = currentPage?.widgets.find(w => w.id === widgetId);
+        const event = widget?.data?.events?.find(ev => ev.id === eventId);
+        
+        if (event) {
+          openCalendarEventModal(widgetId, event.date, event.id);
+        }
+      }
       return;
     }
     
