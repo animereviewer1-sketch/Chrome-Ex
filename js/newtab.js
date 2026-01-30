@@ -1818,7 +1818,8 @@ function saveWidgetSize(widgetId, width, height) {
 function initShortcutDragDrop(widgetId, container) {
   if (!container) return;
   
-  const shortcuts = container.querySelectorAll('.shortcut-item');
+  // Make shortcut-item-wrapper draggable instead of just shortcut-item
+  const shortcuts = container.querySelectorAll('.shortcut-item-wrapper');
   
   shortcuts.forEach(item => {
     // Always draggable (not just in edit mode)
@@ -1828,10 +1829,17 @@ function initShortcutDragDrop(widgetId, container) {
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text/plain', item.dataset.index);
       item.classList.add('dragging');
+      container.classList.add('drag-over');
     });
     
     item.addEventListener('dragend', () => {
       item.classList.remove('dragging');
+      container.classList.remove('drag-over');
+      // Remove any placeholder indicators
+      const placeholder = container.querySelector('.drag-placeholder');
+      if (placeholder) {
+        placeholder.remove();
+      }
       // Speichere neue Reihenfolge
       saveShortcutOrder(widgetId, container);
     });
@@ -1853,10 +1861,36 @@ function initShortcutDragDrop(widgetId, container) {
     const dragging = container.querySelector('.dragging');
     if (!dragging) return;
     
-    const siblings = [...container.querySelectorAll('.shortcut-item:not(.dragging):not(.add-shortcut-btn)')];
-    const afterElement = siblings.find(el => {
-      const rect = el.getBoundingClientRect();
-      return e.clientX < rect.left + rect.width / 2;
+    const siblings = [...container.querySelectorAll('.shortcut-item-wrapper:not(.dragging):not(.add-shortcut-btn)')];
+    
+    // Use both clientX and clientY to determine the closest element
+    let afterElement = null;
+    let minDistance = Infinity;
+    
+    siblings.forEach(sibling => {
+      const rect = sibling.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      
+      // Calculate distance from mouse to center of element
+      const distanceX = e.clientX - centerX;
+      const distanceY = e.clientY - centerY;
+      const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+      
+      // Find the closest element that the mouse should be inserted before
+      if (distance < minDistance) {
+        minDistance = distance;
+        // Check if mouse is before this element's center
+        const isBeforeHorizontally = e.clientX < centerX;
+        const isBeforeVertically = e.clientY < centerY;
+        
+        // Insert before if mouse is before the center in either direction
+        if (isBeforeHorizontally || isBeforeVertically) {
+          afterElement = sibling;
+        } else {
+          afterElement = null;
+        }
+      }
     });
     
     if (afterElement) {
@@ -1878,7 +1912,8 @@ function saveShortcutOrder(widgetId, container) {
   const widget = currentPage?.widgets.find(w => w.id === widgetId);
   if (!widget || !widget.data?.shortcuts) return;
   
-  const items = container.querySelectorAll('.shortcut-item');
+  // Use shortcut-item-wrapper for ordering
+  const items = container.querySelectorAll('.shortcut-item-wrapper');
   const newOrder = [];
   
   items.forEach(item => {
