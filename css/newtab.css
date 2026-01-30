@@ -986,7 +986,7 @@ body.edit-mode .shortcut-settings-btn {
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 2px;
+  gap: 3px;
 }
 
 .calendar-day {
@@ -995,12 +995,13 @@ body.edit-mode .shortcut-settings-btn {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
   background: rgba(255, 255, 255, 0.02);
   transition: all 0.2s ease;
   position: relative;
-  padding: 4px;
+  padding: 2px;
+  font-size: 12px;
 }
 
 .calendar-day:not(.empty):hover {
@@ -1025,7 +1026,7 @@ body.edit-mode .shortcut-settings-btn {
 }
 
 .day-number {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text);
 }
 
@@ -2419,30 +2420,30 @@ body.edit-mode .widget:hover .widget-menu-btn {
 
 /* ============ Countdown Section Styles ============ */
 .countdown-section {
-  margin-top: 20px;
-  padding-top: 20px;
+  margin-top: 15px;
+  padding-top: 15px;
   border-top: 1px solid rgba(255, 255, 255, 0.15);
-  max-height: 300px;
+  max-height: 200px;
   overflow-y: auto;
 }
 
 .countdown-section h4 {
   color: white;
-  margin-bottom: 15px;
-  font-size: 16px;
+  margin-bottom: 10px;
+  font-size: 14px;
 }
 
 .countdown-events-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .countdown-event-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
+  gap: 10px;
+  padding: 8px;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
   transition: background 0.2s;
@@ -2453,7 +2454,7 @@ body.edit-mode .widget:hover .widget-menu-btn {
 }
 
 .countdown-event-icon {
-  font-size: 28px;
+  font-size: 24px;
   flex-shrink: 0;
 }
 
@@ -2465,12 +2466,12 @@ body.edit-mode .widget:hover .widget-menu-btn {
 .countdown-event-title {
   color: white;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .countdown-event-date {
   color: rgba(255, 255, 255, 0.6);
-  font-size: 12px;
+  font-size: 11px;
   margin-top: 2px;
 }
 

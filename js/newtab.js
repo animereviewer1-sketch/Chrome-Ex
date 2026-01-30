@@ -1872,7 +1872,8 @@ function initShortcutDragDrop(widgetId, container) {
     const siblings = [...container.querySelectorAll('.shortcut-item-wrapper:not(.dragging)')];
     const afterElement = siblings.find(el => {
       const rect = el.getBoundingClientRect();
-      return e.clientY < rect.top + rect.height / 2;
+      // Use clientX for horizontal grid layout
+      return e.clientX < rect.left + rect.width / 2;
     });
     
     if (afterElement) {
