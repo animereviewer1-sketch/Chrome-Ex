@@ -967,6 +967,7 @@ function createWidgetElement(widget) {
   if (widgetSettings.textGradientSecondary) {
     div.style.setProperty('--gradient-secondary-color1', widgetSettings.gradientSecondaryColor1 || '#f093fb');
     div.style.setProperty('--gradient-secondary-color2', widgetSettings.gradientSecondaryColor2 || '#f5576c');
+    div.style.setProperty('--gradient-secondary-direction', widgetSettings.gradientSecondaryDirection || 'to right');
   }
   
   // Fix 5-7: Icon-, Text- und Uhrzeit-Größe anwenden
@@ -1717,11 +1718,13 @@ function openWidgetSettingsModal(widgetId) {
   const textGradientSecondary = document.getElementById('widget-text-gradient-secondary');
   const gradientSecondaryColor1 = document.getElementById('widget-gradient-secondary-color1');
   const gradientSecondaryColor2 = document.getElementById('widget-gradient-secondary-color2');
+  const gradientSecondaryDirection = document.getElementById('widget-gradient-secondary-direction');
   
   if (textColorSecondary) textColorSecondary.value = widgetSettings.textColorSecondary || '#aaaaaa';
   if (textGradientSecondary) textGradientSecondary.checked = widgetSettings.textGradientSecondary || false;
   if (gradientSecondaryColor1) gradientSecondaryColor1.value = widgetSettings.gradientSecondaryColor1 || '#f093fb';
   if (gradientSecondaryColor2) gradientSecondaryColor2.value = widgetSettings.gradientSecondaryColor2 || '#f5576c';
+  if (gradientSecondaryDirection) gradientSecondaryDirection.value = widgetSettings.gradientSecondaryDirection || 'to right';
   
   // Tertiary text color
   const textColorTertiary = document.getElementById('widget-text-color-tertiary');
@@ -1828,11 +1831,13 @@ function saveWidgetSettings() {
   const textGradientSecondary = document.getElementById('widget-text-gradient-secondary');
   const gradientSecondaryColor1 = document.getElementById('widget-gradient-secondary-color1');
   const gradientSecondaryColor2 = document.getElementById('widget-gradient-secondary-color2');
+  const gradientSecondaryDirection = document.getElementById('widget-gradient-secondary-direction');
   
   if (textColorSecondary) widget.settings.textColorSecondary = textColorSecondary.value;
   if (textGradientSecondary) widget.settings.textGradientSecondary = textGradientSecondary.checked;
   if (gradientSecondaryColor1) widget.settings.gradientSecondaryColor1 = gradientSecondaryColor1.value;
   if (gradientSecondaryColor2) widget.settings.gradientSecondaryColor2 = gradientSecondaryColor2.value;
+  if (gradientSecondaryDirection) widget.settings.gradientSecondaryDirection = gradientSecondaryDirection.value;
   
   // Tertiary text color
   const textColorTertiary = document.getElementById('widget-text-color-tertiary');
@@ -2430,8 +2435,14 @@ function renderYearView(widgetId, data) {
   
   if (!grid || !title) return;
   
+  // Get widget settings for gradient support
+  const currentPage = settings.pages[settings.currentPage];
+  const widget = currentPage?.widgets.find(w => w.id === widgetId);
+  const widgetSettings = widget?.settings || {};
+  const titleClass = widgetSettings.textGradientEnabled ? 'gradient-text' : '';
+  
   // Click to go to decade view
-  title.innerHTML = `<span class="calendar-title-clickable" data-widget-id="${widgetId}" data-action="decade">${year}</span>`;
+  title.innerHTML = `<span class="calendar-title-clickable ${titleClass}" data-widget-id="${widgetId}" data-action="decade">${year}</span>`;
   
   const monthNames = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
   const today = new Date();
@@ -2460,8 +2471,14 @@ function renderDecadeView(widgetId, data) {
   
   if (!grid || !title) return;
   
+  // Get widget settings for gradient support
+  const currentPage = settings.pages[settings.currentPage];
+  const widget = currentPage?.widgets.find(w => w.id === widgetId);
+  const widgetSettings = widget?.settings || {};
+  const titleClass = widgetSettings.textGradientEnabled ? 'gradient-text' : '';
+  
   const startYear = Math.floor(year / 10) * 10;
-  title.innerHTML = `<span class="calendar-title-text">${startYear} - ${startYear + 9}</span>`;
+  title.innerHTML = `<span class="calendar-title-text ${titleClass}">${startYear} - ${startYear + 9}</span>`;
   
   const today = new Date();
   
