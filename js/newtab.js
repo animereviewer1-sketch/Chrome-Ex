@@ -945,10 +945,28 @@ function createWidgetElement(widget) {
     if (widgetSettings.positionTop !== undefined) div.style.top = `${widgetSettings.positionTop}px`;
   }
   
-  // Fix 3: Text-Farbe anwenden
-  if (widgetSettings.textColor) {
-    div.style.setProperty('--text-color', widgetSettings.textColor);
-    div.classList.add('custom-text-color');
+  // Fix 3: Text-Farbe anwenden (Old - now extended)
+  // Extended Text Color Settings
+  if (widgetSettings.textColorMain) {
+    div.style.setProperty('--text-color-main', widgetSettings.textColorMain);
+  }
+  if (widgetSettings.textColorSecondary) {
+    div.style.setProperty('--text-color-secondary', widgetSettings.textColorSecondary);
+  }
+  if (widgetSettings.textColorTertiary) {
+    div.style.setProperty('--text-color-tertiary', widgetSettings.textColorTertiary);
+  }
+  
+  // Gradient settings
+  if (widgetSettings.textGradientEnabled) {
+    div.style.setProperty('--gradient-color1', widgetSettings.gradientColor1 || '#667eea');
+    div.style.setProperty('--gradient-color2', widgetSettings.gradientColor2 || '#764ba2');
+    div.style.setProperty('--gradient-direction', widgetSettings.gradientDirection || 'to right');
+  }
+  
+  if (widgetSettings.textGradientSecondary) {
+    div.style.setProperty('--gradient-secondary-color1', widgetSettings.gradientSecondaryColor1 || '#f093fb');
+    div.style.setProperty('--gradient-secondary-color2', widgetSettings.gradientSecondaryColor2 || '#f5576c');
   }
   
   // Fix 5-7: Icon-, Text- und Uhrzeit-Größe anwenden
@@ -979,9 +997,11 @@ function createWidgetElement(widget) {
   switch (widget.type) {
     case 'clock':
       div.classList.add('clock-widget');
+      const clockTimeClass = widgetSettings.textGradientEnabled ? 'gradient-text' : '';
+      const clockDateClass = widgetSettings.textGradientSecondary ? 'gradient-text' : '';
       content.innerHTML = `
-        <div class="clock-time" id="clock-time-${widget.id}">00:00</div>
-        <div class="clock-date" id="clock-date-${widget.id}"></div>
+        <div class="clock-time ${clockTimeClass}" id="clock-time-${widget.id}">00:00</div>
+        <div class="clock-date ${clockDateClass}" id="clock-date-${widget.id}"></div>
       `;
       break;
       
@@ -1011,8 +1031,10 @@ function createWidgetElement(widget) {
       div.classList.add('notes-widget');
       const notes = widget.data?.notes || [];
       const quickNotes = widget.data?.quickNotes || [];
+      const noteTitleClass = widgetSettings.textGradientEnabled ? 'gradient-text' : '';
+      const noteItemClass = widgetSettings.textGradientSecondary ? 'gradient-text' : '';
       content.innerHTML = `
-        <h3>📝 Schnelle Notizen</h3>
+        <h3 class="${noteTitleClass}">📝 Schnelle Notizen</h3>
         <input type="text" class="notes-search-input" data-widget-id="${widget.id}" placeholder="🔍 Notizen durchsuchen...">
         <div class="quick-note-container">
           <textarea class="quick-note-input" data-widget-id="${widget.id}" placeholder="Schnelle Notizen hier eingeben..."></textarea>
@@ -1029,7 +1051,7 @@ function createWidgetElement(widget) {
         <div class="notes-list">
           ${notes.map((note, index) => `
             <div class="note-item" data-index="${index}" data-widget-id="${widget.id}">
-              <div class="note-item-title">${note.title || 'Ohne Titel'}</div>
+              <div class="note-item-title ${noteItemClass}">${note.title || 'Ohne Titel'}</div>
               <div class="note-item-preview">${note.content?.substring(0, 50) || '...'}</div>
             </div>
           `).join('')}
@@ -1040,9 +1062,10 @@ function createWidgetElement(widget) {
       
     case 'weather':
       div.classList.add('weather-widget');
+      const weatherTempClass = widgetSettings.textGradientEnabled ? 'gradient-text' : '';
       content.innerHTML = `
         <div class="weather-icon">☀️</div>
-        <div class="weather-temp">--°C</div>
+        <div class="weather-temp ${weatherTempClass}">--°C</div>
         <div class="weather-desc">Laden...</div>
         <div class="weather-location">--</div>
       `;
@@ -1675,9 +1698,44 @@ function openWidgetSettingsModal(widgetId) {
   if (hideTitle) hideTitle.checked = widgetSettings.hideTitle || false;
   if (hideLabels) hideLabels.checked = widgetSettings.hideLabels || false;
   
-  // Fix 3: Text-Farbe
-  const textColor = document.getElementById('widget-text-color');
-  if (textColor) textColor.value = widgetSettings.textColor || '#ffffff';
+  // Fix 3: Text-Farbe (Old - now replaced with extended color settings)
+  // Extended Text Color Settings
+  const textColorMain = document.getElementById('widget-text-color-main');
+  const textGradientEnabled = document.getElementById('widget-text-gradient-enabled');
+  const gradientColor1 = document.getElementById('widget-gradient-color1');
+  const gradientColor2 = document.getElementById('widget-gradient-color2');
+  const gradientDirection = document.getElementById('widget-gradient-direction');
+  
+  if (textColorMain) textColorMain.value = widgetSettings.textColorMain || '#ffffff';
+  if (textGradientEnabled) textGradientEnabled.checked = widgetSettings.textGradientEnabled || false;
+  if (gradientColor1) gradientColor1.value = widgetSettings.gradientColor1 || '#667eea';
+  if (gradientColor2) gradientColor2.value = widgetSettings.gradientColor2 || '#764ba2';
+  if (gradientDirection) gradientDirection.value = widgetSettings.gradientDirection || 'to right';
+  
+  // Secondary text color
+  const textColorSecondary = document.getElementById('widget-text-color-secondary');
+  const textGradientSecondary = document.getElementById('widget-text-gradient-secondary');
+  const gradientSecondaryColor1 = document.getElementById('widget-gradient-secondary-color1');
+  const gradientSecondaryColor2 = document.getElementById('widget-gradient-secondary-color2');
+  
+  if (textColorSecondary) textColorSecondary.value = widgetSettings.textColorSecondary || '#aaaaaa';
+  if (textGradientSecondary) textGradientSecondary.checked = widgetSettings.textGradientSecondary || false;
+  if (gradientSecondaryColor1) gradientSecondaryColor1.value = widgetSettings.gradientSecondaryColor1 || '#f093fb';
+  if (gradientSecondaryColor2) gradientSecondaryColor2.value = widgetSettings.gradientSecondaryColor2 || '#f5576c';
+  
+  // Tertiary text color
+  const textColorTertiary = document.getElementById('widget-text-color-tertiary');
+  if (textColorTertiary) textColorTertiary.value = widgetSettings.textColorTertiary || '#888888';
+  
+  // Show/hide gradient settings based on checkboxes
+  const gradientSettingsMain = document.getElementById('gradient-settings-main');
+  const gradientSettingsSecondary = document.getElementById('gradient-settings-secondary');
+  if (gradientSettingsMain) {
+    gradientSettingsMain.style.display = (widgetSettings.textGradientEnabled || false) ? 'block' : 'none';
+  }
+  if (gradientSettingsSecondary) {
+    gradientSettingsSecondary.style.display = (widgetSettings.textGradientSecondary || false) ? 'block' : 'none';
+  }
   
   // Fix 5-7: Icon-, Text- und Uhrzeit-Größe
   const iconSize = document.getElementById('widget-icon-size');
@@ -1751,9 +1809,34 @@ function saveWidgetSettings() {
   if (hideTitle) widget.settings.hideTitle = hideTitle.checked;
   if (hideLabels) widget.settings.hideLabels = hideLabels.checked;
   
-  // Fix 3: Text-Farbe
-  const textColor = document.getElementById('widget-text-color');
-  if (textColor) widget.settings.textColor = textColor.value;
+  // Fix 3: Text-Farbe (Old - now replaced with extended color settings)
+  // Extended Text Color Settings
+  const textColorMain = document.getElementById('widget-text-color-main');
+  const textGradientEnabled = document.getElementById('widget-text-gradient-enabled');
+  const gradientColor1 = document.getElementById('widget-gradient-color1');
+  const gradientColor2 = document.getElementById('widget-gradient-color2');
+  const gradientDirection = document.getElementById('widget-gradient-direction');
+  
+  if (textColorMain) widget.settings.textColorMain = textColorMain.value;
+  if (textGradientEnabled) widget.settings.textGradientEnabled = textGradientEnabled.checked;
+  if (gradientColor1) widget.settings.gradientColor1 = gradientColor1.value;
+  if (gradientColor2) widget.settings.gradientColor2 = gradientColor2.value;
+  if (gradientDirection) widget.settings.gradientDirection = gradientDirection.value;
+  
+  // Secondary text color
+  const textColorSecondary = document.getElementById('widget-text-color-secondary');
+  const textGradientSecondary = document.getElementById('widget-text-gradient-secondary');
+  const gradientSecondaryColor1 = document.getElementById('widget-gradient-secondary-color1');
+  const gradientSecondaryColor2 = document.getElementById('widget-gradient-secondary-color2');
+  
+  if (textColorSecondary) widget.settings.textColorSecondary = textColorSecondary.value;
+  if (textGradientSecondary) widget.settings.textGradientSecondary = textGradientSecondary.checked;
+  if (gradientSecondaryColor1) widget.settings.gradientSecondaryColor1 = gradientSecondaryColor1.value;
+  if (gradientSecondaryColor2) widget.settings.gradientSecondaryColor2 = gradientSecondaryColor2.value;
+  
+  // Tertiary text color
+  const textColorTertiary = document.getElementById('widget-text-color-tertiary');
+  if (textColorTertiary) widget.settings.textColorTertiary = textColorTertiary.value;
   
   // Fix 5-7: Icon-, Text- und Uhrzeit-Größe
   const iconSize = document.getElementById('widget-icon-size');
@@ -2283,10 +2366,16 @@ function renderMonthView(widgetId, data) {
   
   if (!grid || !title) return;
   
+  // Get widget settings for gradient support
+  const currentPage = settings.pages[settings.currentPage];
+  const widget = currentPage?.widgets.find(w => w.id === widgetId);
+  const widgetSettings = widget?.settings || {};
+  const titleClass = widgetSettings.textGradientEnabled ? 'gradient-text' : '';
+  
   // Update title - click to go to year view
   const monthNames = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 
                       'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
-  title.innerHTML = `<span class="calendar-title-clickable" data-widget-id="${widgetId}" data-action="year">${monthNames[month]} ${year}</span>`;
+  title.innerHTML = `<span class="calendar-title-clickable ${titleClass}" data-widget-id="${widgetId}" data-action="year">${monthNames[month]} ${year}</span>`;
   
   // Get first day of month and total days
   const firstDay = new Date(year, month, 1);
@@ -2427,6 +2516,12 @@ function renderCountdownSection(widgetId, data) {
   const container = document.getElementById(`countdown-section-${widgetId}`);
   if (!container) return;
   
+  // Get widget settings for gradient support
+  const currentPage = settings.pages[settings.currentPage];
+  const widget = currentPage?.widgets.find(w => w.id === widgetId);
+  const widgetSettings = widget?.settings || {};
+  const titleClass = widgetSettings.textGradientSecondary ? 'gradient-text' : '';
+  
   const events = data?.events || [];
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -2464,7 +2559,7 @@ function renderCountdownSection(widgetId, data) {
         <div class="countdown-event-item" style="border-left: 4px solid ${event.color || '#667eea'}">
           <span class="countdown-event-icon">${event.icon || '📅'}</span>
           <div class="countdown-event-info">
-            <div class="countdown-event-title">${event.title}</div>
+            <div class="countdown-event-title ${titleClass}">${event.title}</div>
             <div class="countdown-event-date">${formatEventDate(event.date)}</div>
           </div>
           <div class="countdown-badge ${getCountdownBadgeClass(event.daysUntil)}">
@@ -3030,6 +3125,21 @@ function initEventListeners() {
   // Schatten-Größe Slider
   document.getElementById('widget-shadow-size')?.addEventListener('input', (e) => {
     document.getElementById('widget-shadow-size-value').textContent = `${e.target.value}px`;
+  });
+  
+  // Gradient checkbox event listeners
+  document.getElementById('widget-text-gradient-enabled')?.addEventListener('change', (e) => {
+    const gradientSettings = document.getElementById('gradient-settings-main');
+    if (gradientSettings) {
+      gradientSettings.style.display = e.target.checked ? 'block' : 'none';
+    }
+  });
+  
+  document.getElementById('widget-text-gradient-secondary')?.addEventListener('change', (e) => {
+    const gradientSettings = document.getElementById('gradient-settings-secondary');
+    if (gradientSettings) {
+      gradientSettings.style.display = e.target.checked ? 'block' : 'none';
+    }
   });
   
   // Neue Feature 5: Seiten-Transparenz Slider

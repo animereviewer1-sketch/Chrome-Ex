@@ -432,6 +432,97 @@ body.animated-gradient {
   margin-top: 5px;
 }
 
+/* ============ Gradient Text Support for All Widgets ============ */
+.gradient-text {
+  background: linear-gradient(var(--gradient-direction, to right), var(--gradient-color1), var(--gradient-color2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Widget-spezifische Textfarben */
+.clock-widget .clock-time {
+  color: var(--text-color-main, inherit);
+}
+
+.clock-widget .clock-time.gradient-text {
+  background: linear-gradient(var(--gradient-direction, to right), var(--gradient-color1, #667eea), var(--gradient-color2, #764ba2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.clock-widget .clock-date {
+  color: var(--text-color-secondary, var(--text-secondary));
+}
+
+.clock-widget .clock-date.gradient-text {
+  background: linear-gradient(var(--gradient-direction, to right), var(--gradient-secondary-color1, #f093fb), var(--gradient-secondary-color2, #f5576c));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.calendar-widget .calendar-month-year {
+  color: var(--text-color-main, var(--text));
+}
+
+.calendar-widget .calendar-month-year.gradient-text {
+  background: linear-gradient(var(--gradient-direction, to right), var(--gradient-color1, #667eea), var(--gradient-color2, #764ba2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.calendar-widget .countdown-event-title {
+  color: var(--text-color-secondary, white);
+}
+
+.calendar-widget .countdown-event-title.gradient-text {
+  background: linear-gradient(var(--gradient-direction, to right), var(--gradient-secondary-color1, #f093fb), var(--gradient-secondary-color2, #f5576c));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.notes-widget h3 {
+  color: var(--text-color-main, var(--text));
+}
+
+.notes-widget h3.gradient-text {
+  background: linear-gradient(var(--gradient-direction, to right), var(--gradient-color1, #667eea), var(--gradient-color2, #764ba2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.notes-widget .note-item-title {
+  color: var(--text-color-secondary, var(--text));
+}
+
+.notes-widget .note-item-title.gradient-text {
+  background: linear-gradient(var(--gradient-direction, to right), var(--gradient-secondary-color1, #f093fb), var(--gradient-secondary-color2, #f5576c));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.shortcut-label {
+  color: var(--text-color-tertiary, var(--text-secondary));
+}
+
+.weather-widget .weather-temp {
+  color: var(--text-color-main, inherit);
+}
+
+.weather-widget .weather-temp.gradient-text {
+  background: linear-gradient(var(--gradient-direction, to right), var(--gradient-color1, #667eea), var(--gradient-color2, #764ba2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+
 /* ============ Schnellzugriff Widget (#3 Grid-Layout) ============ */
 .shortcuts-widget {
   min-width: 350px;
@@ -1968,6 +2059,41 @@ body.edit-mode .shortcut-settings-btn {
   font-size: 12px;
   color: var(--text-secondary);
 }
+
+/* Gradient settings subsection */
+.gradient-settings {
+  margin-top: 10px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.gradient-settings .setting-row {
+  margin-bottom: 8px;
+}
+
+.gradient-settings .setting-row:last-child {
+  margin-bottom: 0;
+}
+
+.gradient-settings select {
+  flex: 1;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.gradient-settings select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
 
 /* Widget custom styling */
 .widget.custom-bg {
