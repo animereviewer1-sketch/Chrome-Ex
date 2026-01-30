@@ -140,6 +140,306 @@
   --theme-gradient: linear-gradient(135deg, #0a0a1a 0%, #1a1a3a 50%, #0a0a1a 100%);
 }
 
+/* Aurora Theme */
+:root.aurora {
+  --primary: #e94560;
+  --secondary: #0f3460;
+  --bg: #1a1a2e;
+  --bg-secondary: rgba(26, 26, 46, 0.95);
+  --text: #ffffff;
+  --text-secondary: #a8a8a8;
+  --border: rgba(233, 69, 96, 0.3);
+  --accent-glow: 0 0 20px rgba(233, 69, 96, 0.5);
+  --widget-bg: rgba(26, 26, 46, 0.8);
+  --modal-bg: rgba(26, 26, 46, 0.95);
+  --theme-gradient: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+}
+
+/* Midnight Theme */
+:root.midnight {
+  --primary: #5c5cff;
+  --secondary: #1a1a40;
+  --bg: #0c0c1e;
+  --bg-secondary: rgba(12, 12, 30, 0.95);
+  --text: #ffffff;
+  --text-secondary: #9090c0;
+  --border: rgba(92, 92, 255, 0.3);
+  --accent-glow: 0 0 20px rgba(92, 92, 255, 0.5);
+  --widget-bg: rgba(12, 12, 30, 0.8);
+  --modal-bg: rgba(12, 12, 30, 0.95);
+  --theme-gradient: linear-gradient(135deg, #0c0c1e, #1a1a40, #2d2d6e);
+}
+
+/* Cherry Blossom Theme */
+:root.cherry-blossom {
+  --primary: #ff1493;
+  --secondary: #ffb7c5;
+  --bg: #ffeff4;
+  --bg-secondary: rgba(255, 239, 244, 0.95);
+  --text: #2d0a1a;
+  --text-secondary: #5c1a33;
+  --border: rgba(255, 20, 147, 0.3);
+  --accent-glow: 0 0 20px rgba(255, 20, 147, 0.3);
+  --widget-bg: rgba(255, 183, 197, 0.8);
+  --modal-bg: rgba(255, 239, 244, 0.95);
+  --theme-gradient: linear-gradient(135deg, #ffb7c5, #ff69b4, #ff1493);
+}
+
+/* Lavender Theme */
+:root.lavender {
+  --primary: #663399;
+  --secondary: #9370db;
+  --bg: #f4f0fa;
+  --bg-secondary: rgba(244, 240, 250, 0.95);
+  --text: #2d1a4a;
+  --text-secondary: #5c3a7a;
+  --border: rgba(102, 51, 153, 0.3);
+  --accent-glow: 0 0 20px rgba(147, 112, 219, 0.5);
+  --widget-bg: rgba(230, 230, 250, 0.8);
+  --modal-bg: rgba(244, 240, 250, 0.95);
+  --theme-gradient: linear-gradient(135deg, #e6e6fa, #9370db, #663399);
+}
+
+/* Mint Theme */
+:root.mint {
+  --primary: #2e8b57;
+  --secondary: #3cb371;
+  --bg: #f0fff0;
+  --bg-secondary: rgba(240, 255, 240, 0.95);
+  --text: #0d3d1d;
+  --text-secondary: #1a5d2d;
+  --border: rgba(46, 139, 87, 0.3);
+  --accent-glow: 0 0 20px rgba(60, 179, 113, 0.5);
+  --widget-bg: rgba(152, 251, 152, 0.3);
+  --modal-bg: rgba(240, 255, 240, 0.95);
+  --theme-gradient: linear-gradient(135deg, #98fb98, #3cb371, #2e8b57);
+}
+
+/* Coral Theme */
+:root.coral {
+  --primary: #dc143c;
+  --secondary: #ff6347;
+  --bg: #fff5f0;
+  --bg-secondary: rgba(255, 245, 240, 0.95);
+  --text: #3d0a0a;
+  --text-secondary: #5d1a1a;
+  --border: rgba(220, 20, 60, 0.3);
+  --accent-glow: 0 0 20px rgba(255, 99, 71, 0.5);
+  --widget-bg: rgba(255, 127, 80, 0.3);
+  --modal-bg: rgba(255, 245, 240, 0.95);
+  --theme-gradient: linear-gradient(135deg, #ff7f50, #ff6347, #dc143c);
+}
+
+/* Arctic Theme */
+:root.arctic {
+  --primary: #4169e1;
+  --secondary: #87ceeb;
+  --bg: #f0f8ff;
+  --bg-secondary: rgba(240, 248, 255, 0.95);
+  --text: #0a2d4a;
+  --text-secondary: #1a4d7a;
+  --border: rgba(65, 105, 225, 0.3);
+  --accent-glow: 0 0 20px rgba(135, 206, 235, 0.5);
+  --widget-bg: rgba(224, 255, 255, 0.8);
+  --modal-bg: rgba(240, 248, 255, 0.95);
+  --theme-gradient: linear-gradient(135deg, #e0ffff, #87ceeb, #4169e1);
+}
+
+/* Volcano Theme */
+:root.volcano {
+  --primary: #ff4500;
+  --secondary: #8b0000;
+  --bg: #1a0000;
+  --bg-secondary: rgba(26, 0, 0, 0.95);
+  --text: #ffddcc;
+  --text-secondary: #cc9988;
+  --border: rgba(255, 69, 0, 0.3);
+  --accent-glow: 0 0 30px rgba(255, 69, 0, 0.6);
+  --widget-bg: rgba(139, 0, 0, 0.3);
+  --modal-bg: rgba(26, 0, 0, 0.95);
+  --theme-gradient: linear-gradient(135deg, #1a0000, #8b0000, #ff4500);
+}
+
+/* Galaxy Theme */
+:root.galaxy {
+  --primary: #8a2be2;
+  --secondary: #4b0082;
+  --bg: #0d0221;
+  --bg-secondary: rgba(13, 2, 33, 0.95);
+  --text: #e8d8ff;
+  --text-secondary: #b89ddd;
+  --border: rgba(138, 43, 226, 0.3);
+  --accent-glow: 0 0 25px rgba(138, 43, 226, 0.6);
+  --widget-bg: rgba(13, 13, 77, 0.5);
+  --modal-bg: rgba(13, 2, 33, 0.95);
+  --theme-gradient: linear-gradient(135deg, #0d0221, #0d0d4d, #4b0082, #8a2be2);
+}
+
+/* Autumn Theme */
+:root.autumn {
+  --primary: #ff8c00;
+  --secondary: #d2691e;
+  --bg: #2d1a0d;
+  --bg-secondary: rgba(45, 26, 13, 0.95);
+  --text: #ffe4c4;
+  --text-secondary: #ddb894;
+  --border: rgba(255, 140, 0, 0.3);
+  --accent-glow: 0 0 20px rgba(255, 140, 0, 0.5);
+  --widget-bg: rgba(139, 69, 19, 0.4);
+  --modal-bg: rgba(45, 26, 13, 0.95);
+  --theme-gradient: linear-gradient(135deg, #8b4513, #d2691e, #ff8c00);
+}
+
+/* Spring Theme */
+:root.spring {
+  --primary: #32cd32;
+  --secondary: #00fa9a;
+  --bg: #f0fff0;
+  --bg-secondary: rgba(240, 255, 240, 0.95);
+  --text: #0d4d0d;
+  --text-secondary: #1a7d1a;
+  --border: rgba(50, 205, 50, 0.3);
+  --accent-glow: 0 0 20px rgba(0, 250, 154, 0.5);
+  --widget-bg: rgba(144, 238, 144, 0.4);
+  --modal-bg: rgba(240, 255, 240, 0.95);
+  --theme-gradient: linear-gradient(135deg, #90ee90, #00fa9a, #32cd32);
+}
+
+/* Winter Theme */
+:root.winter {
+  --primary: #4682b4;
+  --secondary: #b0c4de;
+  --bg: #f0f8ff;
+  --bg-secondary: rgba(240, 248, 255, 0.95);
+  --text: #1a3d5a;
+  --text-secondary: #2d5d7a;
+  --border: rgba(70, 130, 180, 0.3);
+  --accent-glow: 0 0 20px rgba(176, 196, 222, 0.5);
+  --widget-bg: rgba(176, 196, 222, 0.4);
+  --modal-bg: rgba(240, 248, 255, 0.95);
+  --theme-gradient: linear-gradient(135deg, #f0f8ff, #b0c4de, #4682b4);
+}
+
+/* Rose Gold Theme */
+:root.rose-gold {
+  --primary: #b76e79;
+  --secondary: #edc9af;
+  --bg: #fff5f0;
+  --bg-secondary: rgba(255, 245, 240, 0.95);
+  --text: #5a3a3d;
+  --text-secondary: #8a5a5d;
+  --border: rgba(183, 110, 121, 0.3);
+  --accent-glow: 0 0 20px rgba(232, 180, 184, 0.5);
+  --widget-bg: rgba(232, 180, 184, 0.5);
+  --modal-bg: rgba(255, 245, 240, 0.95);
+  --theme-gradient: linear-gradient(135deg, #b76e79, #e8b4b8, #edc9af);
+}
+
+/* Emerald Theme */
+:root.emerald {
+  --primary: #26a69a;
+  --secondary: #00695c;
+  --bg: #e0f2f1;
+  --bg-secondary: rgba(224, 242, 241, 0.95);
+  --text: #004d40;
+  --text-secondary: #00695c;
+  --border: rgba(38, 166, 154, 0.3);
+  --accent-glow: 0 0 20px rgba(38, 166, 154, 0.5);
+  --widget-bg: rgba(0, 105, 92, 0.2);
+  --modal-bg: rgba(224, 242, 241, 0.95);
+  --theme-gradient: linear-gradient(135deg, #004d40, #00695c, #26a69a);
+}
+
+/* Sapphire Theme */
+:root.sapphire {
+  --primary: #1e90ff;
+  --secondary: #0f52ba;
+  --bg: #e6f2ff;
+  --bg-secondary: rgba(230, 242, 255, 0.95);
+  --text: #082567;
+  --text-secondary: #0a3d8a;
+  --border: rgba(30, 144, 255, 0.3);
+  --accent-glow: 0 0 20px rgba(30, 144, 255, 0.5);
+  --widget-bg: rgba(15, 82, 186, 0.2);
+  --modal-bg: rgba(230, 242, 255, 0.95);
+  --theme-gradient: linear-gradient(135deg, #082567, #0f52ba, #1e90ff);
+}
+
+/* Amethyst Theme */
+:root.amethyst {
+  --primary: #9966cc;
+  --secondary: #6b3fa0;
+  --bg: #f0e6ff;
+  --bg-secondary: rgba(240, 230, 255, 0.95);
+  --text: #2e0854;
+  --text-secondary: #4a1a7a;
+  --border: rgba(153, 102, 204, 0.3);
+  --accent-glow: 0 0 20px rgba(153, 102, 204, 0.5);
+  --widget-bg: rgba(107, 63, 160, 0.2);
+  --modal-bg: rgba(240, 230, 255, 0.95);
+  --theme-gradient: linear-gradient(135deg, #2e0854, #6b3fa0, #9966cc);
+}
+
+/* Bronze Theme */
+:root.bronze {
+  --primary: #cd853f;
+  --secondary: #8b4513;
+  --bg: #fff8f0;
+  --bg-secondary: rgba(255, 248, 240, 0.95);
+  --text: #3d2914;
+  --text-secondary: #5d3a1a;
+  --border: rgba(205, 133, 63, 0.3);
+  --accent-glow: 0 0 20px rgba(205, 133, 63, 0.5);
+  --widget-bg: rgba(139, 69, 19, 0.2);
+  --modal-bg: rgba(255, 248, 240, 0.95);
+  --theme-gradient: linear-gradient(135deg, #3d2914, #8b4513, #cd853f);
+}
+
+/* Cotton Candy Theme */
+:root.cotton-candy {
+  --primary: #dda0dd;
+  --secondary: #ffb6c1;
+  --bg: #fff5fa;
+  --bg-secondary: rgba(255, 245, 250, 0.95);
+  --text: #5a2d5a;
+  --text-secondary: #8a4d7a;
+  --border: rgba(221, 160, 221, 0.3);
+  --accent-glow: 0 0 20px rgba(221, 160, 221, 0.5);
+  --widget-bg: rgba(255, 182, 193, 0.3);
+  --modal-bg: rgba(255, 245, 250, 0.95);
+  --theme-gradient: linear-gradient(135deg, #ffb6c1, #dda0dd, #87ceeb);
+}
+
+/* Matrix Theme */
+:root.matrix {
+  --primary: #00ff00;
+  --secondary: #003300;
+  --bg: #000000;
+  --bg-secondary: rgba(0, 0, 0, 0.95);
+  --text: #00ff00;
+  --text-secondary: #00cc00;
+  --border: rgba(0, 255, 0, 0.3);
+  --accent-glow: 0 0 25px rgba(0, 255, 0, 0.6);
+  --widget-bg: rgba(0, 51, 0, 0.5);
+  --modal-bg: rgba(0, 0, 0, 0.95);
+  --theme-gradient: linear-gradient(135deg, #000000, #003300, #00ff00);
+}
+
+/* Vaporwave Theme */
+:root.vaporwave {
+  --primary: #ff71ce;
+  --secondary: #01cdfe;
+  --bg: #1a0033;
+  --bg-secondary: rgba(26, 0, 51, 0.95);
+  --text: #ffffff;
+  --text-secondary: #e0d0ff;
+  --border: rgba(255, 113, 206, 0.3);
+  --accent-glow: 0 0 30px rgba(255, 113, 206, 0.6);
+  --widget-bg: rgba(26, 0, 51, 0.7);
+  --modal-bg: rgba(26, 0, 51, 0.95);
+  --theme-gradient: linear-gradient(135deg, #ff71ce, #01cdfe, #05ffa1, #b967ff);
+}
+
 /* ============ Base Styles ============ */
 * {
   margin: 0;
@@ -195,19 +495,46 @@ body.animated-gradient {
 }
 
 /* ============ Page Tabs (#16 Multi-Page Support) ============ */
+/* Page Tabs - nur bei direktem Hover sichtbar */
 .page-tabs {
   position: fixed;
   top: 20px;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateY(-20px);
   display: flex;
   gap: 10px;
-  z-index: 100;
+  z-index: 1000;
   background: var(--widget-bg);
   padding: 8px 15px;
   border-radius: 25px;
   backdrop-filter: blur(10px);
   border: 1px solid var(--border);
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+}
+
+.page-tabs:hover,
+.page-tabs.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+/* Hover-Zone für Page Tabs */
+.page-tabs-hover-zone {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  z-index: 999;
+}
+
+.page-tabs-hover-zone:hover ~ .page-tabs {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
 }
 
 .page-tab {
@@ -588,8 +915,19 @@ body.edit-mode .shortcut-settings-btn {
 }
 
 /* ============ Notes Widget (#12 schöneres Design) ============ */
+/* Notizen Widget - scrollbare Bereiche passen sich an Widget-Größe an */
 .notes-widget {
   min-width: 300px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.notes-widget .widget-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
 }
 
 .notes-widget h3 {
@@ -650,8 +988,10 @@ body.edit-mode .shortcut-settings-btn {
   flex-direction: column;
   gap: 6px;
   margin-bottom: 15px;
-  max-height: 200px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  scroll-behavior: smooth;
 }
 
 .quick-note-item {
@@ -695,8 +1035,10 @@ body.edit-mode .shortcut-settings-btn {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-height: 200px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  scroll-behavior: smooth;
 }
 
 .note-item {
@@ -761,6 +1103,33 @@ body.edit-mode .shortcut-settings-btn {
 
 .notes-search-input::placeholder {
   color: rgba(255, 255, 255, 0.5);
+}
+
+/* Schöne Scrollbar Styling für Kalender und Notizen */
+.countdown-events-list::-webkit-scrollbar,
+.quick-notes-list::-webkit-scrollbar,
+.notes-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.countdown-events-list::-webkit-scrollbar-track,
+.quick-notes-list::-webkit-scrollbar-track,
+.notes-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.countdown-events-list::-webkit-scrollbar-thumb,
+.quick-notes-list::-webkit-scrollbar-thumb,
+.notes-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.countdown-events-list::-webkit-scrollbar-thumb:hover,
+.quick-notes-list::-webkit-scrollbar-thumb:hover,
+.notes-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
 }
 
 /* ============ Weather Widget ============ */
@@ -934,9 +1303,20 @@ body.edit-mode .shortcut-settings-btn {
 }
 
 /* ============ Fix 7: Calendar Widget ============ */
+/* Kalender Widget - scrollbare Bereiche passen sich an Widget-Größe an */
 .calendar-widget {
   min-width: 320px;
   max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.calendar-widget .widget-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
 }
 
 .calendar-header {
@@ -987,6 +1367,7 @@ body.edit-mode .shortcut-settings-btn {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 3px;
+  flex-shrink: 0;
 }
 
 .calendar-day {
@@ -1171,8 +1552,19 @@ body.edit-mode .shortcut-settings-btn {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
+/* Settings Button - nur bei direktem Hover sichtbar */
 .settings-btn {
   right: 30px;
+  opacity: 0;
+  transform: translateX(20px);
+  pointer-events: none;
+}
+
+.settings-btn:hover,
+.settings-btn.visible {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
 }
 
 .edit-mode-btn {
@@ -1207,6 +1599,23 @@ body.edit-mode .shortcut-settings-btn {
   transform: translateX(0);
   background: var(--primary);
   color: white;
+}
+
+/* Hover-Zone für Settings Button */
+.settings-hover-zone {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  width: 100px;
+  height: 150px;
+  z-index: 999;
+}
+
+.settings-hover-zone:hover ~ .settings-btn,
+.settings-hover-zone:hover ~ .edit-mode-btn {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
 }
 
 /* Edit-Modus Only Elements (#2) */
@@ -2423,8 +2832,10 @@ body.edit-mode .widget:hover .widget-menu-btn {
   margin-top: 15px;
   padding-top: 15px;
   border-top: 1px solid rgba(255, 255, 255, 0.15);
-  max-height: 200px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  scroll-behavior: smooth;
 }
 
 .countdown-section h4 {
@@ -2437,6 +2848,8 @@ body.edit-mode .widget:hover .widget-menu-btn {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  overflow-y: auto;
+  max-height: 100%;
 }
 
 .countdown-event-item {

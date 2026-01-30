@@ -88,6 +88,7 @@ const DEFAULT_SETTINGS = {
 };
 
 const THEMES = [
+  // Bestehende 8 Themes
   { id: 'dark-mode', name: 'Dark Mode', preview: 'linear-gradient(135deg, #0a0a1a, #1a1a3a)' },
   { id: 'cyberpunk', name: 'Cyberpunk', preview: 'linear-gradient(135deg, #1a0033, #ff00ff)' },
   { id: 'pastel', name: 'Pastel', preview: 'linear-gradient(135deg, #ffb3d9, #b3d9ff)' },
@@ -95,7 +96,29 @@ const THEMES = [
   { id: 'ocean', name: 'Ocean', preview: 'linear-gradient(135deg, #001f3f, #00a8cc)' },
   { id: 'forest', name: 'Forest', preview: 'linear-gradient(135deg, #0d1f0d, #228b22)' },
   { id: 'sunset', name: 'Sunset', preview: 'linear-gradient(135deg, #2d1b2d, #ff6b35)' },
-  { id: 'neon', name: 'Neon', preview: 'linear-gradient(135deg, #0a0a0a, #39ff14)' }
+  { id: 'neon', name: 'Neon', preview: 'linear-gradient(135deg, #0a0a0a, #39ff14)' },
+  
+  // 20 neue Themes
+  { id: 'aurora', name: 'Aurora', preview: 'linear-gradient(135deg, #1a1a2e, #16213e, #0f3460, #e94560)' },
+  { id: 'midnight', name: 'Midnight', preview: 'linear-gradient(135deg, #0c0c1e, #1a1a40, #2d2d6e)' },
+  { id: 'cherry-blossom', name: 'Cherry Blossom', preview: 'linear-gradient(135deg, #ffb7c5, #ff69b4, #ff1493)' },
+  { id: 'lavender', name: 'Lavender', preview: 'linear-gradient(135deg, #e6e6fa, #9370db, #663399)' },
+  { id: 'mint', name: 'Mint', preview: 'linear-gradient(135deg, #98fb98, #3cb371, #2e8b57)' },
+  { id: 'coral', name: 'Coral', preview: 'linear-gradient(135deg, #ff7f50, #ff6347, #dc143c)' },
+  { id: 'arctic', name: 'Arctic', preview: 'linear-gradient(135deg, #e0ffff, #87ceeb, #4169e1)' },
+  { id: 'volcano', name: 'Volcano', preview: 'linear-gradient(135deg, #1a0000, #8b0000, #ff4500)' },
+  { id: 'galaxy', name: 'Galaxy', preview: 'linear-gradient(135deg, #0d0221, #0d0d4d, #4b0082, #8a2be2)' },
+  { id: 'autumn', name: 'Autumn', preview: 'linear-gradient(135deg, #8b4513, #d2691e, #ff8c00)' },
+  { id: 'spring', name: 'Spring', preview: 'linear-gradient(135deg, #90ee90, #00fa9a, #32cd32)' },
+  { id: 'winter', name: 'Winter', preview: 'linear-gradient(135deg, #f0f8ff, #b0c4de, #4682b4)' },
+  { id: 'rose-gold', name: 'Rose Gold', preview: 'linear-gradient(135deg, #b76e79, #e8b4b8, #edc9af)' },
+  { id: 'emerald', name: 'Emerald', preview: 'linear-gradient(135deg, #004d40, #00695c, #26a69a)' },
+  { id: 'sapphire', name: 'Sapphire', preview: 'linear-gradient(135deg, #082567, #0f52ba, #1e90ff)' },
+  { id: 'amethyst', name: 'Amethyst', preview: 'linear-gradient(135deg, #2e0854, #6b3fa0, #9966cc)' },
+  { id: 'bronze', name: 'Bronze', preview: 'linear-gradient(135deg, #3d2914, #8b4513, #cd853f)' },
+  { id: 'cotton-candy', name: 'Cotton Candy', preview: 'linear-gradient(135deg, #ffb6c1, #dda0dd, #87ceeb)' },
+  { id: 'matrix', name: 'Matrix', preview: 'linear-gradient(135deg, #000000, #003300, #00ff00)' },
+  { id: 'vaporwave', name: 'Vaporwave', preview: 'linear-gradient(135deg, #ff71ce, #01cdfe, #05ffa1, #b967ff)' }
 ];
 
 const FONTS = [
