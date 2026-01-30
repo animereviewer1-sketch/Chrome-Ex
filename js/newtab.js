@@ -201,12 +201,28 @@ function updateEditModeUI() {
   if (toggle) {
     toggle.checked = settings.editMode;
   }
+  
+  // Update Edit Mode Button
+  updateEditModeButtonState();
+}
+
+function updateEditModeButtonState() {
+  const editBtn = document.getElementById('edit-mode-btn');
+  if (editBtn) {
+    if (settings.editMode) {
+      editBtn.classList.add('active');
+    } else {
+      editBtn.classList.remove('active');
+    }
+  }
 }
 
 function toggleEditMode() {
   settings.editMode = !settings.editMode;
   saveSettings();
   updateEditModeUI();
+  // Re-initialize drag drop for all shortcut widgets when edit mode changes
+  renderWidgets();
 }
 
 // ============ Shortcut Borders Setting ============
@@ -947,7 +963,8 @@ function createWidgetElement(widget) {
   
   // Fix 3: Text-Farbe anwenden
   if (widgetSettings.textColor) {
-    div.style.setProperty('--text-color', widgetSettings.textColor);
+    div.style.setProperty('--text-color-main', widgetSettings.textColor);
+    div.style.setProperty('--text-color-secondary', widgetSettings.textColor);
     div.classList.add('custom-text-color');
   }
   
@@ -1818,51 +1835,50 @@ function saveWidgetSize(widgetId, width, height) {
 function initShortcutDragDrop(widgetId, container) {
   if (!container) return;
   
-  const shortcuts = container.querySelectorAll('.shortcut-item');
+  const wrappers = container.querySelectorAll('.shortcut-item-wrapper');
   
-  shortcuts.forEach(item => {
-    // Always draggable (not just in edit mode)
-    item.draggable = true;
+  wrappers.forEach(wrapper => {
+    // Draggable nur im Edit-Mode
+    const updateDraggable = () => {
+      wrapper.draggable = settings.editMode;
+    };
+    updateDraggable();
     
-    item.addEventListener('dragstart', (e) => {
+    wrapper.addEventListener('dragstart', (e) => {
+      if (!settings.editMode) {
+        e.preventDefault();
+        return;
+      }
       e.dataTransfer.effectAllowed = 'move';
-      e.dataTransfer.setData('text/plain', item.dataset.index);
-      item.classList.add('dragging');
+      e.dataTransfer.setData('text/plain', wrapper.dataset.index);
+      wrapper.classList.add('dragging');
     });
     
-    item.addEventListener('dragend', () => {
-      item.classList.remove('dragging');
-      // Speichere neue Reihenfolge
+    wrapper.addEventListener('dragend', () => {
+      wrapper.classList.remove('dragging');
       saveShortcutOrder(widgetId, container);
     });
   });
   
-  // Throttle-Variable für dragover Performance
-  let lastDragoverTime = 0;
-  const DRAGOVER_THROTTLE_MS = 50;
-  
+  // Dragover Handler für Container
   container.addEventListener('dragover', (e) => {
+    if (!settings.editMode) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
-    
-    // Throttle: Nur alle 50ms die DOM-Manipulation durchführen
-    const now = Date.now();
-    if (now - lastDragoverTime < DRAGOVER_THROTTLE_MS) return;
-    lastDragoverTime = now;
     
     const dragging = container.querySelector('.dragging');
     if (!dragging) return;
     
-    const siblings = [...container.querySelectorAll('.shortcut-item:not(.dragging):not(.add-shortcut-btn)')];
+    const siblings = [...container.querySelectorAll('.shortcut-item-wrapper:not(.dragging)')];
     const afterElement = siblings.find(el => {
       const rect = el.getBoundingClientRect();
+      // Use clientX for horizontal grid layout
       return e.clientX < rect.left + rect.width / 2;
     });
     
     if (afterElement) {
       container.insertBefore(dragging, afterElement);
     } else {
-      // Vor den Add-Button einfügen, falls vorhanden
       const addBtn = container.querySelector('.add-shortcut-btn');
       if (addBtn) {
         container.insertBefore(dragging, addBtn);
@@ -1878,11 +1894,11 @@ function saveShortcutOrder(widgetId, container) {
   const widget = currentPage?.widgets.find(w => w.id === widgetId);
   if (!widget || !widget.data?.shortcuts) return;
   
-  const items = container.querySelectorAll('.shortcut-item');
+  const wrappers = container.querySelectorAll('.shortcut-item-wrapper');
   const newOrder = [];
   
-  items.forEach(item => {
-    const index = parseInt(item.dataset.index);
+  wrappers.forEach(wrapper => {
+    const index = parseInt(wrapper.dataset.index);
     if (!isNaN(index) && widget.data.shortcuts[index]) {
       newOrder.push(widget.data.shortcuts[index]);
     }
@@ -1890,7 +1906,7 @@ function saveShortcutOrder(widgetId, container) {
   
   widget.data.shortcuts = newOrder;
   saveSettings();
-  renderWidgets(); // Neu rendern um die Indizes zu aktualisieren
+  renderWidgets();
 }
 
 // ============ Feature #3 & #7: Shortcuts ============
@@ -2907,6 +2923,11 @@ function flipCoin(widgetId) {
 function initEventListeners() {
   // Settings Button
   document.getElementById('settings-btn')?.addEventListener('click', openSettingsModal);
+  
+  // Edit Mode Button
+  document.getElementById('edit-mode-btn')?.addEventListener('click', () => {
+    toggleEditMode();
+  });
   
   // Add Widget Button
   document.getElementById('add-widget-btn')?.addEventListener('click', openWidgetModal);
