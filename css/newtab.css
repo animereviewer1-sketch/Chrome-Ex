@@ -1325,7 +1325,6 @@ body.edit-mode .shortcut-settings-btn {
   display: flex;
   flex-direction: column;
   height: 100%;
-  overflow: hidden;
 }
 
 .calendar-header {
