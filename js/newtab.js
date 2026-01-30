@@ -2126,10 +2126,19 @@ async function openBookmarksModal() {
       
       // Event Listener für Ordner Toggle
       list.querySelectorAll('.bookmark-folder-title').forEach(folderTitle => {
-        folderTitle.addEventListener('click', (e) => {
+        const toggleFolder = (e) => {
           e.stopPropagation();
           const folder = folderTitle.closest('.bookmark-folder');
-          folder.classList.toggle('open');
+          const isOpen = folder.classList.toggle('open');
+          folderTitle.setAttribute('aria-expanded', isOpen);
+        };
+        
+        folderTitle.addEventListener('click', toggleFolder);
+        folderTitle.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggleFolder(e);
+          }
         });
       });
       
@@ -2159,7 +2168,7 @@ function renderBookmarkTree(nodes, level = 0) {
         const folderId = `folder-${node.id || Math.random().toString(36).substr(2, 9)}`;
         html += `
           <div class="bookmark-folder" data-folder-id="${folderId}">
-            <div class="bookmark-folder-title">
+            <div class="bookmark-folder-title" role="button" tabindex="0" aria-expanded="false">
               <span class="folder-arrow">▶</span>
               <span>📁 ${node.title}</span>
             </div>
@@ -2522,7 +2531,7 @@ function renderCountdownSection(widgetId, data) {
     <h4>📅 Kommende Events</h4>
     <div class="countdown-events-list">
       ${upcomingEvents.map(event => `
-        <div class="countdown-event-item" data-event-id="${event.id}" data-widget-id="${widgetId}" style="border-left: 4px solid ${event.color || '#667eea'}">
+        <div class="countdown-event-item" role="button" tabindex="0" data-event-id="${event.id}" data-widget-id="${widgetId}" style="border-left: 4px solid ${event.color || '#667eea'}">
           <span class="countdown-event-icon">${event.icon || '📅'}</span>
           <div class="countdown-event-info">
             <div class="countdown-event-title">${event.title}</div>
@@ -3495,6 +3504,24 @@ function initEventListeners() {
     if (e.target.classList.contains('quick-note-input') && e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       addQuickNote(e.target.dataset.widgetId);
+    }
+    
+    // Keyboard support for countdown events
+    const countdownEventItem = e.target.closest('.countdown-event-item');
+    if (countdownEventItem && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      const widgetId = countdownEventItem.dataset.widgetId;
+      const eventId = countdownEventItem.dataset.eventId;
+      
+      if (widgetId && eventId) {
+        const currentPage = settings.pages[settings.currentPage];
+        const widget = currentPage?.widgets.find(w => w.id === widgetId);
+        const event = widget?.data?.events?.find(ev => ev.id === eventId);
+        
+        if (event) {
+          openCalendarEventModal(widgetId, event.date, event.id);
+        }
+      }
     }
   });
   

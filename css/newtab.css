@@ -2266,8 +2266,14 @@ body.edit-mode .shortcut-settings-btn {
   user-select: none;
 }
 
-.bookmark-folder-title:hover {
+.bookmark-folder-title:hover,
+.bookmark-folder-title:focus {
   background: rgba(255, 255, 255, 0.1);
+  outline: none;
+}
+
+.bookmark-folder-title:focus {
+  box-shadow: 0 0 0 2px var(--primary);
 }
 
 .bookmark-folder-title .folder-arrow {
@@ -2904,9 +2910,15 @@ body.edit-mode .widget:hover .widget-menu-btn {
   transition: transform 0.2s ease, background 0.2s ease;
 }
 
-.countdown-event-item:hover {
+.countdown-event-item:hover,
+.countdown-event-item:focus {
   transform: translateX(5px);
   background: rgba(255, 255, 255, 0.1);
+  outline: none;
+}
+
+.countdown-event-item:focus {
+  box-shadow: 0 0 0 2px var(--primary);
 }
 
 .countdown-event-icon {
@@ -2990,8 +3002,8 @@ body.edit-mode .widget:hover .widget-menu-btn {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   margin: 20px 0;
-  text-shadow: 0 0 30px rgba(102, 126, 234, 0.3);
   transition: transform 0.3s ease, color 0.3s ease;
+  filter: drop-shadow(0 0 30px rgba(102, 126, 234, 0.3));
 }
 
 .distraction-counter-widget .distraction-buttons {
