@@ -1821,10 +1821,15 @@ function initShortcutDragDrop(widgetId, container) {
   const shortcuts = container.querySelectorAll('.shortcut-item');
   
   shortcuts.forEach(item => {
-    // Always draggable (not just in edit mode)
-    item.draggable = true;
+    // Nur im Edit-Mode draggable
+    item.draggable = settings.editMode;
     
     item.addEventListener('dragstart', (e) => {
+      // Nur im Edit-Mode erlauben
+      if (!settings.editMode) {
+        e.preventDefault();
+        return;
+      }
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text/plain', item.dataset.index);
       item.classList.add('dragging');
@@ -1842,6 +1847,9 @@ function initShortcutDragDrop(widgetId, container) {
   const DRAGOVER_THROTTLE_MS = 50;
   
   container.addEventListener('dragover', (e) => {
+    // Nur im Edit-Mode erlauben
+    if (!settings.editMode) return;
+    
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     

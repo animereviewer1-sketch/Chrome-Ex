@@ -208,6 +208,15 @@ body.animated-gradient {
   border-radius: 25px;
   backdrop-filter: blur(10px);
   border: 1px solid var(--border);
+  /* Only show on direct hover */
+  opacity: 0;
+  transform: translate(-50%, -20px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.page-tabs:hover {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }
 
 .page-tab {
@@ -937,6 +946,9 @@ body.edit-mode .shortcut-settings-btn {
 .calendar-widget {
   min-width: 320px;
   max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  min-height: 400px;
 }
 
 .calendar-header {
@@ -1158,7 +1170,6 @@ body.edit-mode .shortcut-settings-btn {
   font-size: 24px;
   cursor: pointer;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  transition: transform 0.3s, box-shadow 0.3s;
   z-index: 1000;
 }
 
@@ -1168,10 +1179,30 @@ body.edit-mode .shortcut-settings-btn {
 
 .settings-btn {
   right: 30px;
+  /* Only show on direct hover */
+  opacity: 0;
+  transform: translateX(20px);
+  transition: opacity 0.3s ease, transform 0.3s ease, box-shadow 0.3s;
 }
 
-.add-widget-btn:hover,
+/* Hover-Zone um den Settings Button herum */
+.settings-btn::before {
+  content: '';
+  position: absolute;
+  top: -20px;
+  left: -40px;
+  right: -10px;
+  bottom: -10px;
+  z-index: -1;
+}
+
 .settings-btn:hover {
+  opacity: 1;
+  transform: translateX(0);
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.4);
+}
+
+.add-widget-btn:hover {
   transform: scale(1.1);
   box-shadow: 0 6px 30px rgba(0, 0, 0, 0.4);
 }
@@ -2362,6 +2393,9 @@ body.edit-mode .widget:hover .widget-menu-btn {
   margin-top: 20px;
   padding-top: 20px;
   border-top: 1px solid rgba(255, 255, 255, 0.15);
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
 }
 
 .countdown-section h4 {
@@ -2374,6 +2408,8 @@ body.edit-mode .widget:hover .widget-menu-btn {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  flex: 1;
+  min-height: 0;
 }
 
 .countdown-event-item {
