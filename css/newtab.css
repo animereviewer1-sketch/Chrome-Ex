@@ -199,7 +199,7 @@ body.animated-gradient {
   position: fixed;
   top: 20px;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateY(-20px);
   display: flex;
   gap: 10px;
   z-index: 100;
@@ -208,6 +208,15 @@ body.animated-gradient {
   border-radius: 25px;
   backdrop-filter: blur(10px);
   border: 1px solid var(--border);
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Show page-tabs on body hover */
+body:hover .page-tabs,
+.page-tabs:hover {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 
 .page-tab {
@@ -1168,12 +1177,23 @@ body.edit-mode .shortcut-settings-btn {
 
 .settings-btn {
   right: 30px;
+  opacity: 0;
+  transform: translateX(20px);
+  transition: opacity 0.3s ease, transform 0.3s ease, box-shadow 0.3s;
 }
 
 .add-widget-btn:hover,
 .settings-btn:hover {
-  transform: scale(1.1);
+  transform: scale(1.1) translateX(0);
   box-shadow: 0 6px 30px rgba(0, 0, 0, 0.4);
+}
+
+/* Show settings button on body hover */
+body:hover .settings-btn,
+.settings-btn:hover,
+.settings-btn:focus {
+  opacity: 1;
+  transform: translateX(0);
 }
 
 /* Edit-Modus Only Elements (#2) */
@@ -1854,16 +1874,19 @@ body.edit-mode .shortcut-settings-btn {
 }
 
 /* ============ Feature: Draggable Shortcuts (2. Shortcuts verschiebbar) ============ */
-.shortcut-item.dragging {
+.shortcut-item.dragging,
+.shortcut-item-wrapper.dragging {
   opacity: 0.5;
   transform: scale(1.05);
 }
 
-.shortcut-item[draggable="true"] {
+.shortcut-item[draggable="true"],
+.shortcut-item-wrapper[draggable="true"] {
   cursor: grab;
 }
 
-.shortcut-item[draggable="true"]:active {
+.shortcut-item[draggable="true"]:active,
+.shortcut-item-wrapper[draggable="true"]:active {
   cursor: grabbing;
 }
 
@@ -2362,6 +2385,9 @@ body.edit-mode .widget:hover .widget-menu-btn {
   margin-top: 20px;
   padding-top: 20px;
   border-top: 1px solid rgba(255, 255, 255, 0.15);
+  max-height: 200px;
+  overflow-y: auto;
+  scroll-behavior: smooth;
 }
 
 .countdown-section h4 {
@@ -2374,6 +2400,8 @@ body.edit-mode .widget:hover .widget-menu-btn {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  max-height: 150px;
+  overflow-y: auto;
 }
 
 .countdown-event-item {
