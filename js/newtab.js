@@ -1825,12 +1825,6 @@ function initShortcutDragDrop(widgetId, container) {
     // Always draggable (not just in edit mode)
     item.draggable = true;
     
-    // Make the inner shortcut-item also draggable for compatibility
-    const shortcutItem = item.querySelector('.shortcut-item');
-    if (shortcutItem) {
-      shortcutItem.draggable = true;
-    }
-    
     item.addEventListener('dragstart', (e) => {
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text/plain', item.dataset.index);
@@ -1883,13 +1877,19 @@ function initShortcutDragDrop(widgetId, container) {
       const distanceY = e.clientY - centerY;
       const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
       
-      // Check if mouse is before this element (left or above)
-      const isBeforeHorizontally = e.clientX < centerX;
-      const isBeforeVertically = e.clientY < centerY;
-      
-      if (distance < minDistance && (isBeforeHorizontally || isBeforeVertically)) {
+      // Find the closest element that the mouse should be inserted before
+      if (distance < minDistance) {
         minDistance = distance;
-        afterElement = sibling;
+        // Check if mouse is before this element's center
+        const isBeforeHorizontally = e.clientX < centerX;
+        const isBeforeVertically = e.clientY < centerY;
+        
+        // Insert before if mouse is before the center in either direction
+        if (isBeforeHorizontally || isBeforeVertically) {
+          afterElement = sibling;
+        } else {
+          afterElement = null;
+        }
       }
     });
     
